@@ -1,0 +1,305 @@
+19. to find average of two numbers
+psuedo :
+ input num1
+ input num2
+ sum = num1+num2
+ average=sum/2
+ Print average
+
+psuedo :routine
+   Function FindAverage(num1,num2)
+   sum=num1+num2
+   average=sum/2
+   Return average
+
+psuedo :routine test
+   Procedure TestFindAverage()
+     input num1
+     input num2
+     average= Findaverage(num1,num2)
+     Print average
+     
+20. To find cube of a number
+
+ psuedo :
+     input num
+     cube = num*num*um
+     Print num
+psuedo :routine 
+     Function FindCube(num)
+       cube=num*num*num
+       Return cube
+psuedo :routine test
+    Procedure TestFindCube()
+      input num
+      cube=FindCube(num)
+      Print cube
+15. to find square of the number
+
+   psuedo :
+       input num
+       square=num*num
+       Print num
+  psuedo :routine 
+      Function FindSquare(num)
+         square=num*num
+         Return num
+         
+  psuedo :routine test
+      Procedure TestFindSquare()
+        input num
+        square=FindSquare(num)
+        Print square
+     
+9. swap two numbers. Minnu
+    psuedo :
+       input num1
+       input num2
+       input temp
+       temp=num1
+       num1=num2
+       num2=temp
+       Print num1,num2
+       
+ 
+   psuedo :routine 
+       Function FindSwap(num1,num2)
+           temp=num1
+           num1=num2
+           num2=temp
+           Print num1,num2
+           
+   psuedo :routine test
+       Procedure TestFindSwap()
+          input num1
+          input num2
+          FindSwap(num1,num2)
+
+28.to check nubmer is divisible by 3    
+    psuedo :
+        input num
+        if num%3==0
+           Print Divisible by 3
+        else
+           Print Not divisible by 3
+  Psuedo :routine
+       Function IsDivisible(num)
+          if(num%3)==0
+              return True
+          else 
+              return False
+  Psuedo :routine test
+       Function TestIsDivisible()
+          input num
+          if IsDivisible(num)
+             Print "Divisible by 3"
+          else
+             Print"Not Divisible"
+
+11.number is divisible by 27
+
+pseudo: routine 
+    function IsDivisibleBy27(num)
+        if num % 27 == 0
+            return True 
+        else 
+            return False 
+
+
+pseudo: routine test 
+    function TestIsDivisibleBy27()
+        input num 
+        if IsDivisibleBy27(num)
+            print "Divisible By 27"
+        else 
+            print "Not Divisible By 27"
+
+
+14. to print N natural numbers
+pseudo: routine 
+    Function PrintNaturalNumbers(n)
+       input n
+       for i from 1 to n
+         print i
+       end For
+
+pseudo: routine test 
+    Procedure TestPrintNaturalNumbers()
+        input num 
+        PrintNaturalNumbers(n)
+            
+1.to check a number palindrome
+
+psuedo : routine
+    Funtion IsPalindrome(num)
+       set temp=num
+       set reverse=0
+       while(num!=0)
+          remainder=num%10
+          reverse=reverse*10+remainder
+          num=num/10
+      end while
+      if temp==reverse
+          print palindrome
+      else 
+          print not palindrome
+ 
+psuedo : routine test
+     Procedure TestIsPalindrome()
+        input num
+        if IsPalindrome(num)
+           print"is Palindrome"
+        else
+           print"not Palindrome"
+
+2. to check a number amstrong
+psuedo : routine
+    Funtion IsArmstrong(num)
+       set temp=num
+       set sum=0
+       while(num>0)
+          rem=num%10
+          sum=sum+(rem*rem*rem)
+          num=num/10
+      end while
+      if temp==sum
+          return True
+      else  
+          return False
+psuedo : routine test
+       Function TestIsArmstrong()
+         input num
+         if IsArmstrong(num)
+            print"is Armstrong"
+        else
+           print"not Armstrong"
+   
+3. to check a number prime
+ psuedo : routine
+       Function IsPrime(num)
+         if num<=1
+           return False
+         for i from 2 to sqrt(num)
+            if num % i==0
+              return False
+         return true
+            
+ psuedo : routine test
+       Funtion TestIsPrime()
+          input num
+          if IsPrime(num)    
+            print"is prime"
+          else
+            print"not prime"
+      
+7. to check a number perfect number
+  psuedo : routine
+        Function IsPerfect(num)
+           set sum=0
+           for i from 1 to num
+               if num % i == 0
+                 sum=sum+i
+           return sum==num
+      
+   psuedo : routine test
+         input num
+         result=IsPerfet(num)  
+         if result
+            print"Perfect"
+         else 
+            print"not perfect"   
+
+17. to check number is odd or even
+
+ psuedo : routine
+        Function IsOddEven(num)
+          if num % 2 == 0
+            print"Even"
+          else
+            print"Odd"
+ psuedo : routine test
+        Procedure TestOddEven()
+            input num
+            IsOddEven(num)
+            
+ 18.To check a leapyer
+psuedo : routine
+       Function IsLeapyear(year)
+            if year %100 == 0
+               if year % 400 ==0
+                  return True
+               return False
+            else if year % 4 == 0
+               return true
+            return False
+        
+psuedo : routine test
+       Function TestIsLeapyear()
+            input year
+            if IsLeapyear(year)
+              print"Is leap year"
+            else
+              Print "is not leap year"      
+21.to check a number perfect square or not
+ psuedo : routine
+
+       Function IsPerfectSquare(n)
+            if ceil((double)sqrt(n))==floor((double)sqrt(n))
+                 return True
+            else
+                 return False
+ psuedo : routine test
+      Funtion TestPerfectSquare()
+            input n
+            if IsPerfectSquare(n)
+              print"perfect square"
+            else
+              print" not perfect square"
+
+5.Reverse the number
+ psuedo : routine
+      function FindReverse(num)
+           temp=num
+           set rev=0
+          while temp > 0
+           rem=temp%10
+           rev=rev*10+rem
+           temp=temp/10
+          end while
+          return reverse
+  
+psuedo : routine test
+      procedure TestFindReverse()
+          input num
+          if FindReverse(num)
+            print(num)
+6.Factorial of the number
+       function FindFactorial(num)
+          set fact =1
+          for i from 1 to n
+             fact = fact * i
+          return fact
+psuedo : routine test
+       procedure TestFindFactorial(num)
+          input num
+          fact= FindFactorial(num)
+          print(fact)
+
+4. Fibonacci
+psuedo : routine
+
+        function PrintFibonacci(limit)
+           num1=0
+           num2=1
+           print num1
+           for i from 2 to limit
+                print num2
+                num3 = num1 + num2              
+                num1 = num2
+                num2= num3
+ psuedo : routine test
+         procedure TestPrintFibonacci()
+         input limit
+         PrintFibonacci(limit)
+
+       
