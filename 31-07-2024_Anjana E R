@@ -1,0 +1,104 @@
+1. To print the one is adult based his/her age 
+   Note: Dont print if not adult
+    function IsAdult(age) -> boolean 
+        isAdult = (age >= 18);
+        return isAdult; 
+
+    function TestIsAdult(): -> None
+        Input age 
+        if(IsAdult(age)) 
+            print 'You are an adult.'
+        end if
+
+if..else :
+
+5. To print the is adult or not based his/her age. 
+function TestIsAdultNotAdult(): -> None
+        Input age 
+        if(IsAdult(age)) 
+            print 'You are an adult.'
+        else 
+            print 'You are not an adult.'
+        end if
+
+6.
+   Input mark
+   if IsMarkGreaterThan40(mark) 
+     print pass
+  else fail  
+  
+
+function IsMarkGreaterThan40(mark): -> boolean
+    isMarkGreaterThan40 = (mark > 40)
+    return isMarkGreaterThan40
+
+function TestIsMarkGreaterThan40(): -> None
+    Input mark 
+    if IsMarkGreaterThan40(mark)
+        print "pass" 
+    else 
+        print "fail" 
+7.  Input number, check it is positive or negative 
+
+      function IsPositiveOrNegative(num)
+          isPositiveOrNegative = (num > 0)
+          return IsPositiveOrNegative
+
+      function TestIsPositiveOrNegative()
+         input num
+         if IsPositiveOrNegative(num)
+            print "positive"
+        else
+          print "negative"
+ 
+8.   input doctorSalary/month, 
+    check if is 6 digit salary or not 
+
+    function IsSixdigitSalaryOrNot(salary)
+       isSixdigitSalaryOrNot = (salary>=100000 && salary<=999999)
+       return IsSixdigitSalaryOrNot
+
+      function IsSixdigitSalaryOrNot() 
+        input salary
+        if IsSixdigitSalaryOrNot(salary)
+           print " Doctorssalary is 6 digit "
+        else
+           print " salary is not 6 digit " 
+   
+9.  check tumour 
+                is cancerous if  malignant 
+                or not cancerous if benign
+            Note: tumour is string of text either malignant or benign
+            
+   function IsCancerous(tumour->string)
+       isCancerous = (tumour == "malignant")
+       return IsCancerous
+
+   function IsCancerous()
+      input tumour
+      if IsCancerous(tumour)
+        print "malignant"
+      else 
+        print "benign"
+        
+10.else.if
+    To check the person adult, teenager or child 
+    for given age 
+    function IsAdult(age) -> boolean 
+        isAdult = (age >= 18)
+        return isAdult 
+    function IsTeenager(age) -> boolean 
+        isTeenager = (age >= 13)
+        return isTeenager; 
+        
+    function TestIsAdultTeenagerOrChild(): -> None
+        Input age 
+        if(IsAdult(age)) 
+            print 'You are an adult.'
+        else if(IsTeenager(age)) 
+            print 'You are a teenager.'
+        else
+            print 'You are a child.'
+        end if
+        
+
