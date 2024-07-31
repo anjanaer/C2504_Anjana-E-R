@@ -1,0 +1,104 @@
+1. pseudocode for calculating the total cost of items in a shopping cart, including applying a discount if the total exceeds a certain amount.
+
+   int totalcost=0
+   int discountLimit 
+   double discountRate = 0.1
+   int[] shoppingCart={item1,item2,item3... }
+
+   for each item in shoppingCart :
+
+   totalcost = totalcost + item price* item quandity
+   totalcost=itemcost
+  
+   if totalcost>discountLimit
+      discount=totalcost*discountRate
+      totalcost=totalcost- discount
+    print totalcost 
+
+
+2.pseudocode for a simple calculator that takes two numbers and an operator (+, -, *, /) as input and outputs the result of the operation.
+
+double num 1
+double num 2
+char operator
+
+if operator == '+'
+  result = num 1 + num 2
+Else if operator == '-'
+  result = num 1 - num 2
+Else if operator == '*'
+  result = num 1 * num 2
+Else if operator == '/'
+ if num 2 != 0
+   result = num 1 / num 2
+ else
+   Display error message"Can't divide by zero"
+Display result
+  
+
+3.Write pseudocode for the FizzBuzz problem: For numbers 1 to 100, print "Fizz" for multiples of 3, "Buzz" for multiples of 5, and "FizzBuzz" for multiples of both.
+
+int i
+
+for i from 1 to 100
+   if ((i % 3== 0)and(i % 5 == 0))
+      print"FizzBuzz"
+   else  if i % 3== 0
+      print "Fizz"
+   else if i % 5 == 0
+     print "Buzz"
+   
+   end if  
+
+
+
+4.Write pseudocode to check if a given string is a palindrome.
+
+input str
+initialize int start = 0, int end = str.Length - 1
+
+while start < end
+  if(str[start]!=str[end])
+   
+     return False
+
+  end if
+  increment start
+  decrement end
+return True
+
+5. Write pseudocode to find the maximum value in an array of integers.
+int[] arr={12,45,1,8,56}
+int max = arr[0]
+for int i from 1 to arr.Lenth
+  if arr[i] >max
+    max = arr[i]
+return max
+6.pseudocode to manage a simple bank account that allows deposits, withdrawals, and checking the balance.
+
+initialize int accountbalance=0
+while True
+  Display menu
+   1. double Deposit
+   2. double Withdraw
+   3. double Chek Balance
+   4.Exit
+
+ Get user choice
+
+   if choice is 1
+     Ask for deposit amount
+     Add amount to accountbalance
+     Display new balance
+
+  if choice is 2
+    
+     Ask for withdrawal amount
+     if amount is less than or equal to account balance
+        Display new balance
+     else
+        Display "insufficient funds"
+ if choice is 3
+       Display accountbalance
+if choice is 4
+  Exit program
