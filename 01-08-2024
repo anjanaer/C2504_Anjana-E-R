@@ -1,0 +1,204 @@
+write pseudo code for following functions and c# code for the same:
+    1. IsDoctorSalaryMin6Digits(doctorSalary)
+    2. TestIsDoctorSalaryMin6Digits
+    3. TestIsDoctorSalaryMin6DigitsOrNot
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp2
+{
+    class IsDoctorSalaryMin6DigitsSarikaTwoTests
+    {
+
+        static bool IsDoctorSalaryMin6Digits(int doctorSalary)
+        {
+            int salary = doctorSalary;
+
+            int count = 0;
+            while (salary > 0)
+            {
+                int digit = salary % 10;
+                count += 1;
+                salary = salary / 10;
+            }
+
+            return count >= 6;
+        }
+
+        static void TestIsDoctorSalaryMin6Digits()
+        {
+            Console.WriteLine("Enter doctor salary:");
+            int doctorSalary = int.Parse(Console.ReadLine());
+            if (IsDoctorSalaryMin6Digits(doctorSalary))
+            {
+                Console.WriteLine("Doctor gets Min 6 digits salary");
+            }
+        }
+
+
+        static void TestIsDoctorSalaryMin6DigitsOrNot()
+        {
+            Console.WriteLine("Enter doctor salary:");
+            int doctorSalary = int.Parse(Console.ReadLine());
+            if (IsDoctorSalaryMin6Digits(doctorSalary))
+            {
+                Console.WriteLine("Doctor gets Min 6 digits salary");
+            }
+            else
+            {
+                Console.WriteLine("Doctor does not get Min 6 digits salary");
+            }
+        }
+
+        static void Main(string[] args) //user: p
+        {
+            Console.WriteLine("--------------------TestIsDoctorSalaryMin6Digits--------------------");
+            TestIsDoctorSalaryMin6Digits();
+            Console.WriteLine("--------------------End of TestIsDoctorSalaryMin6Digits--------------------");
+            Console.WriteLine("--------------------TestIsDoctorSalaryMin6DigitsOrNot--------------------");
+            TestIsDoctorSalaryMin6DigitsOrNot();
+            Console.WriteLine("--------------------End of TestIsDoctorSalaryMin6Digits--------------------");
+            Console.WriteLine("Press any key to contine...");
+            Console.ReadKey();
+        }
+    }
+}
+       
+ 4. CountMin6DigitsSalariedDoctors(salaries, size)
+ 5. TestCountMin6DigitsSalariedDoctors
+
+using System;
+
+class TestCountMin6DigitsSalariedDoctorsGirisGladsy
+{
+  
+    static bool IsDoctorSalaryMin6Digits(int doctorSalary)
+    {
+        int salary = doctorSalary;
+
+        int count = 0;
+        while (salary > 0)
+        {
+            int digit = salary % 10;
+            count += 1;
+            salary = salary / 10;
+        }
+
+        return count >= 6;
+    }
+
+    static int CountMin6DigitsSalariedDoctors(int[] salaries, int size)
+    {
+        int count = 0;
+        for (int I = 0; I <= size - 1; I++)
+        {
+            if (IsDoctorSalaryMin6Digits(salaries[I]))
+            {
+                count += 1;
+            }
+        }
+        return count;
+    }
+    
+    static void TestCountMin6DigitsSalariedDoctors()
+    {
+        Console.Write("Number of Doctors:");
+        int size = int.Parse(Console.ReadLine());
+        Console.WriteLine("Enter one by one doctors salries.");
+        int[] salaries = new int[size]; //new int[size] allocates the int memblocks of size "size" [Minnu|Sarika]
+        for (int I = 0; I <= size - 1; I++)
+        {
+            Console.Write($"Salary of {I + 1}th Doctor:");
+            salaries[I] = int.Parse(Console.ReadLine());
+        }
+        int sixDigitsSalariedCount = CountMin6DigitsSalariedDoctors(salaries, size);
+        Console.WriteLine($"Number of Min 6 Digits Salaried Doctors : {sixDigitsSalariedCount}");
+    }
+
+    static void Main(string[] args) //user: p
+    {
+        Console.WriteLine("------------------------TestCountMin6DigitsSalariedDoctors------------------------------");
+        TestCountMin6DigitsSalariedDoctors();
+        Console.WriteLine("------------------------End TestCountMin6DigitsSalariedDoctors------------------------------");
+        Console.WriteLine("Press any key to contine...");
+        Console.ReadKey();
+    }
+}
+
+6. ReadAndCountDoctorsMin6DigitsSalaried(): without array 
+
+function ReadAndCountDoctorsMin6DigitsSalaried():
+   count = 0 
+    Input n
+    for I = 1 .. n
+        Input salary 
+        isMin6Digits = IsDoctorSalaryMin6Digits(salary)
+        if isMin6Digits then 
+            count += 1
+        end if   
+    return count
+
+Function TestReadAndCountDoctorsMin6DigitsSalaried():
+    Print "Test 1: Enter 3 salaries: 95000, 100000, 150000"
+        count = ReadAndCountDoctorsMin6DigitsSalaried()
+    Print "Count of doctors with salaries >= 100000:", count
+    
+    Print "Test 2: Enter 2 salaries: 80000, 120000"
+        count = ReadAndCountDoctorsMin6DigitsSalaried()
+    Print "Count of doctors with salaries >= 100000:", count
+    
+    Print "Test 3: Enter 4 salaries: 99999, 100000, 100001, 99999"
+        count = ReadAndCountDoctorsMin6DigitsSalaried()
+    Print "Count of doctors with salaries >= 100000:", count
+
+7. ReadAndFindMinSalaryOfNDoctors() without array
+
+
+function ReadAndFindMinSalaryOfNDoctors():
+    MinSalary = -1
+    Input N //number of salaries 
+    for I = 1 .. N 
+        Input salary
+        if I == 1 then 
+             MinSalary = salary 
+             continue 
+        end if 
+
+        if salary < MinSalary then 
+            MinSalary = salary
+        end if 
+
+8. ReadAndFindSumOfDoctorsSalariesTillZero() use do..while loop 
+
+function ReadAndFindSumOfDoctorsSalariesTillZero()
+    sum = 0 
+    do 
+        input salary 
+        if !(salary > 0 || salary == 0) //Invalid salary
+            print "Input valid salary"
+            continue 
+        end if 
+        sum += salary 
+    while salary != 0
+    print sum 
+
+
+9. ReadAndFindSumOfDoctorsSalariesTillZero() use while loop 
+
+function ReadAndFindSumOfDoctorsSalariesTillZero()
+    sum = 0 
+    input salary
+    while salary != 0
+        if (salary < 0) //Invalid salary
+            print "Input valid salary"
+            input salary
+            continue
+        end if         
+        sum += salary
+        input salary
+    end while 
+    print sum
