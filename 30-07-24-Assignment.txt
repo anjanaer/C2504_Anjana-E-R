@@ -239,10 +239,47 @@ Function TestToCheckLeapYear()
 Input number
 ToCheckLeapYear(number)         
 
-
+13. Function ReverseNum(num)
+      set rev=0
+      temp = num
+      while num ! = 0
+          rem=temp% 10
+          rev=rev*10+rem
+          temp=num/10
+     endwhile
+     return rev
     
-       
+     Function ReverseNum()
+      input num
+      reverse=ReverseNum(num);
+      print reverse
+14. function FactorialOfNum(num)
+     fact=1
+     for i from 1 to num
+       fact=fact*i
+     enf for
+     return FactorialOfNum(num
      
-
+  function FactorialOfNum()
+   input num
+   factorial= FactorialOfNum(num)
+   print   factorial
+15.
+function PrintSeries(numOfTerms)
+    firstTerm= 0
+    secondTerm= 1
+    print firstTerm
+    print secondTerm
+    for I = 2; I <= numOfTerms ; I++ 
+        nextTerm=firstTerm + secondTerm
+        Print nextTerm + ' '
+        firstTerm = SecondTerm
+        secondTerm = nextTerm
+    end for 
+        Print ' '
+function TestPrintSeries0_1_1()
+    Input numOfTerms
+    PrintSeries(numOfTerms)
+  
 
 
