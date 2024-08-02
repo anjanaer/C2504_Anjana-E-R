@@ -1,0 +1,1011 @@
+problems solved on pseudo code and C#.
+P1. print series 10, 12, 14, 16, ... N terms 
+Q1: use for loop
+
+psuedo
+
+function PrintSeries10_12_14(numOfTerms)
+    term = 10
+    for I = 1; I <= numOfTerms ; I++ 
+        Print term + ' '
+        term = term + 2
+    end for 
+function TestPrintSeries10_12_14()
+    Input numOfTerms
+    PrintSeries10_12_14(numOfTerms)
+c#
+using System;
+namespace Pattern
+{
+    internal class Program
+    {
+       
+            static void PrintSeries10_12_14(int numOfTerms)
+            {
+                int term = 10;
+                for (int I = 1; I <= numOfTerms; I++)
+                {
+                    Console.Write($"{term} ");
+                    term = term + 2;
+                }
+            }
+            
+            static void TestPrintSeries10_12_14()
+            {
+                Console.Write("Enter number of terms:");
+                int numOfTerms = int.Parse(Console.ReadLine());
+                Console.Write("Series: ");
+                PrintSeries10_12_14(numOfTerms);
+                Console.WriteLine();
+            }
+
+            static void Main(string[] args) //user: p
+            {
+                Console.WriteLine("--------------TestPrintSeries10_12_14...--------------");
+                TestPrintSeries10_12_14();
+                Console.WriteLine("--------------End TestPrintSeries10_12_14...--------------");
+                Console.WriteLine("Press any key to contine...");
+                Console.ReadKey();
+            }
+        
+    }   
+}
+
+ Q2: use while loop
+
+psuedo
+
+function PrintSeries10_12_14(numOfTerms)
+    term = 10
+    I = 1
+    while  I <= numOfTerms  
+        Print term + ' '
+        term = term + 2
+        I++
+    end while 
+function TestPrintSeries10_12_14()
+    Input numOfTerms
+    PrintSeries10_12_14(numOfTerms)
+
+c#
+
+using System;
+namespace Pattern
+{
+    internal class Program
+    {
+       
+            static void PrintSeries10_12_14(int numOfTerms)
+            {
+                
+                int term = 10;
+                int I = 1;
+                while( I <= numOfTerms )
+                {
+                    Console.Write($"{term} ");
+                    term = term + 2;
+                    I++; 
+                }
+            }
+            
+            static void TestPrintSeries10_12_14()
+            {
+                Console.Write("Enter number of terms:");
+                int numOfTerms = int.Parse(Console.ReadLine());
+                Console.Write("Series: ");
+                PrintSeries10_12_14(numOfTerms);
+                Console.WriteLine();
+            }
+
+            static void Main(string[] args) //user: p
+            {
+                Console.WriteLine("--------------TestPrintSeries10_12_14...--------------");
+                TestPrintSeries10_12_14();
+                Console.WriteLine("--------------End TestPrintSeries10_12_14...--------------");
+                Console.WriteLine("Press any key to contine...");
+                Console.ReadKey();
+            }
+        
+    }   
+}
+
+
+
+    Q3: use do..while loop
+
+psuedo
+function PrintSeries10_12_14(numOfTerms)
+    term = 10
+    I = 1;
+    do  
+        if numOfTerms == 0
+            break
+        then   
+        Print term + ' '
+        term = term + 2
+
+        I++
+    end while I <= numOfTerms
+function TestPrintSeries10_12_14()
+    Input numOfTerms
+    PrintSeries10_12_14(numOfTerms)
+
+
+c#
+using System;
+namespace Pattern
+{
+    internal class Program
+    {
+       
+            static void PrintSeries10_12_14(int numOfTerms)
+            {
+                int term = 10;
+                int I = 1;
+                do 
+                {
+                  if( 0 == numOfTerms )
+                  { 
+                    break;
+
+                   }
+                
+                  Console.Write($"{term} ");
+                  term = term + 2;
+                  I++;
+                } while (I <= numOfTerms);
+            }
+            
+            static void TestPrintSeries10_12_14()
+            {
+                Console.Write("Enter number of terms:");
+                int numOfTerms = int.Parse(Console.ReadLine());
+                Console.Write("Series: ");
+                PrintSeries10_12_14(numOfTerms);
+                Console.WriteLine();
+            }
+
+            static void Main(string[] args) //user: p
+            {
+                Console.WriteLine("--------------TestPrintSeries10_12_14...--------------");
+                TestPrintSeries10_12_14();
+                Console.WriteLine("--------------End TestPrintSeries10_12_14...--------------");
+                Console.WriteLine("Press any key to contine...");
+                Console.ReadKey();
+            }
+        
+    }   
+}
+
+P2. print the N th term in the series 21, 22, 24, 27, 31, ...
+    Q4: use for loop
+psuedo
+
+function GetNthTerm_21_22_24_27(N)    
+    term = 21
+    difference = 1
+    for I = 1; I <= N ; I++   
+        if I == N
+            break
+        end if         
+        //
+        term = term + difference
+        difference = difference + 1
+    end for 
+    return term
+function TestGetNthTerm_21_22_24_27()
+    Input N                             
+    nthTerm = GetNthTerm_21_22_24_27(N)
+    Print nthTerm
+
+c#
+    internal class Program
+    {
+          
+            static int GetNthTerm_21_22_24_27(int N)
+            {
+                int term = 21;
+                int difference = 1;
+                for (int I = 1; I <= N; I++)
+                {
+                    if (I == N)
+                    {
+                        break;
+                    }
+                    //
+                    term = term + difference;
+                    difference = difference + 1;
+                }
+                return term;
+            }
+            
+            static void TestGetNthTerm_21_22_24_27()
+            {
+                Console.Write("Enter number of terms:");
+                int N = int.Parse(Console.ReadLine());
+                int nthTerm = GetNthTerm_21_22_24_27(N);
+                Console.WriteLine($"Nth term is {nthTerm}");
+            }
+            static void Main(string[] args) //user: p
+            {
+                Console.WriteLine("-----TestGetNthTerm_21_22_24_27-----");
+                TestGetNthTerm_21_22_24_27();
+                Console.WriteLine("-----End TestGetNthTerm_21_22_24_27-----");
+                Console.WriteLine("Press any key to contine...");
+                Console.ReadKey();
+            }
+        
+    }   
+}
+
+    Q5: use while loop
+psuedo
+
+function GetNthTerm_21_22_24_27(N)    
+    term = 21
+    difference = 1
+    I = 1
+    while  I <= N  
+        if I == N
+            break
+        end if         
+        //
+        term = term + difference
+        difference = difference + 1
+
+        I++ 
+    end while 
+    return term
+function TestGetNthTerm_21_22_24_27()
+    Input N                             
+    nthTerm = GetNthTerm_21_22_24_27(N)
+    Print nthTerm
+
+c#
+
+ internal class Program
+    {
+          
+            static int GetNthTerm_21_22_24_27(int N)
+            {
+                 int difference = 1;
+                 int I = 1;
+                 while ( I <= N )
+                 {
+                    if (I == N)
+                     {
+                       break;
+                     }              
+     
+                     term = term + difference;
+                     difference = difference + 1;
+                     I++;
+                  
+                   } 
+ 
+                return term;
+            }
+            
+            static void TestGetNthTerm_21_22_24_27()
+            {
+                Console.Write("Enter number of terms:");
+                int N = int.Parse(Console.ReadLine());
+                int nthTerm = GetNthTerm_21_22_24_27(N);
+                Console.WriteLine($"Nth term is {nthTerm}");
+            }
+            static void Main(string[] args) //user: p
+            {
+                Console.WriteLine("-----TestGetNthTerm_21_22_24_27-----");
+                TestGetNthTerm_21_22_24_27();
+                Console.WriteLine("-----End TestGetNthTerm_21_22_24_27-----");
+                Console.WriteLine("Press any key to contine...");
+                Console.ReadKey();
+            }
+        
+    }   
+}
+    Q6: use do..while loop
+Note: 
+    21, 22, 24, 27, 31, ...
+      1   2   3   4          
+
+psuedo
+function GetNthTerm_21_22_24_27(N)    
+    term = 21
+    difference = 1
+    I = 1
+    do  
+        if I == N
+            break
+        end if         
+        //
+        term = term + difference
+        difference = difference + 1
+
+        I++ 
+    while  I <= N  
+    return term
+function TestGetNthTerm_21_22_24_27()
+    Input N                             
+    nthTerm = GetNthTerm_21_22_24_27(N)
+    Print nthTerm
+
+
+
+c#
+ internal class Program
+    {
+          
+            static int GetNthTerm_21_22_24_27(int N)
+            {
+                 int difference = 1;
+                 int I = 1;
+                 
+                  do{
+                    if (I == N)
+                     {
+                       break;
+                     }              
+     
+                     term = term + difference;
+                     difference = difference + 1;
+                     I++;
+                  
+                   } while ( I <= N );
+ 
+                return term;
+            }
+            
+            static void TestGetNthTerm_21_22_24_27()
+            {
+                Console.Write("Enter number of terms:");
+                int N = int.Parse(Console.ReadLine());
+                int nthTerm = GetNthTerm_21_22_24_27(N);
+                Console.WriteLine($"Nth term is {nthTerm}");
+            }
+            static void Main(string[] args) 
+            {
+                Console.WriteLine("-----TestGetNthTerm_21_22_24_27-----");
+                TestGetNthTerm_21_22_24_27();
+                Console.WriteLine("-----End TestGetNthTerm_21_22_24_27-----");
+                Console.WriteLine("Press any key to contine...");
+                Console.ReadKey();
+            }
+        
+    }   
+}
+P3. print the following pattern 
+        1
+      1 2
+    1 2 3
+  1 2 3 4
+1 2 3 4 5 
+Here, N = number of lines = 5 using for loop
+Psuedocode
+function PrintNumTriangleMirroredRightAngle(N) = 5
+    for I = 1; I <= N; I++          
+        for J = 1; J <= N-I; J++     
+            Print "  "                 
+        end for 
+        for J = 1; J <= I; J++       
+            Print J + " "           
+        end for 
+        Print NewLine 
+    end for 
+function TestPrintNumTriangleMirroredRightAngle()
+    Input N 
+    PrintNumTriangleMirroredRightAngle(N)
+
+
+
+class  Program
+{
+        
+    static void PrintNumTriangleMirroredRightAngle(int N)
+    { 
+        for(int I = 1; I <= N; I++ )
+        { 
+            for(int J = 1; J <= N-I; J++)
+            {
+                Console.Write("  "); 
+            }
+            for(int J = 1; J <= I; J++)
+            {
+                Console.Write($"{J} ");
+            }
+            Console.WriteLine();//new line 
+        }
+    }
+    //input=4,output=4 lines triangle 
+    //input=5,output=5 lines triangle 
+    //input=7,output=7 lines triangle 
+    static void TestPrintNumTriangleMirroredRightAngle()
+    {
+        Console.Write("Enter number of lines:");
+        int N = int.Parse(Console.ReadLine());
+        PrintNumTriangleMirroredRightAngle(N);
+    }
+    static void Main(string[] args) 
+    {
+        Console.WriteLine("-----TestPrintNumTriangleMirroredRightAngle-----");
+        TestPrintNumTriangleMirroredRightAngle();
+        Console.WriteLine("-----End TestPrintNumTriangleMirroredRightAngle-----");
+        Console.WriteLine("Press any key to contine...");
+        Console.ReadKey();
+    }
+}
+
+
+Q8.  
+using while
+
+pseudo:
+
+function PrintNumTriangleMirroredRightAngle(N) = 5
+    I=1
+    while I <= N   
+       J=1      
+        while J <= N-I     
+            Print "  "                 
+        J++
+     end while
+       J=1
+        while J <= I       
+            Print J + " " 
+         J++          
+        end while
+        I++
+        Print NewLine 
+      end while
+function TestPrintNumTriangleMirroredRightAngle()
+    Input N 
+    PrintNumTriangleMirroredRightAngle(N)
+
+
+C#:
+
+
+class  Program
+{
+        
+    static void PrintNumTriangleMirroredRightAngle(int N)
+    {   int I=1;
+        while(I <= N)
+        {   
+            int J=1;
+            while(J <= N-I)
+            {
+                Console.Write("  "); 
+            J++;
+            }
+            int J=1;
+            while(J <= I)
+            {
+                Console.Write($"{J} ");//num and space
+                J++;
+            }
+            Console.WriteLine();//new line 
+          I++;
+        }
+    }
+
+
+ 
+
+Q9.
+
+pseudo:using do while
+
+function PrintNumTriangleMirroredRightAngle(N) = 5
+    I=1
+    do  
+       J=1      
+        do     
+            Print "  "                 
+        J++
+      while(J <= N-I )
+     end do while
+       J=1
+        do     
+            Print J + " " 
+         J++
+        while( J <= I)          
+        end do while
+        I++
+        Print NewLine 
+      while(I <= N  )
+      end do while
+function TestPrintNumTriangleMirroredRightAngle()
+    Input N 
+    PrintNumTriangleMirroredRightAngle(N)
+
+C#:
+
+
+class Program
+{
+        
+    static void PrintNumTriangleMirroredRightAngle(int N)
+    {   int I=1;
+        do
+        {   
+            int J=1;
+            do
+            {
+                Console.Write("  "); 
+            J++;
+            }while(J <= N-I)
+
+            int J=1;
+            do
+            {
+                Console.Write($"{J} ");
+                J++;
+            }while(J <= I)
+            Console.WriteLine();
+          I++;
+        }while(I <= N)
+    }
+
+
+P4. print series 0, 1, 1, 2, 3, 5, 8, 13, ... N terms 
+ Q10: use for loop
+
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int N = 10; // Number of terms to print
+
+        if (N <= 0)
+        {
+            Console.WriteLine("The number of terms must be greater than 0.");
+            return;
+        }
+
+        int a = 0, b = 1;
+
+        Console.Write(a); // Print the first term
+        if (N > 1) Console.Write(", " + b); // Print the second term
+
+        for (int i = 2; i < N; i++)
+        {
+            int next = a + b;
+            Console.Write(", " + next);
+            a = b;
+            b = next;
+        }
+
+        Console.WriteLine(); // Move to the next line
+    }
+}
+ Q11: use while loop
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int N = 10; // Number of terms to print
+
+        if (N <= 0)
+        {
+            Console.WriteLine("The number of terms must be greater than 0.");
+            return;
+        }
+
+        int a = 0, b = 1;
+        int count = 0;
+
+        Console.Write(a); // Print the first term
+        count++;
+
+        if (N > 1)
+        {
+            Console.Write(", " + b); // Print the second term
+            count++;
+        }
+
+        while (count < N - 1)
+        {
+            int next = a + b;
+            Console.Write(", " + next);
+            a = b;
+            b = next;
+            count++;
+        }
+
+        Console.WriteLine(); // Move to the next line
+    }
+}
+
+    Q12: use do..while loop
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int N = 10; // Number of terms to print
+
+        if (N <= 0)
+        {
+            Console.WriteLine("The number of terms must be greater than 0.");
+            return;
+        }
+
+        int a = 0, b = 1;
+        int count = 0;
+
+        Console.Write(a); // Print the first term
+        count++;
+
+        if (N > 1)
+        {
+            Console.Write(", " + b); // Print the second term
+            count++;
+        }
+
+        do
+        {
+            if (count >= N - 1) break;
+            int next = a + b;
+            Console.Write(", " + next);
+            a = b;
+            b = next;
+            count++;
+        }
+        while (count < N);
+
+        Console.WriteLine(); // Move to the next line
+    }
+}
+P5. print the N th term in the series 0, 1, 1, 2, 3, 5, 8, 13, ... N terms 
+    Q13: use for loop
+
+class program
+{
+    static void PrintNSeries0_1_1(int N)
+    {
+        int firstTerm= 0;
+        int secondTerm= 1;
+        for (int I = 2; I <= N ; I++)
+        {   int nextTerm = firstTerm + nextTerm;
+            firstTerm = SecondTerm;
+            secondTerm = nextTerm;
+        }
+     if(N==1)
+        {
+          nextTerm=firstTerm;
+        }
+    else if(N==2)
+       {
+          nextTerm=secondTerm;
+       }
+
+      Console.Write(${"nextTerm"});
+    }
+       static void TestPrintNSeries0_1_1()
+    {
+        Console.Write("Enter number of terms:");
+        int N = int.Parse(Console.ReadLine());
+        PrintNSeries0_1_1(N);
+        Console.WriteLine();
+    }
+
+    static void Main(string[] args) 
+    {
+        Console.WriteLine("--------------TestPrintNSeries0_1_1...--------------");
+        TestPrintNSeries0_1_1();
+        Console.WriteLine("--------------End TestPrintNSeries0_1_1...--------------");
+        Console.WriteLine("Press any key to contine...");
+        Console.ReadKey();
+    }
+}
+
+ Q14: use while loop
+
+function PrintNSeries0_1_1(N)
+    firstTerm= 0
+    secondTerm= 1
+    print firstTerm
+    print secondTerm
+    I=2
+    while I <= N
+        nextTerm=firstTerm + secondTerm
+        firstTerm = SecondTerm
+        secondTerm = nextTerm
+        I++
+    end while 
+        if(N==1)
+          nextTerm=firstTerm
+        else if(N==2)
+          nextTerm=secondTerm
+    print nextTerm
+function TestPrintNSeries0_1_1()
+    Input N
+    PrintNSeries0_1_1(N)
+
+
+class program
+{
+    static void PrintNSeries0_1_1(int N)
+    {
+        int firstTerm= 0;
+        int secondTerm= 1;
+        int I = 2;
+        while ( I <= N)
+        {   int nextTerm = firstTerm + nextTerm;
+            firstTerm = SecondTerm;
+            secondTerm = nextTerm;
+            I++;
+        }
+     if(N==1)
+        {
+          nextTerm=firstTerm
+        }
+    else if(N==2)
+       {
+          nextTerm=secondTerm
+       }
+
+      Console.Write(${"nextTerm"});
+    }
+       static void TestPrintNSeries0_1_1()
+    {
+        Console.Write("Enter number of terms:");
+        int N = int.Parse(Console.ReadLine());
+        PrintNSeries0_1_1(N);
+        Console.WriteLine();
+    }
+
+    static void Main(string[] args) 
+    {
+        Console.WriteLine("--------------TestPrintNSeries0_1_1...--------------");
+        TestPrintNSeries0_1_1();
+        Console.WriteLine("--------------End TestPrintNSeries0_1_1...--------------");
+        Console.WriteLine("Press any key to contine...");
+        Console.ReadKey();
+    }
+}
+
+Q15: use do..while loop
+pseudo:
+
+function PrintNSeries0_1_1(N)
+    firstTerm= 0
+    secondTerm= 1
+    print firstTerm
+    print secondTerm
+    I=2
+    do
+        nextTerm=firstTerm + secondTerm
+        firstTerm = SecondTerm
+        secondTerm = nextTerm
+        I++
+    while I <= N
+    end do while 
+        if(N==1)
+          nextTerm=firstTerm
+        else if(N==2)
+          nextTerm=secondTerm
+    print nextTerm
+function TestPrintNSeries0_1_1()
+    Input N
+    PrintNSeries0_1_1(N)
+
+C#:
+
+class Q013
+{
+    static void PrintNSeries0_1_1(int N)
+    {
+        int firstTerm= 0;
+        int secondTerm= 1;
+        int I = 2;
+       do
+        {   int nextTerm = firstTerm + nextTerm;
+            firstTerm = SecondTerm;
+            secondTerm = nextTerm;
+            I++;
+        } while ( I <= N)
+     if(N==1)
+        {
+          nextTerm=firstTerm
+        }
+    else if(N==2)
+       {
+          nextTerm=secondTerm
+       }
+
+      Console.Write(${"nextTerm"});
+    }
+       static void TestPrintNSeries0_1_1()
+    {
+        Console.Write("Enter number of terms:");
+        int N = int.Parse(Console.ReadLine());
+        PrintNSeries0_1_1(N);
+        Console.WriteLine();
+    }
+
+    static void Main(string[] args) 
+    {
+        Console.WriteLine("--------------TestPrintNSeries0_1_1...--------------");
+        TestPrintNSeries0_1_1();
+        Console.WriteLine("--------------End TestPrintNSeries0_1_1...--------------");
+        Console.WriteLine("Press any key to contine...");
+        Console.ReadKey();
+    }
+}
+
+
+P6. print the following pattern 
+        5
+      5 4
+    5 4 3
+  5 4 3 2
+5 4 3 2 1 
+Here, N = number of lines = 5
+Q16: use for loop
+
+function PrintNumTriangleMirroredRightAngle(N) = 5
+    for I = 1; I <= N; I++          
+        for J = 1; J <= N-I; J++     
+            Print "  "                 
+        end for 
+        for J = 5; J >= 5-I; J--      
+            Print J + " "           
+        end for 
+        Print NewLine 
+    end for 
+function TestPrintNumTriangleMirroredRightAngle()
+    Input N 
+    PrintNumTriangleMirroredRightAngle(N)
+
+
+C#:
+
+
+class program
+{
+        
+    static void PrintNumTriangleMirroredRightAngle(int N)
+    { 
+        for(int I = 1; I <= N; I++ )
+        { 
+            for(int J = 1; J <= N-I; J++)
+            {
+                Console.Write("  "); 
+            }
+            for(int J = 5; J >= 5-I; J--)
+            {
+                Console.Write($"{J} ");
+            }
+            Console.WriteLine();
+        }
+    }
+        static void TestPrintNumTriangleMirroredRightAngle()
+    {
+        Console.Write("Enter number of lines:");
+        int N = int.Parse(Console.ReadLine());
+        PrintNumTriangleMirroredRightAngle(N);
+    }
+    static void Main(string[] args) 
+    {
+        Console.WriteLine("-----TestPrintNumTriangleMirroredRightAngle-----");
+        TestPrintNumTriangleMirroredRightAngle();
+        Console.WriteLine("-----End TestPrintNumTriangleMirroredRightAngle-----");
+        Console.WriteLine("Press any key to contine...");
+        Console.ReadKey();
+    }
+}
+    Q17: use while loop
+pseudo:
+
+function PrintNumTriangleMirroredRightAngle(N) = 5
+    I=1
+    while I <= N   
+       J=1      
+        while J <= N-I     
+            Print "  "                 
+        J++
+     end while
+       J=5
+        while J > 5-I       
+            Print J + " " 
+         J--          
+        end while
+        I++
+        Print NewLine 
+      end while
+function TestPrintNumTriangleMirroredRightAngle()
+    Input N 
+    PrintNumTriangleMirroredRightAngle(N)
+
+
+C#:
+
+
+class program
+{
+        
+    static void PrintNumTriangleMirroredRightAngle(int N)
+    {   int I=1;
+        while(I <= N)
+        {   
+            int J=1;
+            while(J <= N-I)
+            {
+                Console.Write("  "); 
+            J++;
+            }
+            int J=5;
+            while(J >= 5-I)
+            {
+                Console.Write($"{J} ");//num and space
+                J--;
+            }
+            Console.WriteLine();//new line 
+          I++;
+        }
+    }
+
+Q18.
+using do while
+
+pseudo:
+
+function PrintNumTriangleMirroredRightAngle(N) = 5
+    I=1
+    do  
+       J=1      
+        do     
+            Print "  "                 
+        J++
+      while(J <= N-I )
+     end do while
+       J=5
+        do     
+            Print J + " " 
+         J--
+        while( J >=5-I)          
+        end do while
+        I++
+        Print NewLine 
+      while(I <= N  )
+      end do while
+function TestPrintNumTriangleMirroredRightAngle()
+    Input N 
+    PrintNumTriangleMirroredRightAngle(N)
+
+C#:
+
+
+class program
+{
+        
+    static void PrintNumTriangleMirroredRightAngle(int N)
+    {   int I=1;
+        do
+        {   
+            int J=1;
+            do
+            {
+                Console.Write("  "); 
+            J++;
+            }while(J <= N-I)
+
+            int J=5;
+            do
+            {
+                Console.Write($"{J} ");
+                J--;
+            }while(J >= 5-I)
+            Console.WriteLine();
+          I++;
+        }while(I <= N)
+    }
+
+
