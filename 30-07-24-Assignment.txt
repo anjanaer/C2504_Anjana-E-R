@@ -118,14 +118,14 @@ pseudo: routine test
 14. to print N natural numbers
 pseudo: routine 
     Function PrintNaturalNumbers(n)
-       input n
+ 
        for i from 1 to n
          print i
        end For
 
 pseudo: routine test 
     Procedure TestPrintNaturalNumbers()
-        input num 
+        input n
         PrintNaturalNumbers(n)
             
 1.to check a number palindrome
@@ -223,7 +223,21 @@ psuedo : routine test
             IsOddEven(num)
             
          
-           
+  12.to check a year leap
+
+pseudo: routine 
+Function ToCheckLeapYear(number)
+if(number%400==0)
+print"it is a leap year"
+else if(number%100!=0&& number%4==0)
+print "it is a leap year"
+else
+print "it is not leap year"
+
+pseudo: routine test
+Function TestToCheckLeapYear()
+Input number
+ToCheckLeapYear(number)         
 
 
     
