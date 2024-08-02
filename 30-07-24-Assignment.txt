@@ -43,7 +43,7 @@ psuedo :routine test
   psuedo :routine 
       Function FindSquare(num)
          square=num*num
-         Return num
+         Return square
          
   psuedo :routine test
       Procedure TestFindSquare()
