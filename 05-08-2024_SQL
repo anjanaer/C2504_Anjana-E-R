@@ -1,6 +1,5 @@
-CREATE DATABASE mediconnect;
-USE mediconnect;
-
+CREATE DATABASE MediConnect;
+USE MediConnect;
 CREATE TABLE Users (
     UserId INT IDENTITY(1,1) PRIMARY KEY,
     Username NVARCHAR(50) NOT NULL,
@@ -32,6 +31,7 @@ CREATE TABLE MedicalHistory (
     CreatedAt DATETIME2 DEFAULT GETDATE(),
     UpdatedAt DATETIME2 DEFAULT GETDATE()
 );
+
 CREATE TABLE Appointments (
     AppointmentId INT IDENTITY(1,1) PRIMARY KEY,
     PatientId INT FOREIGN KEY REFERENCES Patients(PatientId) ON DELETE CASCADE,
@@ -43,10 +43,11 @@ CREATE TABLE Appointments (
     CreatedAt DATETIME2 DEFAULT GETDATE(),
     UpdatedAt DATETIME2 DEFAULT GETDATE()
 );
+
 CREATE TABLE Messages (
     MessageId INT IDENTITY(1,1) PRIMARY KEY,
-    FromUserId INT FOREIGN KEY REFERENCES Users (UserId) ON DELETE NO ACTION,
-    ToUserId INT FOREIGN KEY REFERENCES Users (UserId) ON DELETE NO ACTION,
+    FromUserId INT FOREIGN KEY REFERENCES Users(UserId) ON DELETE NO ACTION,
+    ToUserId INT FOREIGN KEY REFERENCES Users(UserId) ON DELETE NO ACTION,
     Message NVARCHAR(MAX) NOT NULL,
     Timestamp DATETIME2 DEFAULT GETDATE(),
     CreatedAt DATETIME2 DEFAULT GETDATE(),
@@ -61,7 +62,8 @@ CREATE TABLE EHR_IntegrationLogs (
     Status NVARCHAR(50) CHECK (Status IN ('success', 'failure')) NOT NULL,
     Details NVARCHAR(MAX),
     Timestamp DATETIME2 DEFAULT GETDATE()
-);  
+);
+
 CREATE TABLE Notifications (
     NotificationId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT FOREIGN KEY REFERENCES Users(UserId) ON DELETE CASCADE,
@@ -69,7 +71,6 @@ CREATE TABLE Notifications (
     IsRead BIT DEFAULT 0,
     CreatedAt DATETIME2 DEFAULT GETDATE()
 );
-
 
 INSERT INTO Users (Username, Email, PasswordHash, Role, CreatedAt, UpdatedAt)
 VALUES
@@ -97,7 +98,7 @@ VALUES
 INSERT INTO Messages (FromUserId, ToUserId, Message, Timestamp, CreatedAt, UpdatedAt)
 VALUES
 (2, 1, 'Please review the patient records before our meeting.', GETDATE(), GETDATE(), GETDATE()),
-(1, 3, 'Schedule a meeting with the new patient.', GETDATE(), GETDATE(), GETDATE()); 
+(1, 3, 'Schedule a meeting with the new patient.', GETDATE(), GETDATE(), GETDATE());
 
 INSERT INTO EHR_IntegrationLogs (EHRSystem, PatientId, Operation, Status, Details, Timestamp)
 VALUES
@@ -109,36 +110,27 @@ VALUES
 (2, 'You have a new appointment scheduled for Alice Johnson on 2024-08-10 at 10:00.', 0, GETDATE()),
 (3, 'Please confirm the new meeting with the patient.', 0, GETDATE());
 
---Query to Get All Patients
-SELECT * FROM Patients;  
 
---Query to Get All Appointments for a Specific Doctor
+SELECT * FROM Patients;
+
 SELECT * FROM Appointments WHERE DoctorId = 2;
 
---Query to Get Medical History for a Specific Patient
 SELECT * FROM MedicalHistory WHERE PatientId = 1;
 
---Query to Get All Messages Sent by a Specific User
 SELECT * FROM Messages WHERE FromUserId = 2;
 
---Query to Get All Users with the Role of 'doctor'
 SELECT * FROM Users WHERE Role = 'doctor';
 
---Query to Get All Notifications for a Specific User
 SELECT * FROM Notifications WHERE UserId = 2;
 
---Query to Get All Successful EHR Imports
 SELECT * FROM EHR_IntegrationLogs WHERE Operation = 'import' AND Status = 'success';
 
---Query to Update the Status of an Appointment
 UPDATE Appointments
 SET Status = 'completed'
 WHERE AppointmentId = 1;
 
---Query to Delete a Patient Record
 DELETE FROM Patients
 WHERE PatientId = 2;
 
---Query to Insert a New User
 INSERT INTO Users (Username, Email, PasswordHash, Role, CreatedAt, UpdatedAt)
 VALUES ('dr_jane', 'jane.doe@mediconnect.com', 'hashed_password5', 'doctor', GETDATE(), GETDATE());
