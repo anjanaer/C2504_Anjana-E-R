@@ -1,0 +1,24 @@
+--to create db named "trainer_search_db"
+CREATE DATABASE trainer_search_db;
+--to use database--
+USE trainer_search_db;
+CREATE TABLE trainer(
+ id integer primary key identity(1,1),
+ name varchar(255) not null,
+ skill varchar(512) not null,
+ place varchar(126)not null
+);
+--to see about table "trainer"
+sp_help trainer;
+--to display rows of trainer--
+SELECT * FROM trainer;
+INSERT INTO trainer(name,skill,place)VALUES('gopika','c#','tvm');
+--to insert multiple data into the table--
+INSERT INTO trainer(name,skill,place)VALUES('mariya','c','palakkad'),('devika','python','kochi');
+INSERT INTO trainer(name,skill,place)VALUES('meenu','c#','palakkad'),('devika','pyt','kochi');
+DELETE FROM trainer WHERE id=5;
+--to update--
+SELECT * FROM trainer WHERE id=3;
+UPDATE trainer
+SET name='Devika',place='Kochi',skill='Python'
+WHERE id=3;
