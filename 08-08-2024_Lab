@@ -1,0 +1,82 @@
+-----PROCEDURE-------------------------------------------
+
+
+CREATE PROCEDURE sp_NewStudent
+  @FirstName VARCHAR(50),
+   @LastName VARCHAR(50),
+   @Email VARCHAR(100)
+
+AS
+BEGIN
+  INSERT INTO student(first_name,last_name,email)
+  VALUES (@FirstName,@LastName,@Email);
+END
+
+EXEC sp_NewStudent
+     @FirstName = 'New',
+     @LastName = 'Student',
+     @Email = 'newStudent@gmail.com'
+
+    SELECT * FROM student;
+-----------------------------------------------------
+----------HTML---------------------------------------
+<!DOCTYPE html>
+<html >
+<head>
+    
+    <title>My Webpage</title>
+</head>
+<body>
+    <h1>Main Heading</h1>
+    <h2>Heading Heading</h2>
+    <h6>smallest Heading</h6>
+
+
+    <p>A racket or racquet is an item of <br>TBRsporting equipment used to strike <wbr>a ball or 
+        shuttlecock back-and-forth<br> in games such as tennis, badminton, squash, racquetball and padel.
+
+
+    <pre>       hyjyuiui
+                hguwbbj
+       wewyebsdywu
+       849hhhhyu3iu3iu
+       AAAAAAAAAAAAAAA
+Xcbeknsmmm
+bn
+nheb  xvnyhbsjuy
+</pre>
+<style>
+    code{
+        background-color: blue;
+        padding: 3px;
+        border-radius: 5px;
+        color: RED;
+
+
+
+  }
+          
+</style>                    
+</body>
+</html>
+
+
+OUTPUT
+
+
+Main Heading
+Heading Heading
+smallest Heading
+A racket or racquet is an item of
+TBRsporting equipment used to strike a ball or shuttlecock back-and-forth
+in games such as tennis, badminton, squash, racquetball and padel.
+
+       hyjyuiui
+                hguwbbj
+       wewyebsdywu
+       849hhhhyu3iu3iu
+       AAAAAAAAAAAAAAA
+Xcbeknsmmm
+bn
+nheb  xvnyhbsjuy
+---------------------------------------------------------------------------------
