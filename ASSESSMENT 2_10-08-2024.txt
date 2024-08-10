@@ -1,0 +1,78 @@
+1.Find the Oldest and Youngest Employees
+Problem: Given an `Employees` table
+with columns `EmployeeID`, `Name`, and `DateOfBirth`,
+find the oldest and youngest employees.
+
+----------------------------------------------------------------------------------
+SELECT EmployeeID, Name, DateOfBirth
+FROM Employees
+WHERE DateOfBirth = (SELECT MIN(DateOfBirth) FROM Employees)
+
+UNION ALL
+
+SELECT EmployeeID, Name, DateOfBirth
+FROM Employees
+WHERE DateOfBirth = (SELECT MAX(DateOfBirth) FROM Employees);
+
+--------------------------------------------------------------------------------------
+2.Find the Second Highest Salary
+Problem: Given an `Employees` table
+with columns `EmployeeID`, `Name`, and `Salary`,
+find the second highest salary.
+
+SELECT MAX(Salary) AS SecondHighestSalary
+FROM Employees
+WHERE Salary < (SELECT MAX(Salary) FROM Employees);
+-------------------------------------------------------------------------------------
+3.Find Employees with No Manager
+Problem:
+
+Given an `Employees` table
+with columns `EmployeeID`, `Name`, and `ManagerID`
+(which refers to `EmployeeID` of the manager),
+find all employees who do not have a manager.
+-----------------------------------------------------------------------------------
+Table Structure:
+```
+CREATE TABLE Employees (
+EmployeeID INT,
+Name VARCHAR(100),
+ManagerID INT
+);
+```
+SELECT EmployeeID, Name
+FROM Employees
+WHERE ManagerID IS NULL;
+-------------------------------------------------------------------------------------
+4.Find the Top N Products by Sales Volume
+Problem: Given a `Sales` table
+with columns `ProductID`, `SaleAmount`, and `SaleDate`,
+find the top 5 products by total sales volume.
+
+Table Structure:
+```
+CREATE TABLE Sales (
+ProductID INT,
+SaleAmount DECIMAL(10, 2),
+SaleDate DATE
+);
+```
+
+SELECT ProductID, SUM(SaleAmount) AS TotalSales
+FROM Sales
+GROUP BY ProductID
+ORDER BY TotalSales DESC
+LIMIT 5;
+-----------------------------------------------------------------------------------------------
+
+5.Find Average Salary and Number of Employees in Each Department
+Problem: Given an `Employees` table,
+find the average salary and number of employees
+in each department.
+Table:
+Employees {EmployeeID, DepartmentID, Salary}
+
+
+SELECT DepartmentID, AVG(Salary) AS AverageSalary, COUNT(*) AS NumberOfEmployees
+FROM Employees
+GROUP BY DepartmentID;
