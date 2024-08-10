@@ -58,11 +58,11 @@ SaleDate DATE
 );
 ```
 
-SELECT ProductID, SUM(SaleAmount) AS TotalSales
+SELECT TOP 5 ProductID, SUM(SaleAmount) AS TotalSales
 FROM Sales
 GROUP BY ProductID
-ORDER BY TotalSales DESC
-LIMIT 5;
+ORDER BY TotalSales DESC;
+
 -----------------------------------------------------------------------------------------------
 
 5.Find Average Salary and Number of Employees in Each Department
