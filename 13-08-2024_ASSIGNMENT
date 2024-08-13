@@ -1,0 +1,95 @@
+ class Account
+ {
+     public string Number { get; private set; } // Encapsulate the account number
+     private float balance;
+     public float Balance
+     {
+         get { return balance; }
+         private set
+         {
+             if (value < 0)
+             {
+                 Console.WriteLine("Balance cannot be negative. Operation canceled.");
+                 return;
+             }
+             if (value > 5000000)
+             {
+                 Console.WriteLine("Balance cannot be greater than 5000000. Operation canceled.");
+                 return;
+             }
+             balance = value;
+         }
+     }
+
+     public Account(string _number)
+     {
+         Number = _number;
+         Balance = 0;
+     }
+
+     public void Deposit(float amount)
+     {
+         if (amount > 500000)
+         {
+             Console.WriteLine("Cannot deposit more than 500,000 at once.");
+         }
+         else if (amount <= 0)
+         {
+             Console.WriteLine("Deposit amount must be positive.");
+         }
+         else
+         {
+             Balance += amount;
+             Console.WriteLine($"{amount} deposited. New balance: {Balance}");
+         }
+     }
+
+     public void Withdraw(float amount)
+     {
+         if (amount <= 0)
+         {
+             Console.WriteLine("Withdrawal amount must be positive.");
+         }
+         else if (amount > Balance)
+         {
+             Console.WriteLine("Insufficient balance. Withdrawal canceled.");
+         }
+         else
+         {
+             Balance -= amount;
+             Console.WriteLine($"{amount} withdrawn. New balance: {Balance}");
+         }
+     }
+ }
+
+ internal class Program
+ {
+     static void Main(string[] args)
+     {
+         Account anju= new Account("1233445566778");
+         anju.Deposit(500000);  // Valid deposit
+         anju.Deposit(200000);  // Valid deposit
+         anju.Withdraw(75000);  // Valid withdrawal
+         Console.WriteLine($"Anju's account balance is {anju.Balance}");
+
+         anju.Withdraw(700000); // Should fail due to insufficient funds
+         anju.Withdraw(625000); // Should fail due to insufficient funds
+
+         anju.Deposit(1000001); // Should fail due to deposit limit
+         anju.Deposit(10000); // Valid deposit
+         //anju.Balance = 45;   error
+         Console.WriteLine($"Anju's final account balance is {anju.Balance}");
+         Console.ReadKey();
+     }
+ }
+
+----------------------------------------------------------------------------------------------------------
+500000 deposited. New balance: 500000
+200000 deposited. New balance: 700000
+75000 withdrawn. New balance: 625000
+Anju's account balance is 625000
+Insufficient balance. Withdrawal canceled.
+625000 withdrawn. New balance: 0
+Cannot deposit more than 500,000 at once.
+10000 deposited. New balance: 10000
+Anju's final account balance is 10000
