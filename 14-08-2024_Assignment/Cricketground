@@ -1,3 +1,24 @@
+1. Cricket Ground Boundry Sides Distances from batsman (from Pavilion End)
+        Leg Side 
+        Off Side  
+        Straight 
+        Third Man  
+    Compare two cricket grounds:
+        find the shortest distance from each ground 
+        and compare two ground based on shortest distance 
+            check which is preferred ground for batsman 
+
+    C#: CricketGround{ LegSideDistance: int, 
+        OffSideDistace: int, 
+        StraightDistance: int, 
+        ThirdManDistance: int }
+    - int FindShortestDistance()
+        among four distance find min 
+    - bool IsShortestDistanceGt(CricketGround other)     
+    
+    C3: UserOfCricketGround will compare two grounds 
+        will say which ground is preferred ground 
+--------------------------------------------------------------------------------------------------------------
 class CricketGround
     {
         public int LegSideDistance { get; set; }
@@ -50,3 +71,5 @@ class CricketGround
             }
         }
     }
+
+
