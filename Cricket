@@ -1,0 +1,73 @@
+1. Cricket Ground Boundry Sides Distances from batsman (from Pavilion End)
+        Leg Side 
+        Off Side  
+        Straight 
+        Third Man  
+    Compare two cricket grounds:
+        find the shortest distance from each ground 
+        and compare two ground based on shortest distance 
+            check which is preferred ground for batsman 
+
+    C#: CricketGround{ LegSideDistance: int, 
+        OffSideDistace: int, 
+        StraightDistance: int, 
+        ThirdManDistance: int }
+    - int FindShortestDistance()
+        among four distance find min 
+    - bool IsShortestDistanceGt(CricketGround other)     
+    
+    C3: UserOfCricketGround will compare two grounds 
+        will say which ground is preferred ground 
+--------------------------------------------------------------------------------------------------------------
+using System;
+
+public class CricketGround
+{
+    public int LegSideDistance { get; set; }
+    public int OffSideDistance { get; set; }
+    public int StraightDistance { get; set; }
+    public int ThirdManDistance { get; set; }
+
+    public CricketGround(int legSideDistance, int offSideDistance, int straightDistance, int thirdManDistance)
+    {
+        LegSideDistance = legSideDistance;
+        OffSideDistance = offSideDistance;
+        StraightDistance = straightDistance;
+        ThirdManDistance = thirdManDistance;
+    }
+
+    // Method to find the shortest distance among the four sides
+    public int FindShortestDistance()
+    {
+        return Math.Min(Math.Min(LegSideDistance, OffSideDistance), Math.Min(StraightDistance, ThirdManDistance));
+    }
+
+    // Method to compare the shortest distance with another ground
+    public bool IsShortestDistanceGt(CricketGround other)
+    {
+        return this.FindShortestDistance() > other.FindShortestDistance();
+    }
+}
+
+public class UserOfCricketGround
+{
+    public static void Main(string[] args)
+    {
+        CricketGround ground1 = new CricketGround(60, 65, 70, 55);
+        CricketGround ground2 = new CricketGround(58, 64, 69, 56);
+
+        // Comparing the shortest distance of two grounds
+        if (ground1.IsShortestDistanceGt(ground2))
+        {
+            Console.WriteLine("Ground 2 is the preferred ground for batsmen.");
+        }
+        else if (ground2.IsShortestDistanceGt(ground1))
+        {
+            Console.WriteLine("Ground 1 is the preferred ground for batsmen.");
+        }
+        else
+        {
+            Console.WriteLine("Both grounds are equally preferred.");
+        }
+    }
+}
