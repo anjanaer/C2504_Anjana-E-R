@@ -1,0 +1,99 @@
+Rectangle
+--------------------------------------------------------------------------------------------------------
+namespace Programfunda
+{
+
+    class Rectangle
+    {
+        public int Width { get; set; }
+        public int Height { get; set; }
+
+        //public int Agre => Width * Height;
+
+        public int Area() => Width * Height;
+
+        public void IsOtherRectangleAreaGt(Rectangle rectangle)
+        {
+            if (rectangle.Area() > Area())
+                Console.WriteLine("The other rectangle has more area.");
+            else
+                Console.WriteLine("This rectangle has more area.");
+        }
+
+        public override string ToString()
+        {
+            return $"Width = {Width} | Height = {Height}";
+        }
+    }
+
+    internal class Program
+    {
+        static void Main()
+        {
+            var r1 = new Rectangle { Height = 10, Width = 20 };
+            var r2 = new Rectangle { Height = 100, Width = 200 };
+
+            //r1.IsOtherRectangleAreaGt(r2);
+
+            Console.WriteLine(r1);
+            Console.WriteLine(r2);
+            string v = r1.ToString();
+            Console.WriteLine(v);
+        }
+
+    }
+}
+
+2.Calculator
+-------------------------------------------------------------------------------------
+class Calculator
+    {
+        public int num1;
+        public int num2;
+        public void Add()
+        {
+            Console.WriteLine($"Addition {num1 + num2}");
+        }
+        public void Sub()
+        {
+            Console.WriteLine($"Subtraction {num1 - num2}");
+        }
+        public void Mul()
+        {
+            Console.WriteLine($"Multiplication {num1 * num2}");
+        }
+        public void Div()
+        {
+            if (num2 > 0)
+            {
+                Console.WriteLine($"Division  {num1 / num2}");
+            }
+            else
+            {
+                Console.WriteLine("error");
+            }
+        }
+    }
+
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            Calculator cal = new Calculator
+            {
+                num1 = 10,
+                num2 = 5
+            };
+            Console.WriteLine("enter 1 for add, 2 for sub, 3 for mul, 4 for div: ");
+            int op = int.Parse(Console.ReadLine());
+            switch (op)
+            {
+                case 1: cal.Add(); break;   
+                case 2: cal.Sub(); break;
+                case 3: cal.Mul(); break;
+                case 4: cal.Div(); break;
+                default : Console.WriteLine("error");break;
+            }
+            Console.ReadKey();
+        }
+    }
