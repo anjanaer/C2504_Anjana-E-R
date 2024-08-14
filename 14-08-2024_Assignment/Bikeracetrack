@@ -1,0 +1,56 @@
+3.  BikeRaceTrack
+        { Distance: int }
+        - bool IsGt(BikeRaceTrack other)
+    TestBikeRaceTrack
+
+------------------------------------------------------------------------------------------------------------------------------------
+using System;
+
+public class BikeRaceTrack
+{
+    public int Distance { get; set; }
+
+    public BikeRaceTrack(int distance)
+    {
+        Distance = distance;
+    }
+
+    // Method to compare the distance of this track with another track
+    public bool IsGt(BikeRaceTrack other)
+    {
+        return this.Distance > other.Distance;
+    }
+
+    // Override the ToString method to display the track information
+    public override string ToString()
+    {
+        return $"BikeRaceTrack with Distance: {Distance} meters";
+    }
+}
+
+public class TestBikeRaceTrack
+{
+    public static void Main(string[] args)
+    {
+        BikeRaceTrack track1 = new BikeRaceTrack(5000);
+        BikeRaceTrack track2 = new BikeRaceTrack(7000);
+
+        // Display the track information using the overridden ToString method
+        Console.WriteLine(track1);
+        Console.WriteLine(track2);
+
+        // Compare the distances of the two tracks
+        if (track1.IsGt(track2))
+        {
+            Console.WriteLine("Track 1 is longer than Track 2.");
+        }
+        else if (track2.IsGt(track1))
+        {
+            Console.WriteLine("Track 2 is longer than Track 1.");
+        }
+        else
+        {
+            Console.WriteLine("Both tracks have the same length.");
+        }
+    }
+}
