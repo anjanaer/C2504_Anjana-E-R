@@ -1,3 +1,9 @@
+2.  Circle { Radius: int }
+        - float Circumference() 
+        - bool IsCircumferenceGt(Circle other)
+    TestCircle 
+------------------------------------------------------
+
 class Circle
     {
         public int Radius { get; set; }
