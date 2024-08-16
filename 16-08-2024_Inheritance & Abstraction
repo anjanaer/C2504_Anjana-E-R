@@ -1,0 +1,204 @@
+//INHERITANCE
+1. SINGLE LEVEL
+-------------------------------------------------------
+using System;
+
+public class Animal
+{
+    public void Eat()
+    {
+        Console.WriteLine("Eating...");
+    }
+}
+
+public class Dog : Animal
+{
+    public void Bark()
+    {
+        Console.WriteLine("Barking...");
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Dog myDog = new Dog();
+        myDog.Eat(); // Output: Eating...
+        myDog.Bark(); // Output: Barking...
+    }
+}
+
+2. MULTI LEVEL
+------------------------------------------------------------------------------------------
+using System;
+
+public class Animal
+{
+    public void Eat()
+    {
+        Console.WriteLine("Eating...");
+    }
+}
+
+public class Dog : Animal
+{
+    public void Bark()
+    {
+        Console.WriteLine("Barking...");
+    }
+}
+
+public class Puppy : Dog
+{
+    public void Weep()
+    {
+        Console.WriteLine("Weeping...");
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Puppy myPuppy = new Puppy();
+        myPuppy.Eat(); // Output: Eating...
+        myPuppy.Bark(); // Output: Barking...
+        myPuppy.Weep(); // Output: Weeping...
+    }
+}
+
+3. HIERARCHICAL 
+------------------------------------------------------------------------------------
+using System;
+
+public class Animal
+{
+    public void Eat()
+    {
+        Console.WriteLine("Eating...");
+    }
+}
+
+public class Dog : Animal
+{
+    public void Bark()
+    {
+        Console.WriteLine("Barking...");
+    }
+}
+
+public class Cat: Animal
+{
+    public void Meow()
+    {
+        Console.WriteLine("Meowing...");
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Dog d1 = new Dog();
+        d1.Eat(); // Output: Eating...
+        d1.Bark(); // Output: Barking...
+       
+
+        Cat c1 = new Cat();
+        c1.Eat(); // Output: Eating...
+        c1.Meow(); // Output: Weeping...      
+
+        
+    }
+}
+--------------------------------------------------------------------------------------
+
+virtual and overriden
+--------------------------------------------------------------------------------------
+using System;
+public class Animal
+{
+    public virtual void MakeSound()
+    {
+        Console.WriteLine("Animal makes a sound.");
+    }
+}
+
+public class Dog : Animal
+{
+    public override void MakeSound()
+    {
+        base.MakeSound(); // Calls the base class implementation
+        Console.WriteLine("Dog barks.");
+    }
+}
+class program
+{
+    static void Main(string[] args)
+    {
+        Dog d = new Dog();
+        d.MakeSound();
+       
+    }
+   
+}
+
+
+-----------------------------------------------------------------------------------------------------------------
+ABSTRACTION
+-----------------------------------------------------------------------------------------------------------------
+using System;
+
+public abstract class Animal
+{
+    public string Name { get; set; }
+    public Animal(string _name)
+    {
+        Name = _name;
+    }
+    public abstract void Eat();
+
+    public void Sleep()
+    {
+        Console.WriteLine("Sleeping");
+    }
+}
+public class Dog : Animal
+{
+    public Dog(string _name) : base(_name)
+    {
+    }
+    public override void Eat()
+    {
+        Console.WriteLine($"{Name} is Eating");
+    }
+}
+public class Cat : Animal
+{
+    public Cat(string _name) : base(_name)
+    {
+
+    }
+    public override void Eat()
+    {
+        Console.WriteLine($"{Name} is  Eating"); ;
+    }
+    public void MakeSound()
+    {
+        Console.WriteLine("Meow");
+    }
+}
+class Mammals
+{
+    static void Main(string[] args)
+    {
+        Dog mydog = new Dog("Bella");
+        Cat mycat = new Cat("Dudu");
+        mydog.Eat();
+        mycat.Sleep();
+        mycat.Eat();
+        mycat.Sleep();
+        mycat.MakeSound();
+    }
+}
