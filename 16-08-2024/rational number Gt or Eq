@@ -1,0 +1,73 @@
+class MyUtil
+    {
+        public static int FindGCD(int a, int b) //HCF
+        {
+            while (a != b)
+            {
+                if (a > b)
+                    a -= b;
+                else
+                    b -= a;
+            }
+            return a;
+        }
+    }
+    class RationalNumber
+    {
+        public int Numerator { get; set; }
+        private int denominator;
+        public int Denominator
+        {
+            get
+            {
+                return denominator;
+            }
+            set
+            {
+                if (denominator == 0)
+                {
+                    denominator = 1;
+                }
+                denominator = value;
+            }
+        }
+
+        public RationalNumber(int _numerator, int _denominator)
+        {
+            // throw ERR this.Denominator = 0
+            if (_denominator == 0)
+            {
+                _denominator = 1;
+            }
+            this.Numerator = _numerator;
+            this.Denominator = _denominator;
+        }
+         public bool IsGreaterOrEqual(RationalNumber other)
+         {
+             return (Numerator * other.Denominator) >= (other.Numerator * Denominator);
+         }
+
+        public override string ToString()
+        {
+            return $"[{Numerator} / {Denominator}]";
+        }
+
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            RationalNumber firstNo = new RationalNumber(3, 4);
+            RationalNumber secondNo = new RationalNumber(2, 4);
+
+            if (firstNo.IsGreaterOrEqual(secondNo))
+            {
+                Console.WriteLine($"Rational number 1 {firstNo} is greater than or equal to Rational number 2 {secondNo}");
+            }
+            else
+            {
+                Console.WriteLine($"Rational number 1 {firstNo} is not greater than or equal to Rational number 2 {secondNo}");
+            }
+
+        }
+    }
