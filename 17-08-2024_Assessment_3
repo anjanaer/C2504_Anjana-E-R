@@ -98,3 +98,12 @@ class Program
         Console.WriteLine(m1.LessThanEquals(m2));    // Output: True
     }
 }
+
+output
+--------------------------------------------------------------------------------------
+False
+True
+False
+False
+True
+True
