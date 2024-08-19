@@ -1,0 +1,108 @@
+1.Abstract class can have abstract and non-abstract methods.Cannot be instantiated.
+2.Abstract class doesn't support multiple inheritance
+3.Abstract class can provide the implementation of interface.
+
+Abstract class                                                                                                                                                                                 abstract class Animal
+  {
+      
+      public abstract void animalSound();
+     
+      public void sleep()
+      {
+          Console.WriteLine("Zzz");
+      }
+  }
+
+
+  class Pig : Animal
+  {
+      public override void animalSound()
+      {
+          
+          Console.WriteLine("The pig says: wee wee");
+      }
+  }
+
+  class Program
+  {
+      static void Main(string[] args)
+      {
+          Pig myPig = new Pig(); 
+          myPig.animalSound();  
+          myPig.sleep();  
+      }
+  }
+
+
+1.Interface can have only abstract methods.
+2.Interface supports multiple inheritance
+3.All methods in an interface are by default abstract and must be implemented by any class that implements the interface
+
+using System;
+
+    namespace MyApplication
+    {
+        interface IFirstInterface
+        {
+            void myMethod(); 
+        }
+
+        interface ISecondInterface
+        {
+            void myOtherMethod(); 
+        }
+
+        
+        class DemoClass : IFirstInterface, ISecondInterface
+        {
+            public void myMethod()
+            {
+                Console.WriteLine("Some text..");
+            }
+            public void myOtherMethod()
+            {
+                Console.WriteLine("Some other text...");
+            }
+        }
+
+        class Program
+        {
+            static void Main(string[] args)
+            {
+                DemoClass myObj = new DemoClass();
+                myObj.myMethod();
+                myObj.myOtherMethod();
+            }
+        }
+    }
+}
+
+
+
+*Old version INTERFACE
+
+1. Methods are abstract: All methods in an interface are abstract and must be implemented by any class that implements the interface.
+2. No fields: Interfaces cannot have fields.
+3. No constructors: Interfaces cannot have constructors.
+4. No static members: Interfaces cannot have static members.
+5. No implementation: Interfaces cannot provide implementation for methods.
+
+*New version INTERFACE
+
+1. Default interface methods: Interfaces can now have default implementations for methods, allowing for more flexibility.
+2. Static members: Interfaces can now have static members, including fields, methods, and properties.
+3. Private members: Interfaces can now have private members, which can be used to provide implementation details.
+4. Protected members: Interfaces can now have protected members, which can be accessed by implementers.
+5. Extension methods: Interfaces can now have extension methods, which can be used to add functionality to implementers.
+
+
+Here's an example of a new-style interface:
+`
+public interface ILogger
+{
+    void Log(string message) => Console.WriteLine(message); // Default implementation
+
+    static ILogger CreateLogger() => new ConsoleLogger(); // Static method
+
+    private void WriteLog(string message) => Console.WriteLine(message); // Private method
+}
