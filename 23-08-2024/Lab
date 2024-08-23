@@ -1,0 +1,83 @@
+class Country
+    {
+        public string Name { get; set; }
+        public string Code { get; set; }
+    }
+    class Address
+    {
+        public enum AddressTypes
+        {
+            Home,
+            Office
+        }
+
+        public AddressTypes AddressType { get; set; }
+        public string FullAddress { get; set; }
+        public Country Country { get; set; }
+    }
+
+    class Experience
+    {
+        public string CompanyName { get; set; }
+        public string Website { get; set; }
+        public string Address { get; set; }
+        public double ExperienceInYears { get; set; }
+    }
+
+    class Employee
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public long[] PhoneNumbers { get; set; }
+        public Address[] Addresses { get; set; }
+        public Experience[] Experiences { get; set; }
+    }
+
+    internal class Program
+    {
+        public static void Main()
+        {
+            var emp = new Employee
+            {
+                Name = "Employee 1",
+                Email = "employee1@mail.com",
+                PhoneNumbers = new long[] { 9087656434, 9978654345 },
+                Addresses = new Address[]
+                {
+                    new Address
+                    {
+                        AddressType = Address.AddressTypes.Home,
+                        FullAddress = "sdkfhghsjf",
+                        Country = new Country{Name = "India", Code = "IN"}
+                    },
+                    new Address
+                    {
+                        AddressType = Address.AddressTypes.Office,
+                        FullAddress = "asdkjsdhfsdfh",
+                        Country = new Country{Name = "India", Code = "IN"}
+                    },
+                },
+            };
+            emp.Experiences = new Experience[1];
+            emp.Experiences[0] = new Experience
+            {
+                CompanyName = "Company X",
+                Website = "https://demowebsite.com",
+                Address = "ahsdhjgahjd",
+                ExperienceInYears = 2
+            };
+
+            //Console.WriteLine(emp.Addresses[0].AddressType);
+            //Console.WriteLine(emp.Addresses[1].AddressType);
+
+            //for (int i = 0; i < emp.Addresses.Length; i++)
+            //{
+            //    Console.WriteLine(emp.Addresses[i].AddressType);
+            //}
+
+            foreach (var address in emp.Addresses)
+            {
+                Console.WriteLine((int)address.AddressType);
+            }
+        }
+    }
