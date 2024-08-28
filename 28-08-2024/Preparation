@@ -325,3 +325,81 @@ class Program
      }
  }
  
+7.Switch
+ class Program
+ {
+     static void Main(string[] args)
+     {
+         int day = 3;
+         switch (day)
+         { 
+            case 1:
+                 Console.WriteLine("Monday");
+                 break;
+
+             case 2:
+                 Console.WriteLine("Tuesday");
+                 break;
+
+             case 3:
+                 Console.WriteLine("Wednesday");
+                 break;
+
+             case 4:
+                 default:
+                 Console.WriteLine("Another any day");
+                 break;
+
+         }
+     }
+ }
+8.Even numbers up to 10
+ class Program
+ {
+     static void Main(string[] args)
+     {
+         for (int i = 0; i <= 10; i++) 
+         {
+            if (i % 2 !=0)
+             {
+                continue;
+             }
+            Console.WriteLine(i);
+         }
+     }
+ }
+9.
+class Program
+{
+    static void Main(string[] args)
+    {
+        int[] numbers = { 1, 2, 3, 4, 5 };
+        foreach (var num in numbers)
+        {
+            Console.WriteLine(num);
+        }
+
+    }
+10.
+static void Main(string[] args)
+{
+    int i = 0;
+    while(i<5)
+    {
+        Console.WriteLine(i);
+        i++;
+    }
+
+}
+11.
+ static void Main(string[] args)
+ {
+     int i = 0;
+     do
+     {
+         Console.WriteLine(i);
+         i++;
+     } while (i < 5);
+12.
+
+}
