@@ -1,0 +1,327 @@
+1.Variables
+--------------------------------
+  public class Student
+  {
+      public string Name { get; set; }
+      public static int Id = 12;
+      public const float Pi = 3.14f;
+      public readonly bool flag;
+
+
+      public Student( string name, bool flag)
+      {
+
+          Name = name;
+          this.flag = flag;
+      }
+  }
+  class Program
+  {
+      public static void Main(string[] args)
+      {
+          Console.WriteLine($"id : {Student.Id}");
+          Console.WriteLine($"{Student.Pi}");
+          Student s = new Student( "Anju",true);
+          Console.WriteLine($"name : {s.Name}");
+          Console.WriteLine($"flag : {s.flag}");
+      }
+  }
+  output
+
+id : 12
+3.14
+name : Anju
+flag : True
+Press any key to continue . . .
+
+2.Static methods
+
+ public class Student
+ {
+     public string Name { get; set; }
+     public int Id { get; set; }
+
+
+     public Student( string name, int id)
+     {
+
+         Name = name;
+         Id = id;
+     }
+     public static void Animal()
+     {
+         Console.WriteLine("Animal is sleeping");
+     }
+ }
+ class Program
+ {
+     public static void Main(string[] args)
+     {
+         Student.Animal();
+         Student s = new Student("Anju",3);
+         Console.WriteLine($"name : {s.Name}   id : {s.Id}");
+
+     }
+ }
+ 3.Static constructor
+ A static constructor is called only once, when the type is initialized.
+A static constructor cannot be called explicitly.
+A static constructor is thread-safe, meaning it is guaranteed to be called only once, even in a multi-threaded environment.
+A static constructor can only access static members of the class.
+    private static int _staticField;
+
+    static MyClass()
+    {
+        _staticField = 10;
+        Console.WriteLine("Static constructor called");
+    }
+
+    public static  void PrintStaticField()
+    {
+        Console.WriteLine($"Static field value: {_staticField}");
+    }
+    public  void PrintInstanceField()
+    {
+        Console.WriteLine("Hi");
+    }
+
+}
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        MyClass.PrintStaticField();
+        MyClass obj = new MyClass();
+        obj.PrintInstanceField();
+
+    }
+}
+4. static class
+
+
+public static class MyClass
+{
+    private static int _staticField;
+
+    static MyClass()
+    {
+        _staticField = 10;
+        Console.WriteLine("Static constructor called");
+    }
+
+    public static void PrintStaticField()
+    {
+        Console.WriteLine($"Static field value: {_staticField}");
+    }
+
+    // Removed PrintInstanceField method, as it's not applicable in a static class
+}
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        MyClass.PrintStaticField();
+        // Removed object creation, as MyClass is now a static class
+    }
+}
+
+5.Inheritance
+ public class Animal
+ {
+     public string Name { get; set; }
+     public string Colour { get; set; }
+     public Animal(string name, string colour) 
+     {
+         Name=name; 
+         Colour=colour;
+     }
+
+     public void Sleep()
+     {
+         Console.WriteLine("Animal is Sleeping");
+     }
+ }
+ class Dog : Animal
+ {
+     public int Age { get; set; }
+     public Dog(string name, string colour,int age ) : base(name,colour)
+     {
+         Age = age;
+     }
+     public void Bark()
+     {
+         Console.WriteLine("Dog is Barking");
+     }
+ }
+ class Program
+ {
+     public static void Main(string[] args)
+     {
+         Dog myDog = new Dog("Bruno","Black",6);
+         myDog.Sleep();
+         myDog.Bark();
+         Console.WriteLine($"name :{myDog.Name} colour : {myDog.Colour} Age :{myDog.Age}");
+     }
+ }
+
+
+ 2.Abstraction 
+  public abstract class Animal
+ {
+     public abstract void MakeSound();
+     public void Sleep()
+     {
+         Console.WriteLine("Sleeping");
+     }
+
+ }
+ public class Dog : Animal
+ {
+     public override void MakeSound()
+     {
+         Console.WriteLine("Bow bow");
+     }
+ }
+ class Program
+ {
+     public static void Main(string[] args)
+     {
+         Animal MyDog = new Dog();
+         MyDog.MakeSound();
+         MyDog.Sleep();
+
+         Dog dog = new Dog();
+         dog.MakeSound();
+         dog.Sleep();
+     }
+
+ }
+
+ 3.Polymorphism
+ Method overriding
+     public virtual void MakeSound()
+    {
+        Console.WriteLine("Meow");
+    }
+    public void Sleep()
+    {
+        Console.WriteLine("Sleeping");
+    }
+
+}
+public class Dog : Animal
+{
+    public override void MakeSound()
+    {
+        Console.WriteLine("Bow bow");
+    }
+}
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Animal MyDog = new Dog();
+        MyDog.MakeSound();
+        MyDog.Sleep();
+
+        Dog dog = new Dog();
+        dog.MakeSound();
+        dog.Sleep();
+
+    }
+
+}
+Method overloading
+public class Calculator
+{
+    public int Add(int x, int y)
+    {
+        return x + y;
+    }
+    public double Add(int x, double y)
+    {
+        return x + y;
+    }
+    public double Add(double x, int y)
+    {
+        return x + y;
+    }
+    public int Add(int x, int y, int z)
+    {
+        return x + y + z;
+    }
+}
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Calculator calculator = new Calculator();
+        Console.WriteLine(calculator.Add(2, 3));
+        Console.WriteLine(calculator.Add(3, 4.55));
+        Console.WriteLine(calculator.Add(6.5, 2));
+        Console.WriteLine(calculator.Add(1, 2, 3)); 
+
+    }
+}
+4.Interface
+ public interface IAnimal
+ {
+     void Sleep();
+    
+ }
+ public interface IBird
+ {
+     void Fly();
+ }
+ class Animal : IAnimal, IBird
+ {
+     public void Sleep()
+     {
+         Console.WriteLine("Animal is sleeping");
+     }
+     public void Fly()
+     {
+         Console.WriteLine("Bird is Flying");
+     }
+ }
+ class Program
+ {
+     static void Main(string[] args)
+     {
+         Animal animal = new Animal();
+             animal.Fly();
+             animal.Sleep();
+         
+     }
+ }
+ 
+6.FizzBuzz
+ class Program
+ {
+     static void Main(string[] args)
+     {
+         for (int i = 1; i <= 100; i++)
+         {
+             if ((i % 3 == 0) && (i % 5 == 0))
+             {
+                 Console.WriteLine("Fizz Buzz");
+             }
+             else if (i % 3 == 0)
+             {
+                 Console.WriteLine("Fizz");
+             }
+             else if ((i % 5 == 0))
+             {
+                 Console.WriteLine("Buzz");
+             }
+             else
+             {
+                 Console.WriteLine(i);
+             }
+             
+         }
+     }
+ }
+ 
