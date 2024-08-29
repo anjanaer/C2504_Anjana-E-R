@@ -400,6 +400,406 @@ static void Main(string[] args)
          Console.WriteLine(i);
          i++;
      } while (i < 5);
-12.
+}
+
+12.find average
+
+    static double Findaverage( double num1,double num2)
+    {
+        double sum = num1 + num2;
+        double average = sum / 2;
+        return average;
+    }
+    static void TestFindaverage()
+    {
+        Console.WriteLine("Enter num1:");
+        double num1 = double.Parse(Console.ReadLine());
+        Console.WriteLine("Enter num2:");
+        double num2 = double.Parse(Console.ReadLine());
+        double average = Findaverage(num1,num2);
+        Console.WriteLine("average:"+ average);
+
+
+    }
+
+    static void Main(string[] args)
+    {
+        TestFindaverage();
+    }
+}
+13.Cube
+ internal class Program
+ { 
+     static int FindCube( int num)
+     {
+         int cube = num*num*num; 
+         return cube;
+     }
+     static void TestFindCube()
+     {
+         Console.WriteLine("Enter num:");
+         int num = int.Parse(Console.ReadLine());
+         int cube = FindCube(num);
+         Console.WriteLine("Cube:" + cube);
+
+
+     }
+
+     static void Main(string[] args)
+     {
+         TestFindCube();
+     }
+ }
+
+14.Odd or Even
+
+
+
+        static bool IsOddOrEven(int num)
+        {
+            if(num%2 == 0)
+            {
+                return true;
+            }
+            return false;
+        }
+        static void TestIsOddOrEven()
+        {
+            Console.WriteLine("Enter num");
+            int num = int.Parse(Console.ReadLine());
+            if (IsOddOrEven( num))
+            {
+                Console.WriteLine("Even");
+            }
+            else
+            {
+                Console.WriteLine("Odd");
+            }
+        }
+        static void Main(string[] args)
+        { 
+            TestIsOddOrEven();
+        }
+
+    }
+
+15.
+    static void PrintNnaturalNumbers(int n)
+    {
+        for(int i = 1; i<=n; i++)
+        {
+            Console.WriteLine(i); ; 
+        }
+    }
+    static void TestPrintNnaturalNumber()
+    {
+        Console.WriteLine("Enter n :");
+        int n = int.Parse(Console.ReadLine());
+        Console.WriteLine("Numbers :");
+        PrintNnaturalNumbers(n);
+
+
+    }
+    static void Main(string[] args)
+    {
+        TestPrintNnaturalNumber();
+    }
+
+}   
+
+
+16.
+static bool IsArmstrong(int num)
+{
+    int temp = num;
+    int sum = 0;
+    while (num != 0)
+    {
+        int rem= num % 10;
+        sum = sum+ (rem*rem*rem);
+        num = num / 10;
+    }
+    return temp== sum;
+    
+   
+}
+static void TestIsArmstrong()
+{
+    Console.WriteLine("Enter the number:");
+    int num=int.Parse(Console.ReadLine());
+     if(IsArmstrong(num))
+     {
+         Console.WriteLine("The number is Armstrong");
+     }
+     else
+     {
+        Console.WriteLine("The number is not Armstrong");
+     }
 
 }
+static void Main(string[] args)
+{
+    TestIsArmstrong();
+}
+
+17.
+
+
+        static bool IsPalindrome(int num)
+        {
+            int temp = num;
+            int reverse = 0;
+            while (num != 0)
+            {
+                int remainder = num % 10;
+                reverse = remainder + (reverse * 10);
+                num = num / 10;
+            }
+            return temp== reverse;
+            
+           
+        }
+        static void TestIsPalindrome()
+        {
+            Console.WriteLine("Enter the number:");
+            int num=int.Parse(Console.ReadLine());
+             if(IsPalindrome(num))
+             {
+                 Console.WriteLine("The number is Palindrome");
+             }
+             else
+             {
+                Console.WriteLine("The number is not Palindrome");
+             }
+
+        }
+        static void Main(string[] args)
+        {
+            TestIsPalindrome();
+        }
+
+
+
+    }   
+
+***Reverse of a number
+    static int FindReverse(int num)
+    {
+        
+        int reverse = 0;
+        while (num != 0)
+        {
+            int remainder = num % 10;
+            reverse = remainder + (reverse * 10);
+            num = num / 10;
+        }
+        return  reverse;
+
+
+    }
+    static void TestFindReverse()
+    {
+        Console.WriteLine("Enter the number:");
+        int num = int.Parse(Console.ReadLine());
+        int reverse = FindReverse(num);
+        Console.WriteLine("Reverse: " + reverse);
+
+    }
+    static void Main(string[] args)
+    {
+        TestFindReverse();
+    
+    }
+
+
+
+}
+18.Factorial
+  
+        static void Main(string[] args)
+        {
+            int fact = 1;
+            Console.WriteLine("Enter the number : ");
+            int num=int.Parse(Console.ReadLine());
+            for(int i = 1; i <=num; i++)
+            {
+                fact = fact * i;
+               
+
+            }
+            Console.WriteLine("Factotial:" + fact);
+        }
+or
+ internal class Program
+ {
+    
+     static int FindFactorial(int num)
+     {
+         int fact = 1;
+         for (int i = 1; i <=num; i++)
+         {
+            fact = fact * i;
+         }
+         return fact;
+     }
+     static void TestFindFactorial()
+     {
+         Console.WriteLine("Enter the num:");
+         int num=int.Parse(Console.ReadLine());
+         int factorial=FindFactorial( num);
+         Console.WriteLine("Factorial :" + factorial);
+
+     }
+
+
+
+     static void Main(string[] args)
+     {
+         TestFindFactorial();
+     }
+
+
+
+ }   
+
+19.   static bool IsPerfectNumber(int num)
+   {
+        int sum = 0;
+        for(int i = 1; i <num; i++)
+        {
+            if(num%i == 0)
+            {
+                sum += i;
+            }
+           
+        }
+        return sum == num;
+
+    }
+    static void TestIsPerfectNumber()
+    {
+        Console.WriteLine("Enter the number");
+        int num = int.Parse(Console.ReadLine());
+        if(IsPerfectNumber(num))
+        {
+            Console.WriteLine("perfect");
+        }
+        else
+        {
+            Console.WriteLine("not perfect");
+        }
+
+    }
+
+
+    static void Main(string[] args)
+    {
+        TestIsPerfectNumber();
+    }
+
+
+
+}   
+
+20.Leapyear
+internal class Program
+{
+   static bool IsLeapyear(int year)
+    {
+        if(year % 400==0)
+        {
+            return true;
+        }
+        else if ((year % 100 !=0) &&(year % 4==0) )
+        {
+            return true;
+        }
+        return false;
+    }
+    static void TestIsLeapyear()
+    {
+        Console.WriteLine("Enter the year :");
+        int year = int.Parse(Console.ReadLine());
+        if ((IsLeapyear( year)))
+        {
+            Console.WriteLine("Is Leap year");
+        }
+        else
+        {
+            Console.WriteLine("Not is  Leapyear");
+        }
+    }
+    static void Main(string[] args)
+    {
+        TestIsLeapyear();
+    }
+}
+
+
+21. Check prime
+    static bool Isprime(int num)
+    { 
+        if(num <=1)
+        {
+            return false;
+        }
+        for(int i = 2; i < Math.Sqrt(num); i++)
+        {
+           if(num % i == 0)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    static void TestIsPrime()
+    {
+        Console.WriteLine("Enter the number:");
+        int num = int.Parse (Console.ReadLine());
+        if(Isprime(num))
+        {
+            Console.WriteLine("Number is Prime " );
+        }
+        else
+        {
+            Console.WriteLine("number is not Prime " );
+        }
+    }
+   
+    static void Main(string[] args)
+    {
+        TestIsPrime();
+    }
+
+}   
+
+22.Fibanocci series
+  static void PrintFibanocciseries(int numOfterms)
+    {
+        int firstTerm = 0;
+        int secondTerm = 1;
+        Console.Write(firstTerm +" "+ secondTerm + " ");
+        for(int i = 2;i< numOfterms;i++)
+        {
+           int nextTerm = firstTerm+secondTerm;
+            Console.Write(nextTerm + " ");
+            firstTerm = secondTerm;
+            secondTerm = nextTerm;
+        }
+      
+    }
+    static void TestPrintFibanocciseries()
+    {
+        Console.WriteLine("Enter the NumOfterms");
+        int numOfterms=int.Parse(Console.ReadLine());
+        PrintFibanocciseries(numOfterms);
+        
+
+    }
+    static void Main(string[] args)
+    {
+        TestPrintFibanocciseries();
+    }
+
+}
+   
