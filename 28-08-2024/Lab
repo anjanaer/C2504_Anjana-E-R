@@ -1,0 +1,77 @@
+LAB
+
+ARRAY AND STRING METHODS
+
+namespace ConsoleApp55
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            var s = "HelloWorld";
+            var countedItems = new List<int>();
+            foreach (var @char in s)
+            {
+                if (countedItems.Contains(@char))
+                    continue;
+                countedItems.Add(@char);
+                Console.WriteLine($"counting: {@char}");
+                int count = 0;
+                foreach (var chr in s)
+
+                    if (chr == @char)
+                        count++;
+                Console.WriteLine($"the count is:{count}");
+                string data = "  this is a string   .";
+                string data1 = "hbvhbvhbvhvhbvh";
+                Console.WriteLine(data.Trim());
+                Console.WriteLine(data.TrimStart());
+                Console.WriteLine(data.TrimEnd());
+                Console.WriteLine(data.StartsWith(" "));
+                Console.WriteLine(data.EndsWith("."));
+                Console.WriteLine(data.Contains(" "));
+                Console.WriteLine(data.Remove(0, 3));
+                Console.WriteLine(data.Replace(" ", "_"));
+                Console.WriteLine(data.IndexOf("is"));
+                Console.WriteLine(data.Contains("is"));
+                Console.WriteLine(data1.Split(' '));
+                string[] data2 = { "one", "two", "three" };
+                //Console.WriteLine(string.Join("_"));
+                var numbers = new int[] { 1, 2, 3, 4, 5 };
+                Console.WriteLine(numbers[0]);
+                Console.WriteLine(numbers[numbers.Length - 1]);
+                Console.WriteLine(numbers.Last());
+                Console.WriteLine(numbers.First());
+                Console.WriteLine(numbers.Min());
+                Console.WriteLine(numbers.Max());
+                Console.WriteLine(numbers.Sum());
+                Console.WriteLine(numbers.OrderBy(m => m));
+                Console.WriteLine(numbers.OrderByDescending(m => m));
+                Array.Resize(ref numbers, 4);
+                numbers[3] = 500;
+                Array.Sort(numbers);//modifies actual array
+                var a = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+                var largest = a.Take(5).Max();
+                var smallest = a.Skip(5).Min();
+                Console.WriteLine(smallest);
+                Console.WriteLine(largest);
+                var a = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+                List<int> list = a.ToList();
+
+                // Display the list
+                foreach (int item in list)
+                {
+                    Console.WriteLine(item);
+                }
+                var a = "aeroplane";
+            var b = "aerocraft";
+            char[] array1 = a.ToArray();
+            char[] array2 = b.ToArray();
+            char[] commonChars = array1.Intersect(array2).ToArray();
+            Console.WriteLine(commonChars);
+
+        }
+
+        }
+    }
+
