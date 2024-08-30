@@ -1,0 +1,146 @@
+using System;
+
+public class Employee
+{
+    public string Name { get; set; }
+    public string Email { get; set; }
+    public decimal BasePay { get; set; }
+    public int Age { get; set; }
+
+    public decimal AnnualSalary => BasePay * 12;
+}
+
+public class EmployeeDirectory
+{
+    private Employee[] employees;
+    private int employeeCount;
+
+    public EmployeeDirectory(int size)
+    {
+        employees = new Employee[size];
+        employeeCount = 0;
+    }
+
+    public Employee this[int index]
+    {
+        get => employees[index];
+        set
+        {
+            if (index < employees.Length)
+            {
+                employees[index] = value;
+                if (index == employeeCount)
+                    employeeCount++;
+            }
+        }
+    }
+
+    public Employee GetHighestSalaryEmployee()
+    {
+        Employee highestSalaryEmployee = null;
+        decimal maxSalary = decimal.MinValue;
+
+        for (int i = 0; i < employeeCount; i++)
+        {
+            if (employees[i].BasePay > maxSalary)
+            {
+                maxSalary = employees[i].BasePay;
+                highestSalaryEmployee = employees[i];
+            }
+        }
+
+        return highestSalaryEmployee;
+    }
+
+    public decimal GetAnnualSalary(string name)
+    {
+        for (int i = 0; i < employeeCount; i++)
+        {
+            if (employees[i].Name == name)
+            {
+                return employees[i].AnnualSalary;
+            }
+        }
+        return 0;
+    }
+
+    public Employee[] GetYoungestEmployees()
+    {
+        int minAge = int.MaxValue;
+        for (int i = 0; i < employeeCount; i++)
+        {
+            if (employees[i].Age < minAge)
+            {
+                minAge = employees[i].Age;
+            }
+        }
+
+        int count = 0;
+        for (int i = 0; i < employeeCount; i++)
+        {
+            if (employees[i].Age == minAge)
+            {
+                count++;
+            }
+        }
+
+        Employee[] youngestEmployees = new Employee[count];
+        int index = 0;
+        for (int i = 0; i < employeeCount; i++)
+        {
+            if (employees[i].Age == minAge)
+            {
+                youngestEmployees[index++] = employees[i];
+            }
+        }
+
+        return youngestEmployees;
+    }
+
+    public int GetEmployeeCountByAge(int age)
+    {
+        int count = 0;
+        for (int i = 0; i < employeeCount; i++)
+        {
+            if (employees[i].Age == age)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        EmployeeDirectory directory = new EmployeeDirectory(10);
+
+        // Adding employees
+        directory[0] = new Employee { Name = "Alice", Email = "alice@example.com", BasePay = 5000, Age = 28 };
+        directory[1] = new Employee { Name = "Bob", Email = "bob@example.com", BasePay = 6000, Age = 24 };
+        directory[2] = new Employee { Name = "Charlie", Email = "charlie@example.com", BasePay = 4500, Age = 24 };
+        directory[3] = new Employee { Name = "David", Email = "david@example.com", BasePay = 7000, Age = 30 };
+
+        // Get the employee with the highest salary
+        Employee highestSalaryEmployee = directory.GetHighestSalaryEmployee();
+        Console.WriteLine($"Highest Salary Employee: {highestSalaryEmployee.Name}, Salary: {highestSalaryEmployee.BasePay}");
+
+        // Get the 12-month salary of an employee
+        decimal annualSalary = directory.GetAnnualSalary("Alice");
+        Console.WriteLine($"Alice's Annual Salary: {annualSalary}");
+
+        // Get youngest employees
+        Employee[] youngestEmployees = directory.GetYoungestEmployees();
+        Console.WriteLine("Youngest Employees:");
+        foreach (var emp in youngestEmployees)
+        {
+            Console.WriteLine($"{emp.Name}, Age: {emp.Age}");
+        }
+
+        // Get the number of employees by a given age
+        int employeeCountByAge = directory.GetEmployeeCountByAge(24);
+        Console.WriteLine($"Number of Employees aged 24: {employeeCountByAge}");
+    }
+}
