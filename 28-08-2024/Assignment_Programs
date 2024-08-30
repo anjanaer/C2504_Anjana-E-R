@@ -1,0 +1,239 @@
+ASSIGNMENT
+---------------
+
+1.Count character frequency in a String  
+
+internal class Programs
+{
+    static int FindCharInArray(char[] ar, int N, char target)
+    {
+        int index = 0;
+        foreach (var ch in ar)
+        {
+            if(ch == target) return index;
+            index++;
+        }
+
+        return -1;
+    }
+    static void Main()
+    {
+        Console.Write("Enter string:");
+        string sentence = Console.ReadLine();
+        
+        char [] letters = new char[1000]; int numOfLetters = 0;
+        int[] counts = new int[1000];
+
+        foreach(var ch in sentence)
+        {
+            int pos = FindCharInArray(letters, numOfLetters, ch);
+            if (pos != -1)
+            {
+                counts[pos]++;
+                continue;
+            }
+
+            letters[numOfLetters] = ch;
+            counts[numOfLetters] = 1;
+            numOfLetters++;
+        }            
+        for (int I = 0; I < numOfLetters; I++)
+        {
+            Console.WriteLine($"{letters[I]} occurred {counts[I]} times.");
+            //Console.WriteLine($"number of frequency of {letters[I]} is {counts[I]}.");
+        }
+    }
+}
+
+2.To remove duplicates in sorted array
+
+internal class Programs
+{
+    static void Main()
+    {
+        float[] salaries = { 10, 10, 20, 30, 50, 50, 60, 60, 60, 70, 80, 80 };
+
+        float[] distinctSalaries = new float[100]; int distinctSize = 0;
+
+        for(int I = 0; I <= (salaries.Length - 2); I++)
+        {
+            if (salaries[I] == salaries[I+1])
+            {
+                continue;
+            }
+            distinctSalaries[distinctSize] = salaries[I];
+            distinctSize++;
+        }
+        
+        distinctSalaries[distinctSize] = salaries[salaries.Length - 1];
+        distinctSize++;
+        
+        for (int I = 0; I < distinctSize; I++)
+        {
+            Console.Write($"{distinctSalaries[I]} ");
+        }
+    }
+}
+
+3.
+
+Rotate given array from the specified index. 
+    - Left rotate at index k [Print]
+    - Right rotate at index k [Print]
+    - Left rotate at index k [Copy]
+    - Right rotate at index k [Copy]
+    Here, k is the index at which rotation takes place 
+
+- Left rotate at index k [Print]
+internal class Programs
+{
+    
+    static void Main()
+    {
+        float[] salaries = { 10, 20, 30, 40, 50, 60, 70 }; int k = 1;
+        //rotate left 10 :  20, 30, 40, 50, 60, 70 10
+        //rotate left 20:   30, 40, 50, 60, 70 10 20
+        //salaries[k+1 .. end] + salaries[0..k]
+        for(int I = k + 1; I < salaries.Length; I++) //from at k+1 till end 
+        {
+            Console.Write($"{salaries[I]} ");
+        }
+        for (int I = 0; I <= k; I++) //from first element till at k
+        {
+            Console.Write($"{salaries[I]} ");
+        }
+
+    }
+}
+
+- Left rotate at index k [Copy]
+internal class Programs
+{
+   
+    static void Main()
+    {
+        float[] salaries = { 10, 20, 30, 40, 50, 60, 70 }; int k = 1;
+        float[] rotated = new float[1000]; int size = 0;
+        //rotate left 10 :  20, 30, 40, 50, 60, 70 10
+        //rotate left 20:   30, 40, 50, 60, 70 10 20
+        //salaries[k+1 .. end] + salaries[0..k]
+        for(int I = k + 1; I < salaries.Length; I++) //from at k+1 till end 
+        {
+            rotated[size] = salaries[I]; size++;
+        }
+        for (int I = 0; I <= k; I++) //from first element till at k
+        {
+            rotated[size] = salaries[I]; size++;
+        }
+        for (int I = 0; I < size; I++)
+        {
+            Console.Write($"{rotated[I]} ");
+        }
+
+    }
+}
+
+- Right rotate at index k [Print]
+internal class Programs
+{
+   
+    static void Main()
+    {
+        float[] salaries = { 10, 20, 30, 40, 50, 60, 70 }; int k = 5;
+        //rotate right 70 :  70 10 20, 30, 40, 50, 60,  
+        //rotate left 60:   60 70 10 20, 30, 40, 50
+        //salaries[k .. end] + salaries[0..k-1]
+        for(int I = k ; I < salaries.Length; I++) //from at k till end 
+        {
+            Console.Write($"{salaries[I]} ");
+        }
+        for (int I = 0; I <= k-1; I++) //from first element before at k
+        {
+            Console.Write($"{salaries[I]} ");
+        }
+
+    }
+}
+
+- Right rotate at index k [Copy]
+internal class Programs
+{
+   
+    static void Main()
+    {
+        float[] salaries = { 10, 20, 30, 40, 50, 60, 70 }; int k = 5;
+        //rotate right 70 :  70 10 20, 30, 40, 50, 60,  
+        //rotate left 60:   60 70 10 20, 30, 40, 50
+        float[] rotated = new float[1000]; int size = 0;
+        //salaries[k .. end] + salaries[0..k-1]
+        for(int I = k ; I < salaries.Length; I++) //from at k till end 
+        {
+            rotated[size] = salaries[I]; size++;
+        }
+        for (int I = 0; I <= k-1; I++) //from first element before at k
+        {
+            rotated[size] = salaries[I]; size++;
+        }
+        for (int I = 0; I < size; I++)
+        {
+            Console.Write($"{rotated[I]} ");
+        }
+
+    }
+}
+
+//Left rotate at k(rotateIndex) [rotate in place] by left shift 
+internal class Programs
+{
+    
+    static void Main()
+    {
+        float[] salaries = { 10, 20, 30, 40, 50, 60, 70 }; int k = 1;
+
+        for (int J = 1; J <= (k + 1); J++)
+        {
+            float target = salaries[0];
+            for (int i = 1; i < salaries.Length; i++)
+            {
+                salaries[i - 1] = salaries[i];
+            }
+            salaries[salaries.Length - 1] = target;
+        }
+        for (int I = 0; I < salaries.Length; I++)
+        {
+            Console.Write($"{salaries[I]} ");
+        }
+
+    }
+}
+
+4.6. Given an array of integers 
+   where every number is repeating two times. 
+   Find the number which is occuring only once.
+   [consecutive repeating numbers]
+
+   2 2 3 3 4 4 5 6 6    ==> 5
+ internal class Programs
+{
+    
+    static void Main()
+    {
+        //float[] salaries = { 2, 2 ,3, 3, 4, 4, 5, 6, 6 };
+        //float[] salaries = { 2, 3, 3, 4, 4, 5, 5, 6, 6 };
+        float[] salaries = { 2, 2, 3, 3, 4, 4, 5, 5, 6 };
+        bool isNonRepeatedExist = false; //Edge case for last element 
+        for (int i = 0; i < salaries.Length-1; i+=2)
+        {
+            if (salaries[i] != salaries[i + 1])
+            {
+                Console.WriteLine(salaries[i]);
+                isNonRepeatedExist = true; //Edge case for last element 
+                break;
+            }
+        }
+        if(!isNonRepeatedExist) //Edge case for last element //&& salaries.Length % 2 == 1
+        {
+            Console.WriteLine(salaries[salaries.Length - 1]);
+        }
+    }
+}
