@@ -1,0 +1,225 @@
+WORKING OF DELEGATES
+
+1.using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp59
+{
+    public delegate void Operation(int n1, int n2);
+    public delegate void Operation1(int n1, int n2,int n3);
+    internal class Program
+    {
+        public static void Add(int a, int b) => Console.WriteLine(a + b);
+        public static void Sub(int a, int b) => Console.WriteLine(a - b);
+        public static void Mul(int a, int b,int c) => Console.WriteLine(a * b * c);
+        static void Main(string[] args)
+        {
+            Operation op = Add;
+            op += Sub;
+            op += Sub;
+            op -= Sub;
+            op(10, 5);
+            
+            //Operation op1 = Sub;
+            //op1(5, 2);
+            //Operation1 op2 = Mul;
+            //op2(1,2,3);
+
+        }
+    }
+}
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2.using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace ConsoleApp59
+{
+    public delegate void Operation(int n1, int n2);
+    public delegate void Operation1(int n1, int n2,int n3);
+
+    internal class Program
+    {
+        public static void Add(int a, int b) => Console.WriteLine(a + b);
+        public static void Sub(int a, int b) => Console.WriteLine(a - b);
+        public static void Mul(int a, int b,int c) => Console.WriteLine(a * b * c);
+
+        public static bool IsEven(int x) => x % 2 == 0;
+        public static void SetTimer(int delay, Operation op)
+        {
+            Thread.Sleep(delay);
+            Console.WriteLine("Delayed message:");
+            op(3,2);
+        }
+
+        static void Main(string[] args)
+        {
+            Operation op = Add;
+            op += Sub;
+            //op += Sub;
+            //op -= Sub;
+            op(10, 5);
+            SetTimer(2000, op);
+            //Operation op1 = Sub;
+            //op1(5, 2);
+            //Operation1 op2 = Mul;
+            //op2(1,2,3);
+            Action<int, int> x = Add;
+            Func<int, bool> y = IsEven;
+            Predicate<int> z = IsEven;
+            x(4, 5);
+            y(10);
+            z(6);
+
+        }
+    }
+}
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3.public static bool IsOdd(int number)
+{
+    return number % 2 != 0;
+}
+ 
+public static bool IsEven(int number)
+{
+    return number % 2 == 0;
+}
+ 
+public static void Check(int[] numbers,  Predicate<int> condition)
+{
+    foreach (var num in numbers)
+    {
+        if (condition(num))
+        {
+            Console.WriteLine(num);
+        }
+    }
+}
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+namespace Index
+{
+    public delegate void Operation(int n1,int n2);
+    
+    internal class Program
+    {
+        public static void Add(int a, int b)=> Console.WriteLine(a  + b);
+        public static void Sub(int a, int b) => Console.WriteLine(a - b);
+        public static void Mul(int a, int b, int c) => Console.WriteLine(a * b * c);
+
+        public static void Main(string[] args)
+        {
+            Operation op = Add;
+            op(10, 5);
+        }
+   
+
+    }
+   
+}
+
+ 
+    public delegate void TimerDelegate();
+
+    internal class Program
+    {
+     
+        public static void TimerAction1() => Console.WriteLine("Timer Action 1 executed.");
+
+  
+        public static void TimerAction2() => Console.WriteLine("Timer Action 2 executed.");
+
+        
+        public static void SetTimer(TimerDelegate timerDelegate, int delay)
+        {
+            Console.WriteLine($"Setting timer for {delay} milliseconds...");
+            Thread.Sleep(delay);  
+            timerDelegate();     
+        }
+
+        public static void Main()
+        {
+         
+            TimerDelegate timerDelegate = TimerAction1;
+
+            
+            timerDelegate += TimerAction2;
+
+           
+            timerDelegate += TimerAction2;
+
+            
+            timerDelegate -= TimerAction2;
+
+           
+            SetTimer(timerDelegate, 2000);
+        }
+    }
+
+
+namespace Index
+{
+
+    
+    public delegate void Operation();
+
+    internal class Program
+    {
+
+        public static void DoThis() => Console.WriteLine("Timer Action 1 executed.");
+
+         public static void SetTimer(Operation op, int delay)
+        {
+            
+            Thread.Sleep(delay);  
+            op();     
+        }
+
+        public static void Main()
+        {
+
+            SetTimer(DoThis, 2000);
+
+
+        }
+    }
+}
+
+
+
+
+    public delegate bool CheckNumber(int number);
+
+    internal class Program
+    {
+
+        public static bool IsEven(int number) => number % 2 == 0;
+
+
+        public static bool IsOdd(int number) => number % 2 != 0;
+
+        public static void Main(string[] args)
+        {
+
+            List<int> numbers = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+
+            Console.WriteLine("Enter a number to check if it's odd or even:");
+            int num = int.Parse(Console.ReadLine());
+
+
+            if (IsEven(num))
+            {
+                Console.WriteLine($"{num} is Even.");
+            }
+
+            else if (IsOdd(num))
+            {
+                Console.WriteLine($"{num} is Odd.");
+            }
+        }
+    }
