@@ -1,0 +1,76 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using ConsoleApp1;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp1.Tests
+{
+    [TestClass()]
+    public class DoctorPrescriptionServiceTests
+    {
+        [TestMethod()]
+        public void SortTest()
+        {
+            DoctorPrescription[] prescriptions = new DoctorPrescription[3];
+            prescriptions[0] = new DoctorPrescription { DoctorID = 1, PatientName = "Charlie", Medication = "Ibuprofen", Dosage = 25 };
+            prescriptions[1] = new DoctorPrescription { DoctorID = 2, PatientName = "Alice", Medication = "Zyrtec", Dosage = 10 };
+            prescriptions[2] = new DoctorPrescription { DoctorID = 3, PatientName = "Bob", Medication = "Aspirin", Dosage = 50 };
+
+            DoctorPrescription expected = new DoctorPrescription { DoctorID = 2, PatientName = "Alice", Medication = "Zyrtec", Dosage = 10 };
+
+
+            DoctorPrescriptionService.Sort(prescriptions);
+            DoctorPrescription actual = prescriptions[0];
+
+            Assert.AreEqual(expected.ToString(), actual.ToString());
+        }
+
+        [TestMethod()]
+        public void FindMaxTest()
+        {
+
+            DoctorPrescription[] prescriptions = new DoctorPrescription[3];
+            prescriptions[0] = new DoctorPrescription { DoctorID = 1, PatientName = "Alice", Medication = "Zyrtec", Dosage = 10 };
+            prescriptions[1] = new DoctorPrescription { DoctorID = 2, PatientName = "Bob", Medication = "Aspirin", Dosage = 50 };
+            prescriptions[2] = new DoctorPrescription { DoctorID = 3, PatientName = "Charlie", Medication = "Ibuprofen", Dosage = 25 };
+
+            DoctorPrescription expected = new DoctorPrescription { DoctorID = 2, PatientName = "Bob", Medication = "Aspirin", Dosage = 50 };
+
+
+            DoctorPrescription actual = DoctorPrescriptionService.FindMax(prescriptions);
+
+
+            Assert.AreEqual(expected.ToString(), actual.ToString());
+
+
+        }
+
+        [TestMethod()]
+        public void FindThirdMinTest()
+        {
+
+
+            DoctorPrescription[] prescriptions = new DoctorPrescription[5];
+            prescriptions[0] = new DoctorPrescription { DoctorID = 1, PatientName = "Alice", Medication = "Zyrtec", Dosage = 10 };
+            prescriptions[1] = new DoctorPrescription { DoctorID = 2, PatientName = "Bob", Medication = "Aspirin", Dosage = 50 };
+            prescriptions[2] = new DoctorPrescription { DoctorID = 3, PatientName = "Charlie", Medication = "Ibuprofen", Dosage = 25 };
+            prescriptions[3] = new DoctorPrescription { DoctorID = 4, PatientName = "Dave", Medication = "Tylenol", Dosage = 5 };
+            prescriptions[4] = new DoctorPrescription { DoctorID = 5, PatientName = "Eve", Medication = "Advil", Dosage = 15 };
+
+            DoctorPrescription expected = new DoctorPrescription { DoctorID = 5, PatientName = "Eve", Medication = "Advil", Dosage = 15 };
+
+
+            DoctorPrescription actual = DoctorPrescriptionService.FindThirdMin(prescriptions);
+
+
+            Assert.AreEqual(expected.ToString(), actual.ToString());
+
+
+        }
+    }
+
+
+}
