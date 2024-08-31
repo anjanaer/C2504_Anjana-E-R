@@ -1,0 +1,27 @@
+
+CREATE DATABASE DoctorPrescriptionsDb;
+USE DoctorPrescriptionsDb;
+
+
+CREATE TABLE DoctorPrescriptions (
+    PrescriptionID INT PRIMARY KEY IDENTITY(1,1),
+    DoctorID INT NOT NULL,
+    PatientName NVARCHAR(100) NOT NULL,
+    Medication NVARCHAR(100) NOT NULL,
+    Dosage FLOAT NOT NULL
+);
+
+
+
+INSERT INTO DoctorPrescriptions (DoctorID, PatientName, Medication, Dosage)
+VALUES
+(1, 'John Doe', 'Amoxicillin', 500),
+(2, 'Jane Smith', 'Ibuprofen', 200),
+(3, 'Alice Johnson', 'Paracetamol', 650),
+(4, 'Bob Brown', 'Atorvastatin', 10),
+(5, 'Eve White', 'Metformin', 1000);
+
+SELECT * FROM DoctorPrescriptions;
+
+
+
