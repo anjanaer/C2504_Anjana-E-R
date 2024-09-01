@@ -58,8 +58,6 @@ using log4net;
 
 namespace Week42Practice
 {
-
-
     public class ServerException : Exception
     {
         public ServerException(string message) : base(message) { }
@@ -81,6 +79,7 @@ namespace Week42Practice
     public class DoctorPrescriptionService
     {
         private static string connectionString = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=DoctorPrescriptionsDb;Integrated Security=True;";
+
         public static void Read(DoctorPrescription[] prescriptions)
         {
             try
@@ -127,17 +126,25 @@ namespace Week42Practice
         {
             for (int i = 0; i < prescriptions.Length - 1; i++)
             {
+              
+                int minIndex = i;
                 for (int j = i + 1; j < prescriptions.Length; j++)
                 {
-                    if (prescriptions[j].PatientName.CompareTo(prescriptions[i].PatientName) < 0)
+                    if (prescriptions[j].PatientName.CompareTo(prescriptions[minIndex].PatientName) < 0)
                     {
-                        var temp = prescriptions[i];
-                        prescriptions[i] = prescriptions[j];
-                        prescriptions[j] = temp;
+                        minIndex = j;
                     }
+                }
+
+                if (minIndex != i)
+                {
+                    var temp = prescriptions[i];
+                    prescriptions[i] = prescriptions[minIndex];
+                    prescriptions[minIndex] = temp;
                 }
             }
         }
+
 
         public static DoctorPrescription FindMin(DoctorPrescription[] prescriptions)
         {
@@ -154,12 +161,14 @@ namespace Week42Practice
             }
             return minPrescription;
         }
+
         public static DoctorPrescription FindThirdMax(DoctorPrescription[] prescriptions)
         {
             double firstMaxDos = double.MinValue;
             double secondMaxDos = double.MinValue;
             double thirdMaxDos = double.MinValue;
             DoctorPrescription thirdGreatestPrescription = null;
+
             foreach (var prescription in prescriptions)
             {
                 double dosage = prescription.Dosage;
@@ -194,7 +203,6 @@ namespace Week42Practice
 
     public class Program
     {
-
         private static readonly ILog log = LogManager.GetLogger(typeof(Program));
 
         static void Main(string[] args)
@@ -210,10 +218,10 @@ namespace Week42Practice
             }
 
             DoctorPrescription minPrescription = DoctorPrescriptionService.FindMin(prescriptions);
-            log.Info($"Min Prescription: {maxPrescription}");
+            log.Info($"Min Prescription: {minPrescription}");
 
-            DoctorPrescription thirdMinPrescription = DoctorPrescriptionService.FindThirdMax(prescriptions);
-            log.Info($"Third Max Prescription: {thirdMinPrescription}");
+            DoctorPrescription thirdMaxPrescription = DoctorPrescriptionService.FindThirdMax(prescriptions);
+            log.Info($"Third Max Prescription: {thirdMaxPrescription}");
 
             DoctorPrescriptionService.Sort(prescriptions);
             string sortedPrescriptions = string.Join(" ", prescriptions.Select(p => p.ToString()));
@@ -221,7 +229,6 @@ namespace Week42Practice
         }
     }
 }
-
 
 Assembly.info
 ---------------------------------------------------------------------------------------------------------------------------------
