@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using log4net;
 using System.Data.SqlClient;
-
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using log4net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -78,13 +79,13 @@ namespace ConsoleApp1
         {
             for (int i = 0; i < prescriptions.Length - 1; i++)
             {
-                for (int j = 0; j < prescriptions.Length - i - 1; j++)
+                for (int j = i + 1; j < prescriptions.Length ; j++)
                 {
-                    if (prescriptions[j].PatientName.CompareTo(prescriptions[j + 1].PatientName) > 0)
+                    if (prescriptions[j].PatientName.CompareTo(prescriptions[i].PatientName) < 0)
                     {
-                        var temp = prescriptions[j];
-                        prescriptions[j] = prescriptions[j + 1];
-                        prescriptions[j + 1] = temp;
+                        var temp = prescriptions[i];
+                        prescriptions[i] = prescriptions[j ];
+                        prescriptions[j ] = temp;
                     }
                 }
             }
@@ -109,12 +110,41 @@ namespace ConsoleApp1
 
         public static DoctorPrescription FindThirdMin(DoctorPrescription[] prescriptions)
         {
-            List<double> uniqueDosages = prescriptions.Select(p => p.Dosage).Distinct().OrderBy(d => d).ToList();
-            if (uniqueDosages.Count < 3) return null;
+            double firstMinDos = double.MaxValue;
+            double secondMinDos = double.MaxValue;
+            double thirdMinDos = double.MaxValue;
+            Prescription thirdLeastPrescription = null;
+            foreach (var prescription in prescriptions)
+            {
+                double dosage = prescription.Dosage;
+                if (dosage < firstMinDos)
+                {
+                    thirdMinDos = secondMinDos;
+                    secondMinDos = firstMinDos;
+                    firstMinDos = dosage;
+                }
+                else if (dosage < secondMinDos && dosage != firstMinDos)
+                {
+                    thirdMinDos = secondMinDos;
+                    secondMinDos = dosage;
+                }
+                else if (dosage < thirdMinDos && dosage != secondMinDos && dosage != firstMinDos)
+                {
+                    thirdMinDos = dosage;
+                }
+            }
 
-            double thirdMinDosage = uniqueDosages[2];
-            return prescriptions.FirstOrDefault(p => p.Dosage == thirdMinDosage);
+            foreach (var prescription in prescriptions)
+            {
+                if (prescription.Dosage == thirdMinDos)
+                {
+                    thirdLeastPrescription = prescription;
+                    break;
+                }
+            }
+            return thirdLeastPrescription;
         }
+        
     }
 
     public class Program
