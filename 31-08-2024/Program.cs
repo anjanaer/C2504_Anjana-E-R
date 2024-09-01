@@ -5,10 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using log4net;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ConsoleApp1
+namespace Week42Practice
 {
 
 
@@ -26,7 +24,7 @@ namespace ConsoleApp1
 
         public override string ToString()
         {
-            return $"Doctor ID: {DoctorID}, Patient Name: {PatientName}, Medication: {Medication}, Dosage: {Dosage} mg";
+            return $"\nDoctor ID: {DoctorID}, Patient Name: {PatientName}, Medication: {Medication}, Dosage: {Dosage} mg";
         }
     }
 
@@ -79,13 +77,13 @@ namespace ConsoleApp1
         {
             for (int i = 0; i < prescriptions.Length - 1; i++)
             {
-                for (int j = i + 1; j < prescriptions.Length ; j++)
+                for (int j = i + 1; j < prescriptions.Length; j++)
                 {
                     if (prescriptions[j].PatientName.CompareTo(prescriptions[i].PatientName) < 0)
                     {
                         var temp = prescriptions[i];
-                        prescriptions[i] = prescriptions[j ];
-                        prescriptions[j ] = temp;
+                        prescriptions[i] = prescriptions[j];
+                        prescriptions[j] = temp;
                     }
                 }
             }
@@ -104,16 +102,14 @@ namespace ConsoleApp1
                     maxPrescription = prescription;
                 }
             }
-
             return maxPrescription;
         }
-
         public static DoctorPrescription FindThirdMin(DoctorPrescription[] prescriptions)
         {
             double firstMinDos = double.MaxValue;
             double secondMinDos = double.MaxValue;
             double thirdMinDos = double.MaxValue;
-            Prescription thirdLeastPrescription = null;
+            DoctorPrescription thirdLeastPrescription = null;
             foreach (var prescription in prescriptions)
             {
                 double dosage = prescription.Dosage;
@@ -144,35 +140,49 @@ namespace ConsoleApp1
             }
             return thirdLeastPrescription;
         }
-        
     }
 
     public class Program
     {
+
         private static readonly ILog log = LogManager.GetLogger(typeof(Program));
 
         static void Main(string[] args)
         {
-            log4net.Config.XmlConfigurator.Configure();
-            DoctorPrescription[] prescriptions = new DoctorPrescription[3];
+            DoctorPrescription[] prescriptions = new DoctorPrescription[5];
             try
             {
                 DoctorPrescriptionService.Read(prescriptions);
             }
             catch (ServerException ex)
             {
-                log.Error(ex.Message);
+                log.Error($"{ex.Message}");
             }
 
-            DoctorPrescription max = DoctorPrescriptionService.FindMax(prescriptions);
-            log.Info($"Max Dosage: {max}");
+            DoctorPrescription maxPrescription = DoctorPrescriptionService.FindMax(prescriptions);
+            log.Info($"Max Prescription: {maxPrescription}");
 
-            DoctorPrescription thirdMin = DoctorPrescriptionService.FindThirdMin(prescriptions);
-            log.Info($"Third Minimum Dosage: {thirdMin}");
+            DoctorPrescription thirdMinPrescription = DoctorPrescriptionService.FindThirdMin(prescriptions);
+            log.Info($"Third Min Prescription: {thirdMinPrescription}");
 
             DoctorPrescriptionService.Sort(prescriptions);
-            string output = string.Join(" ", prescriptions.Select(p => p.ToString()));
-            log.Info($"Sorted Prescriptions by Patient Name: {output}");
+            string sortedPrescriptions = string.Join(" ", prescriptions.Select(p => p.ToString()));
+            log.Info($"Sorted Prescriptions: {sortedPrescriptions}");
         }
     }
 }
+
+OUTPUT
+---------------------------------------------------------------------------------------------------------------------------------
+2024-09-01 14:37:50,583 [1] INFO  Week42Practice.Program - Max Prescription:
+Doctor ID: 5, Patient Name: Eve White, Medication: Metformin, Dosage: 1000 mg
+2024-09-01 14:37:50,591 [1] INFO  Week42Practice.Program - Third Min Prescription:
+Doctor ID: 1, Patient Name: John Doe, Medication: Amoxicillin, Dosage: 500 mg
+2024-09-01 14:37:50,594 [1] INFO  Week42Practice.Program - Sorted Prescriptions:
+Doctor ID: 1, Patient Name: Abhi, Medication: Fever, Dosage: 20 mg
+Doctor ID: 3, Patient Name: Alice Johnson, Medication: Paracetamol, Dosage: 650 mg
+Doctor ID: 4, Patient Name: Bob Brown, Medication: Atorvastatin, Dosage: 10 mg
+Doctor ID: 5, Patient Name: Eve White, Medication: Metformin, Dosage: 1000 mg
+Doctor ID: 1, Patient Name: John Doe, Medication: Amoxicillin, Dosage: 500 mg
+Press any key to continue . . .
+
