@@ -19,6 +19,8 @@ VALUES
 (2, 'Jane Smith', 'Ibuprofen', 200),
 (3, 'Alice Johnson', 'Paracetamol', 650),
 (4, 'Bob Brown', 'Atorvastatin', 10),
+(5, 'Eve White', 'Metformin',1000)
+ 
 
 
 SELECT * FROM DoctorPrescriptions;
