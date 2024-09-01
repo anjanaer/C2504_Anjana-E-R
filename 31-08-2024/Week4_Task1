@@ -1,3 +1,24 @@
+1.Problem Statement: Doctor Prescription System
+- Define a class: `DoctorPrescription` with the following properties:
+- `DoctorID` (integer)
+- `PatientName` (string)
+- `Medication` (string)
+- `Dosage` (double, in milligrams)
+- Tasks:
+1. Data Input:
+- Read N `doctorPrescriptions` from the keyboard.
+2. Find Minimum Dosage by a Specific Doctor:
+- For a given doctor's ID, display the prescription with the least dosage prescribed by them.
+Solve in time complexity of O(N).
+Dont use built-in C# sorting or LINQ.
+3. Find Third Maximum Dosage Overall:
+- Display the prescription with the third maximum dosage across all doctors.
+Solve in time complexity of O(N).
+Dont use built-in C# sorting or LINQ.
+4. Sort by Patient Name:
+- Implement and call your own sorting algorithm.
+Dont use built-in C# sorting or LINQ.
+----------------------------------------------------------------------------------------------------------------------------------
 SQL
 -----------------------------------------------------------------------------------------------------
 CREATE DATABASE DoctorPrescriptionsDb;
@@ -118,56 +139,56 @@ namespace Week42Practice
             }
         }
 
-        public static DoctorPrescription FindMax(DoctorPrescription[] prescriptions)
+        public static DoctorPrescription FindMin(DoctorPrescription[] prescriptions)
         {
-            double maxDosage = double.MinValue;
-            DoctorPrescription maxPrescription = null;
+            double minDosage = double.MaxValue;
+            DoctorPrescription minPrescription = null;
 
             foreach (var prescription in prescriptions)
             {
-                if (prescription.Dosage > maxDosage)
+                if (prescription.Dosage < minDosage)
                 {
-                    maxDosage = prescription.Dosage;
-                    maxPrescription = prescription;
+                    minDosage = prescription.Dosage;
+                    minPrescription = prescription;
                 }
             }
-            return maxPrescription;
+            return minPrescription;
         }
-        public static DoctorPrescription FindThirdMin(DoctorPrescription[] prescriptions)
+        public static DoctorPrescription FindThirdMax(DoctorPrescription[] prescriptions)
         {
-            double firstMinDos = double.MaxValue;
-            double secondMinDos = double.MaxValue;
-            double thirdMinDos = double.MaxValue;
-            DoctorPrescription thirdLeastPrescription = null;
+            double firstMaxDos = double.MinValue;
+            double secondMaxDos = double.MinValue;
+            double thirdMaxDos = double.MinValue;
+            DoctorPrescription thirdGreatestPrescription = null;
             foreach (var prescription in prescriptions)
             {
                 double dosage = prescription.Dosage;
-                if (dosage < firstMinDos)
+                if (dosage > firstMaxDos)
                 {
-                    thirdMinDos = secondMinDos;
-                    secondMinDos = firstMinDos;
-                    firstMinDos = dosage;
+                    thirdMaxDos = secondMaxDos;
+                    secondMaxDos = firstMaxDos;
+                    firstMaxDos = dosage;
                 }
-                else if (dosage < secondMinDos && dosage != firstMinDos)
+                else if (dosage > secondMaxDos && dosage != firstMaxDos)
                 {
-                    thirdMinDos = secondMinDos;
-                    secondMinDos = dosage;
+                    thirdMaxDos = secondMaxDos;
+                    secondMaxDos = dosage;
                 }
-                else if (dosage < thirdMinDos && dosage != secondMinDos && dosage != firstMinDos)
+                else if (dosage > thirdMaxDos && dosage != secondMaxDos && dosage != firstMaxDos)
                 {
-                    thirdMinDos = dosage;
+                    thirdMaxDos = dosage;
                 }
             }
 
             foreach (var prescription in prescriptions)
             {
-                if (prescription.Dosage == thirdMinDos)
+                if (prescription.Dosage == thirdMaxDos)
                 {
-                    thirdLeastPrescription = prescription;
+                    thirdGreatestPrescription = prescription;
                     break;
                 }
             }
-            return thirdLeastPrescription;
+            return thirdGreatestPrescription;
         }
     }
 
@@ -188,11 +209,11 @@ namespace Week42Practice
                 log.Error($"{ex.Message}");
             }
 
-            DoctorPrescription maxPrescription = DoctorPrescriptionService.FindMax(prescriptions);
-            log.Info($"Max Prescription: {maxPrescription}");
+            DoctorPrescription maxPrescription = DoctorPrescriptionService.FindMin(prescriptions);
+            log.Info($"Min Prescription: {maxPrescription}");
 
-            DoctorPrescription thirdMinPrescription = DoctorPrescriptionService.FindThirdMin(prescriptions);
-            log.Info($"Third Min Prescription: {thirdMinPrescription}");
+            DoctorPrescription thirdMinPrescription = DoctorPrescriptionService.FindThirdMax(prescriptions);
+            log.Info($"Third Max Prescription: {thirdMinPrescription}");
 
             DoctorPrescriptionService.Sort(prescriptions);
             string sortedPrescriptions = string.Join(" ", prescriptions.Select(p => p.ToString()));
@@ -200,6 +221,7 @@ namespace Week42Practice
         }
     }
 }
+
 
 Assembly.info
 ---------------------------------------------------------------------------------------------------------------------------------
@@ -285,11 +307,11 @@ App.config
 
 OUTPUT
 ---------------------------------------------------------------------------------------------------------------------------------
-2024-09-01 14:37:50,583 [1] INFO  Week42Practice.Program - Max Prescription:
-Doctor ID: 5, Patient Name: Eve White, Medication: Metformin, Dosage: 1000 mg
-2024-09-01 14:37:50,591 [1] INFO  Week42Practice.Program - Third Min Prescription:
+2024-09-01 15:30:38,304 [1] INFO  Week42Practice.Program - Min Prescription:
+Doctor ID: 4, Patient Name: Bob Brown, Medication: Atorvastatin, Dosage: 10 mg
+2024-09-01 15:30:38,314 [1] INFO  Week42Practice.Program - Third Max Prescription:
 Doctor ID: 1, Patient Name: John Doe, Medication: Amoxicillin, Dosage: 500 mg
-2024-09-01 14:37:50,594 [1] INFO  Week42Practice.Program - Sorted Prescriptions:
+2024-09-01 15:30:38,314 [1] INFO  Week42Practice.Program - Sorted Prescriptions:
 Doctor ID: 1, Patient Name: Abhi, Medication: Fever, Dosage: 20 mg
 Doctor ID: 3, Patient Name: Alice Johnson, Medication: Paracetamol, Dosage: 650 mg
 Doctor ID: 4, Patient Name: Bob Brown, Medication: Atorvastatin, Dosage: 10 mg
