@@ -312,6 +312,107 @@ namespace Week4Task2
     }
 }
 
+OUTPUT
+--------------------------------------------------------------------------------------------------------------------------------------------
+Doctor Prescription Management System
+1. Create Prescription
+2. Read Prescription
+3. Update Prescription
+4. Delete Prescription
+5. List All Prescriptions
+6. Exit
+Choose an option: 5
+Doctor ID: 1, Patient Name: John Doe, Medication: Amoxicillin, Dosage: 500 mg
+Doctor ID: 3, Patient Name: Alice Johnson, Medication: Paracetamol, Dosage: 650 mg
+Doctor ID: 4, Patient Name: Bob Brown, Medication: Atorvastatin, Dosage: 10 mg
+Doctor ID: 5, Patient Name: Eve White, Medication: Metformin, Dosage: 1000 mg
+Doctor ID: 1, Patient Name: Abhi, Medication: Fever, Dosage: 20 mg
+
+Doctor Prescription Management System
+1. Create Prescription
+2. Read Prescription
+3. Update Prescription
+4. Delete Prescription
+5. List All Prescriptions
+6. Exit
+Choose an option: 1
+Enter Doctor ID: 6
+Enter Patient Name: Avani
+Enter Medication: Aspirin
+Enter Dosage (mg): 50
+Prescription created successfully.
+
+Doctor Prescription Management System
+1. Create Prescription
+2. Read Prescription
+3. Update Prescription
+4. Delete Prescription
+5. List All Prescriptions
+6. Exit
+Choose an option: 2
+Enter Doctor ID: 6
+Doctor ID: 6, Patient Name: Avani, Medication: Aspirin, Dosage: 50 mg
+
+Doctor Prescription Management System
+1. Create Prescription
+2. Read Prescription
+3. Update Prescription
+4. Delete Prescription
+5. List All Prescriptions
+6. Exit
+Choose an option: 3
+Enter Doctor ID: 6
+Enter new Patient Name: Abhi
+Enter new Medication: Atorvostatin
+Enter new Dosage (mg): 60
+Prescription updated successfully.
+
+Doctor Prescription Management System
+1. Create Prescription
+2. Read Prescription
+3. Update Prescription
+4. Delete Prescription
+5. List All Prescriptions
+6. Exit
+Choose an option: 2
+Enter Doctor ID: 6
+Doctor ID: 6, Patient Name: Abhi, Medication: Atorvostatin, Dosage: 60 mg
+
+Doctor Prescription Management System
+1. Create Prescription
+2. Read Prescription
+3. Update Prescription
+4. Delete Prescription
+5. List All Prescriptions
+6. Exit
+Choose an option: 4
+Enter Doctor ID: 6
+Prescription deleted successfully.
+
+Doctor Prescription Management System
+1. Create Prescription
+2. Read Prescription
+3. Update Prescription
+4. Delete Prescription
+5. List All Prescriptions
+6. Exit
+Choose an option: 5
+Doctor ID: 1, Patient Name: John Doe, Medication: Amoxicillin, Dosage: 500 mg
+Doctor ID: 3, Patient Name: Alice Johnson, Medication: Paracetamol, Dosage: 650 mg
+Doctor ID: 4, Patient Name: Bob Brown, Medication: Atorvastatin, Dosage: 10 mg
+Doctor ID: 5, Patient Name: Eve White, Medication: Metformin, Dosage: 1000 mg
+Doctor ID: 1, Patient Name: Abhi, Medication: Fever, Dosage: 20 mg
+
+Doctor Prescription Management System
+1. Create Prescription
+2. Read Prescription
+3. Update Prescription
+4. Delete Prescription
+5. List All Prescriptions
+6. Exit
+Choose an option: 6
+Exiting...
+
 
 
 
