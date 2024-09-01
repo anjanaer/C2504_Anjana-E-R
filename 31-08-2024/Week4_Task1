@@ -209,7 +209,7 @@ namespace Week42Practice
                 log.Error($"{ex.Message}");
             }
 
-            DoctorPrescription maxPrescription = DoctorPrescriptionService.FindMin(prescriptions);
+            DoctorPrescription minPrescription = DoctorPrescriptionService.FindMin(prescriptions);
             log.Info($"Min Prescription: {maxPrescription}");
 
             DoctorPrescription thirdMinPrescription = DoctorPrescriptionService.FindThirdMax(prescriptions);
