@@ -1,0 +1,299 @@
+SQL
+-----------------------------------------------------------------------------------------------------
+CREATE DATABASE DoctorPrescriptionsDb;
+USE DoctorPrescriptionsDb;
+
+
+CREATE TABLE DoctorPrescriptions (
+    PrescriptionID INT PRIMARY KEY IDENTITY(1,1),
+    DoctorID INT NOT NULL,
+    PatientName NVARCHAR(100) NOT NULL,
+    Medication NVARCHAR(100) NOT NULL,
+    Dosage FLOAT NOT NULL
+);
+
+
+
+INSERT INTO DoctorPrescriptions (DoctorID, PatientName, Medication, Dosage)
+VALUES
+(1, 'John Doe', 'Amoxicillin', 500),
+(2, 'Jane Smith', 'Ibuprofen', 200),
+(3, 'Alice Johnson', 'Paracetamol', 650),
+(4, 'Bob Brown', 'Atorvastatin', 10),
+(5, 'Eve White', 'Metformin',1000)
+
+SELECT * FROM DoctorPrescriptions;
+
+
+Proram.cs
+-----------------------------------------------------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using log4net;
+
+namespace Week42Practice
+{
+
+
+    public class ServerException : Exception
+    {
+        public ServerException(string message) : base(message) { }
+    }
+
+    public class DoctorPrescription
+    {
+        public int DoctorID { get; set; }
+        public string PatientName { get; set; }
+        public string Medication { get; set; }
+        public double Dosage { get; set; }
+
+        public override string ToString()
+        {
+            return $"\nDoctor ID: {DoctorID}, Patient Name: {PatientName}, Medication: {Medication}, Dosage: {Dosage} mg";
+        }
+    }
+
+    public class DoctorPrescriptionService
+    {
+        private static string connectionString = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=DoctorPrescriptionsDb;Integrated Security=True;";
+        public static void Read(DoctorPrescription[] prescriptions)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    string query = "SELECT DoctorID, PatientName, Medication, Dosage FROM DoctorPrescriptions";
+                    SqlCommand cmd = new SqlCommand(query, conn);
+
+                    conn.Open();
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    for (int i = 0; i < prescriptions.Length; i++)
+                    {
+                        if (!reader.Read())
+                        {
+                            throw new ServerException("[0101]Server Error.");
+                        }
+                        prescriptions[i] = new DoctorPrescription
+                        {
+                            DoctorID = (int)reader["DoctorID"],
+                            PatientName = reader["PatientName"].ToString(),
+                            Medication = reader["Medication"].ToString(),
+                            Dosage = (double)reader["Dosage"]
+                        };
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                throw new ServerException($"[0102]Server Error. {ex.Message}");
+            }
+            catch (ServerException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new ServerException($"[0103]Server Error. {ex.Message}");
+            }
+        }
+
+        public static void Sort(DoctorPrescription[] prescriptions)
+        {
+            for (int i = 0; i < prescriptions.Length - 1; i++)
+            {
+                for (int j = i + 1; j < prescriptions.Length; j++)
+                {
+                    if (prescriptions[j].PatientName.CompareTo(prescriptions[i].PatientName) < 0)
+                    {
+                        var temp = prescriptions[i];
+                        prescriptions[i] = prescriptions[j];
+                        prescriptions[j] = temp;
+                    }
+                }
+            }
+        }
+
+        public static DoctorPrescription FindMax(DoctorPrescription[] prescriptions)
+        {
+            double maxDosage = double.MinValue;
+            DoctorPrescription maxPrescription = null;
+
+            foreach (var prescription in prescriptions)
+            {
+                if (prescription.Dosage > maxDosage)
+                {
+                    maxDosage = prescription.Dosage;
+                    maxPrescription = prescription;
+                }
+            }
+            return maxPrescription;
+        }
+        public static DoctorPrescription FindThirdMin(DoctorPrescription[] prescriptions)
+        {
+            double firstMinDos = double.MaxValue;
+            double secondMinDos = double.MaxValue;
+            double thirdMinDos = double.MaxValue;
+            DoctorPrescription thirdLeastPrescription = null;
+            foreach (var prescription in prescriptions)
+            {
+                double dosage = prescription.Dosage;
+                if (dosage < firstMinDos)
+                {
+                    thirdMinDos = secondMinDos;
+                    secondMinDos = firstMinDos;
+                    firstMinDos = dosage;
+                }
+                else if (dosage < secondMinDos && dosage != firstMinDos)
+                {
+                    thirdMinDos = secondMinDos;
+                    secondMinDos = dosage;
+                }
+                else if (dosage < thirdMinDos && dosage != secondMinDos && dosage != firstMinDos)
+                {
+                    thirdMinDos = dosage;
+                }
+            }
+
+            foreach (var prescription in prescriptions)
+            {
+                if (prescription.Dosage == thirdMinDos)
+                {
+                    thirdLeastPrescription = prescription;
+                    break;
+                }
+            }
+            return thirdLeastPrescription;
+        }
+    }
+
+    public class Program
+    {
+
+        private static readonly ILog log = LogManager.GetLogger(typeof(Program));
+
+        static void Main(string[] args)
+        {
+            DoctorPrescription[] prescriptions = new DoctorPrescription[5];
+            try
+            {
+                DoctorPrescriptionService.Read(prescriptions);
+            }
+            catch (ServerException ex)
+            {
+                log.Error($"{ex.Message}");
+            }
+
+            DoctorPrescription maxPrescription = DoctorPrescriptionService.FindMax(prescriptions);
+            log.Info($"Max Prescription: {maxPrescription}");
+
+            DoctorPrescription thirdMinPrescription = DoctorPrescriptionService.FindThirdMin(prescriptions);
+            log.Info($"Third Min Prescription: {thirdMinPrescription}");
+
+            DoctorPrescriptionService.Sort(prescriptions);
+            string sortedPrescriptions = string.Join(" ", prescriptions.Select(p => p.ToString()));
+            log.Info($"Sorted Prescriptions: {sortedPrescriptions}");
+        }
+    }
+}
+
+Assembly.info
+---------------------------------------------------------------------------------------------------------------------------------
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+// General Information about an assembly is controlled through the following
+// set of attributes. Change these attribute values to modify the information
+// associated with an assembly.
+[assembly: AssemblyTitle("ConsoleApp10")]
+[assembly: AssemblyDescription("")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("ConsoleApp10")]
+[assembly: AssemblyCopyright("Copyright ©  2024")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
+
+// Setting ComVisible to false makes the types in this assembly not visible
+// to COM components.  If you need to access a type in this assembly from
+// COM, set the ComVisible attribute to true on that type.
+[assembly: ComVisible(false)]
+
+// The following GUID is for the ID of the typelib if this project is exposed to COM
+[assembly: Guid("3cb0cf33-9953-4219-8aa5-e2aaa4df6dbb")]
+
+// Version information for an assembly consists of the following four values:
+//
+//      Major Version
+//      Minor Version
+//      Build Number
+//      Revision
+//
+// You can specify all the values or you can default the Build and Revision Numbers
+// by using the '*' as shown below:
+// [assembly: AssemblyVersion("1.0.*")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: log4net.Config.XmlConfigurator]
+
+
+App.config
+---------------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+	<configSections>
+		<section name="log4net" type="log4net.Config.Log4NetConfigurationSectionHandler, log4net" />
+	</configSections>
+
+	<log4net>
+		<!-- File Appender -->
+		<appender name="FileAppender" type="log4net.Appender.RollingFileAppender">
+			<file value="week4assessment_app_log.log" />
+			<appendToFile value="true" />
+			<rollingStyle value="Size" />
+			<maxSizeRollBackups value="5" />
+			<maximumFileSize value="10MB" />
+			<staticLogFileName value="true" />
+			<layout type="log4net.Layout.PatternLayout">
+				<conversionPattern value="%date [%thread] %-5level %logger - %message%newline" />
+			</layout>
+		</appender>
+
+		<!-- Console Appender -->
+		<appender name="ConsoleAppender" type="log4net.Appender.ConsoleAppender">
+			<layout type="log4net.Layout.PatternLayout">
+				<conversionPattern value="%date [%thread] %-5level %logger - %message%newline" />
+			</layout>
+		</appender>
+
+		<!-- Root logger -->
+		<root>
+			<level value="ALL" />
+			<appender-ref ref="FileAppender" />
+			<appender-ref ref="ConsoleAppender" />
+		</root>
+	</log4net>
+	<startup>
+		<supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.7.2" />
+	</startup>
+</configuration>
+
+OUTPUT
+---------------------------------------------------------------------------------------------------------------------------------
+2024-09-01 14:37:50,583 [1] INFO  Week42Practice.Program - Max Prescription:
+Doctor ID: 5, Patient Name: Eve White, Medication: Metformin, Dosage: 1000 mg
+2024-09-01 14:37:50,591 [1] INFO  Week42Practice.Program - Third Min Prescription:
+Doctor ID: 1, Patient Name: John Doe, Medication: Amoxicillin, Dosage: 500 mg
+2024-09-01 14:37:50,594 [1] INFO  Week42Practice.Program - Sorted Prescriptions:
+Doctor ID: 1, Patient Name: Abhi, Medication: Fever, Dosage: 20 mg
+Doctor ID: 3, Patient Name: Alice Johnson, Medication: Paracetamol, Dosage: 650 mg
+Doctor ID: 4, Patient Name: Bob Brown, Medication: Atorvastatin, Dosage: 10 mg
+Doctor ID: 5, Patient Name: Eve White, Medication: Metformin, Dosage: 1000 mg
+Doctor ID: 1, Patient Name: John Doe, Medication: Amoxicillin, Dosage: 500 mg
+Press any key to continue . . .
+
