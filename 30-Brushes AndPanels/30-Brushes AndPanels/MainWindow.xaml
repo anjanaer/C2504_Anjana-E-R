@@ -1,0 +1,25 @@
+﻿<Window x:Class="_30_Brushes_AndPanels.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:_30_Brushes_AndPanels"
+        mc:Ignorable="d"
+        Title="Brushes and Panels" Height="450" Width="800">
+    <Canvas>
+       
+        <TextBlock Canvas.Left="43" TextWrapping="Wrap" Text="Brushes" Canvas.Top="35" Height="22" Width="55" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Button x:Name="btnSolidColor" Content="Solid Color" Canvas.Left="43" Canvas.Top="67" Width="129" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center" Click="btnSolidColor_Click"/>
+        <Button x:Name="btnLinearGradient" Content="Linear Gradient" Canvas.Left="198" Canvas.Top="67" Width="129" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center" Click="btnLinearGradient_Click"/>
+        <Button x:Name="btnRadialGradient" Content="Radial Gradient" Canvas.Left="357" Canvas.Top="67" Width="129" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center" Click="btnRadialGradient_Click"/>
+        <Button x:Name="btnImage" Content="Image" Canvas.Left="43" Canvas.Top="133" Width="129" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center" Click="btnImage_Click"/>
+        <Button x:Name="btnVisual" Content="Visual" Canvas.Left="217" Canvas.Top="133" Width="129" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center" Click="btnVisual_Click"/>
+        <TextBlock Canvas.Left="43" TextWrapping="Wrap" Text="Panel" Canvas.Top="199" Height="22" Width="55" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+        <Button x:Name="btnStack" Content="Stack" Canvas.Left="43" Canvas.Top="231" Width="129" Height="36" HorizontalAlignment="Center" VerticalAlignment="Top" Click="btnStack_Click"/>
+        <Button x:Name="btnGrid" Content="Grid" Canvas.Left="198" Canvas.Top="231" Width="129" Height="36" HorizontalAlignment="Center" VerticalAlignment="Top" Click="btnGrid_Click"/>
+        <Button x:Name="btnDock" Content="Dock" Canvas.Left="357" Canvas.Top="231" Width="129" Height="36" HorizontalAlignment="Center" VerticalAlignment="Top" Click="btnDock_Click"/>
+        <Button x:Name="btnCanvas" Content="Canvas" Canvas.Left="43" Canvas.Top="297" Width="129" Height="36" HorizontalAlignment="Center" VerticalAlignment="Top" Click="btnCanvas_Click"/>
+        <Button x:Name="btnWrap" Content="Wrap" Canvas.Left="217" Canvas.Top="297" Width="129" Height="36" HorizontalAlignment="Center" VerticalAlignment="Top" Click="btnWrap_Click"/>
+
+    </Canvas>
+</Window>

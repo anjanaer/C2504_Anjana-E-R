@@ -1,0 +1,35 @@
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\bin\Debug\30-Brushes AndPanels.exe.config
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\bin\Debug\30-Brushes AndPanels.exe
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\bin\Debug\30-Brushes AndPanels.pdb
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\30-Brushes AndPanels.csproj.AssemblyReference.cache
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\ImageWindow.g.cs
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\LinearGradientWindow.g.cs
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\MainWindow.g.cs
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\RadialGradientWindow.g.cs
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\SolidWindow.g.cs
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\VisualWindow.g.cs
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\App.g.cs
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\30-Brushes AndPanels_MarkupCompile.cache
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\30-Brushes AndPanels_MarkupCompile.lref
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\ImageWindow.baml
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\LinearGradientWindow.baml
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\MainWindow.baml
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\RadialGradientWindow.baml
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\SolidWindow.baml
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\VisualWindow.baml
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\30-Brushes AndPanels.g.resources
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\_30_Brushes_AndPanels.Properties.Resources.resources
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\30-Brushes AndPanels.csproj.GenerateResource.cache
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\30-Brushes AndPanels.csproj.CoreCompileInputs.cache
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\30-Brushes AndPanels.exe
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\30-Brushes AndPanels.pdb
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\CanvasWindow.g.cs
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\DockWindow.g.cs
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\GridWindow.g.cs
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\StackWindow.g.cs
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\WrapWindow.g.cs
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\CanvasWindow.baml
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\DockWindow.baml
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\GridWindow.baml
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\StackWindow.baml
+C:\Users\2021508\source\repos\30-Brushes AndPanels\30-Brushes AndPanels\obj\Debug\WrapWindow.baml

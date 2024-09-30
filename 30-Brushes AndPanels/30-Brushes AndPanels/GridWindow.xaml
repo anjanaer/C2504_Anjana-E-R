@@ -1,0 +1,34 @@
+﻿<Window x:Class="_30_Brushes_AndPanels.GridWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:_30_Brushes_AndPanels"
+        mc:Ignorable="d"
+        Title="Grid Window Panel" Height="450" Width="800" Closing="Window_Closing">
+    <Canvas>
+        <Grid Background="AliceBlue">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBlock  Grid.Row="0" Grid.Column="0" TextWrapping="Wrap" Text="Time"  HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <TextBox  Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" Text="09:00"   HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <TextBlock  Grid.Row="1" Grid.Column="0" TextWrapping="Wrap" Text="Itenary" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <TextBox  Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" Text="Napier Musium"   HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <TextBlock  Grid.Row="2" Grid.Column="0" TextWrapping="Wrap" Text="Description"  HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <TextBox  Grid.Row="2" Grid.Column="1" TextWrapping="Wrap" Text="Explore the rich collection of historical artifacts and art pieces ath the Napier"  HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <TextBlock  Grid.Row="3" Grid.Column="0" TextWrapping="Wrap" Text="Price"  HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <TextBox Grid.Row="3" Grid.Column="1" TextWrapping="Wrap" Text="Rs.20"  HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <Button Content="Create Itenary"  Grid.Row="4" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="140"/>
+
+        </Grid>
+    </Canvas>
+</Window>
