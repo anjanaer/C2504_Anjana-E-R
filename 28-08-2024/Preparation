@@ -48,16 +48,16 @@ Press any key to continue . . .
          Name = name;
          Id = id;
      }
-     public static void Animal()
+     public static void Sleep()
      {
-         Console.WriteLine("Animal is sleeping");
+         Console.WriteLine("She is sleeping");
      }
  }
  class Program
  {
      public static void Main(string[] args)
      {
-         Student.Animal();
+         Student.Sleep();
          Student s = new Student("Anju",3);
          Console.WriteLine($"name : {s.Name}   id : {s.Id}");
 
