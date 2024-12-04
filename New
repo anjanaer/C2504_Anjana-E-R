@@ -1,0 +1,265 @@
+Here’s a step-by-step guide to create a WPF app that fulfills your requirement:
+
+
+---
+
+Project Structure
+
+1. Model: Represents the data structure of the Excel file.
+
+
+2. View: The UI (XAML) where users upload the Excel file, specify filter conditions, and view filtered data in a DataGrid.
+
+
+3. ViewModel: Contains the logic for filtering data and binds the View to the Model.
+
+
+4. Repository (Repo): Handles data operations like reading from the Excel file.
+
+
+5. IRepository (IRepo): Defines the contract for the repository.
+
+
+
+
+---
+
+Implementation
+
+1. Model
+
+Create a model to represent the rows of the Excel data.
+
+public class ExcelDataRow
+{
+    public int ID { get; set; }
+    public string Name { get; set; }
+    public string Category { get; set; }
+    public double Value { get; set; }
+}
+
+
+---
+
+2. IRepository
+
+Define an interface for repository operations.
+
+public interface IExcelRepository
+{
+    List<ExcelDataRow> ReadExcelFile(string filePath);
+}
+
+
+---
+
+3. Repository
+
+Implement the repository using a library like ClosedXML to read Excel files.
+
+using System.Collections.Generic;
+using System.IO;
+using ClosedXML.Excel;
+
+public class ExcelRepository : IExcelRepository
+{
+    public List<ExcelDataRow> ReadExcelFile(string filePath)
+    {
+        var data = new List<ExcelDataRow>();
+
+        if (File.Exists(filePath))
+        {
+            using (var workbook = new XLWorkbook(filePath))
+            {
+                var worksheet = workbook.Worksheet(1); // Read the first worksheet
+                foreach (var row in worksheet.RowsUsed().Skip(1)) // Skip header row
+                {
+                    data.Add(new ExcelDataRow
+                    {
+                        ID = int.Parse(row.Cell(1).Value.ToString()),
+                        Name = row.Cell(2).Value.ToString(),
+                        Category = row.Cell(3).Value.ToString(),
+                        Value = double.Parse(row.Cell(4).Value.ToString())
+                    });
+                }
+            }
+        }
+
+        return data;
+    }
+}
+
+
+---
+
+4. ViewModel
+
+Handle the logic for loading and filtering data.
+
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Windows.Input;
+
+public class MainViewModel : INotifyPropertyChanged
+{
+    private readonly IExcelRepository _repository;
+    private ObservableCollection<ExcelDataRow> _data;
+    private ObservableCollection<ExcelDataRow> _filteredData;
+    private string _filterCategory;
+
+    public ObservableCollection<ExcelDataRow> Data
+    {
+        get => _data;
+        set { _data = value; OnPropertyChanged(nameof(Data)); }
+    }
+
+    public ObservableCollection<ExcelDataRow> FilteredData
+    {
+        get => _filteredData;
+        set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+    }
+
+    public string FilterCategory
+    {
+        get => _filterCategory;
+        set { _filterCategory = value; OnPropertyChanged(nameof(FilterCategory)); }
+    }
+
+    public ICommand LoadCommand { get; }
+    public ICommand FilterCommand { get; }
+
+    public MainViewModel(IExcelRepository repository)
+    {
+        _repository = repository;
+        LoadCommand = new RelayCommand(LoadData);
+        FilterCommand = new RelayCommand(FilterData);
+    }
+
+    private void LoadData(object parameter)
+    {
+        var filePath = parameter as string;
+        var data = _repository.ReadExcelFile(filePath);
+        Data = new ObservableCollection<ExcelDataRow>(data);
+        FilteredData = Data; // Initially, no filter is applied
+    }
+
+    private void FilterData(object parameter)
+    {
+        if (!string.IsNullOrWhiteSpace(FilterCategory))
+        {
+            FilteredData = new ObservableCollection<ExcelDataRow>(
+                Data.Where(row => row.Category.Contains(FilterCategory, StringComparison.OrdinalIgnoreCase)));
+        }
+        else
+        {
+            FilteredData = Data; // Reset to original data
+        }
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+
+
+---
+
+5. RelayCommand
+
+Implement a reusable command for buttons.
+
+using System;
+using System.Windows.Input;
+
+public class RelayCommand : ICommand
+{
+    private readonly Action<object> _execute;
+    private readonly Func<object, bool> _canExecute;
+
+    public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
+    {
+        _execute = execute;
+        _canExecute = canExecute;
+    }
+
+    public bool CanExecute(object parameter) => _canExecute == null || _canExecute(parameter);
+
+    public void Execute(object parameter) => _execute(parameter);
+
+    public event EventHandler CanExecuteChanged
+    {
+        add => CommandManager.RequerySuggested += value;
+        remove => CommandManager.RequerySuggested -= value;
+    }
+}
+
+
+---
+
+6. View (XAML)
+
+Design the UI for file upload, filter, and DataGrid.
+
+<Window x:Class="ExcelFilterApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Excel Filter App" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Upload and Filter Section -->
+        <StackPanel Orientation="Horizontal" Margin="10">
+            <Button Content="Upload Excel" Command="{Binding LoadCommand}" CommandParameter="{Binding SelectedFilePath}"/>
+            <TextBox Width="200" Margin="10,0,0,0" Text="{Binding SelectedFilePath}" IsReadOnly="True"/>
+            <TextBox Width="200" Margin="10,0,0,0" Text="{Binding FilterCategory}" PlaceholderText="Enter Category Filter"/>
+            <Button Content="Apply Filter" Command="{Binding FilterCommand}" Margin="10,0,0,0"/>
+        </StackPanel>
+
+        <!-- DataGrid -->
+        <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True" Margin="10"/>
+    </Grid>
+</Window>
+
+
+---
+
+7. App Startup
+
+Set up Dependency Injection (DI) and bind the ViewModel.
+
+public partial class App : Application
+{
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+        var mainWindow = new MainWindow
+        {
+            DataContext = new MainViewModel(new ExcelRepository())
+        };
+        mainWindow.Show();
+    }
+}
+
+
+---
+
+How It Works
+
+1. User uploads an Excel file (LoadCommand triggers).
+
+
+2. Data is read using the repository and displayed in the DataGrid.
+
+
+3. User provides a filter condition, and the FilterCommand updates the DataGrid with filtered results.
+
+
+
+This MVVM structure ensures separation of concerns, making the app maintainable and testable.
