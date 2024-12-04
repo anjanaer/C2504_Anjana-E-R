@@ -350,3 +350,54 @@ This MVVM structure ensures separation of concerns, making the app maintainable 
 
     </Grid>
 </Window>
+
+
+
+<Window x:Class="YourNamespace.YourWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="DataGrid with Filtering" Height="500" Width="800">
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- File Selection and Search -->
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="FileName: " VerticalAlignment="Center" Width="80"/>
+            <TextBox x:Name="filePathTextBox" Width="400" Height="30" Margin="10 0 0 0" Padding="4" IsEnabled="False"/>
+            <Button Content="Browse" Width="70" Margin="10,0,0,0" Click="BrowseButton_Click"/>
+        </StackPanel>
+
+        <!-- Filters Section -->
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,10,0,10">
+            <TextBlock Text="Filter by Status:" VerticalAlignment="Center" Width="120"/>
+            <ComboBox x:Name="statusFilterComboBox" Width="150" SelectionChanged="StatusFilterComboBox_SelectionChanged">
+                <ComboBoxItem>All</ComboBoxItem>
+                <ComboBoxItem>Open</ComboBoxItem>
+                <ComboBoxItem>Closed</ComboBoxItem>
+                <ComboBoxItem>In Progress</ComboBoxItem>
+            </ComboBox>
+
+            <TextBlock Text="Filter by Project:" VerticalAlignment="Center" Width="120"/>
+            <TextBox x:Name="projectFilterTextBox" Width="200" Margin="10,0,0,0" TextChanged="ProjectFilterTextBox_TextChanged" />
+        </StackPanel>
+
+        <!-- DataGrid to Display Data -->
+        <DataGrid x:Name="dataGrid" Grid.Row="2" AutoGenerateColumns="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Id" Width="100"/>
+                <DataGridTextColumn Header="Project" Width="150"/>
+                <DataGridTextColumn Header="Reporter" Width="150"/>
+                <DataGridTextColumn Header="Status" Width="150"/>
+                <DataGridTextColumn Header="Summary" Width="150"/>
+                <DataGridTextColumn Header="Resolution" Width="150"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>
