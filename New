@@ -401,3 +401,20 @@ This MVVM structure ensures separation of concerns, making the app maintainable 
         </DataGrid>
     </Grid>
 </Window>
+  private void FilterData(object parameter)
+  {
+      if (!string.IsNullOrWhiteSpace(FilterCategory))
+      {
+          FilteredData = new ObservableCollection<ExcelData>(
+              Data.Where(row => row.Category.Contains(FilterCategory, StringComparison.OrdinalIgnoreCase)));
+      }
+      else
+      {
+          FilteredData = Data; // Reset to original data
+      }
+  }
+Build started at 10:46 PM...
+1>------ Build started: Project: ExcelProject, Configuration: Debug Any CPU ------
+1>C:\Users\2021508\source\repos\ExcelProject\ExcelProject\ViewModel\MainViewModel.cs(62,52,62,60): error CS1501: No overload for method 'Contains' takes 2 arguments
+========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ==========
+========== Build completed at 10:46 PM and took 01.989 seconds ==========
