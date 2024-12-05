@@ -1,0 +1,13 @@
+Read and display Quest Mantis exported CSV file. 
+[…] button
+When […] is clicked, show Open file dialog. Display selected file path in the [File name] textbox. Show error message if file type is not csv.
+Show Details button
+When the [Show Details] button is clicked, read the csv file mentioned in the [File name] text box and display content in the Bug details table.
+This button should be disabled if [File name] text box is empty.
+Big Detail table
+The number of columns and column names in the table shall be same as the CSV file header. The number of rows should be equal to the number of rows in the CSV file.
+e.g.
+ 
+Column name1 = Id, Column name 2 = Project etc. 
+ 
+ 
