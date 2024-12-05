@@ -300,5 +300,35 @@ namespace ExcelProject.Model
 }
 Give the xaml code for this project that include two comboboxes for filtering corresponding to the Status such as assigned,resolved,new,feedback and Resolution such as open,fixed,reopened,unable to reproduce,no change required,duplicate,suspended
 
+private string filterResolution;
+public string FilterResolution
+{
+    get { return filterResolution; }
+    set
+    {
+        filterResolution = value;
+        OnPropertyChanged(nameof(FilterResolution));
+        FilterData();
+    }
+}
+
+private void FilterData()
+{
+    var filtered = Data.AsEnumerable();
+
+    if (!string.IsNullOrWhiteSpace(FilterStatus))
+    {
+        filtered = filtered.Where(row => row.Status != null &&
+                                         row.Status.IndexOf(FilterStatus, StringComparison.OrdinalIgnoreCase) >= 0);
+    }
+
+    if (!string.IsNullOrWhiteSpace(FilterResolution))
+    {
+        filtered = filtered.Where(row => row.Resolution != null &&
+                                         row.Resolution.IndexOf(FilterResolution, StringComparison.OrdinalIgnoreCase) >= 0);
+    }
+
+    FilteredData = new ObservableCollection<ExcelData>(filtered);
+}
 
 
