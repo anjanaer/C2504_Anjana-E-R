@@ -1,0 +1,304 @@
+<Window x:Class="ExcelProject.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ExcelProject"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Upload and Filter Section -->
+        <StackPanel Orientation="Horizontal" Margin="10">
+            <TextBlock Text="FileName: " VerticalAlignment="Center" Width="60" />
+            <TextBox Width="400" Height="30" Margin="10 0 0 0" Padding="4 4 4 4" IsEnabled="False" Text="{Binding FilePath}" />
+            <Button Content="Browse" Width="70" Margin="10,0,0,0" Command="{Binding ShowDialogCommand}" />
+            <Button Content="Load" Width="70" Margin="10,0,0,0" Command="{Binding LoadCommand}" />
+    
+            <ComboBox x:Name="FilteringComboBox" Width="140" Margin="5" Text="{Binding FilterStatus}">
+                <ComboBoxItem Content="Project"/>
+                <ComboBoxItem Content="Category"/>
+                <ComboBoxItem Content="Status"/>
+                <ComboBoxItem Content="Resolution"/>
+            </ComboBox>
+
+        </StackPanel>
+
+        <DataGrid x:Name="dataGrid" Grid.Row="1" ItemsSource="{Binding Data}" AutoGenerateColumns="True" >
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="100"/>
+                <DataGridTextColumn Header="Project" Binding="{Binding Project}"  Width="150"/>
+                <DataGridTextColumn Header="Reporter" Binding="{Binding Reporter}" Width="150"/>
+                <DataGridTextColumn Header="Category" Binding="{Binding Category}"  Width="150"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}"  Width="150"/>
+                <DataGridTextColumn Header="Summary" Binding="{Binding Summary}" Width="150"/>
+                <DataGridTextColumn Header="Resolution" Binding="{Binding Resolution}"  Width="150"/>
+
+            </DataGrid.Columns>
+        </DataGrid>
+
+    </Grid>
+
+
+
+  
+
+    
+</Window>    
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using ExcelProject;
+using ExcelProject.Repo;
+using ExcelProject.ViewModel;
+
+namespace ExcelProject
+{
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        private MainViewModel viewModel { get; set; } = null;
+        public MainWindow()
+        {
+            InitializeComponent();
+            viewModel = new MainViewModel();
+            DataContext = this.viewModel;
+
+        }
+    }
+
+    
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+using ExcelProject.ExcelRepo;
+
+namespace ExcelProject.ViewModel
+{
+    public class MainViewModel : INotifyPropertyChanged
+    {
+        private IRepo _repository;
+        private ObservableCollection<ExcelData> _data;
+        private ObservableCollection<ExcelData> _filteredData;
+        private string _filterCategory;
+
+        public ObservableCollection<ExcelData> Data
+        {
+            get => _data;
+            set { _data = value; OnPropertyChanged(nameof(Data)); }
+        }
+
+        public ObservableCollection<ExcelData> FilteredData
+        {
+            get => _filteredData;
+            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+        }
+
+        public string FilterCategory
+        {
+            get => _filterCategory;
+            set { _filterCategory = value; OnPropertyChanged(nameof(FilterCategory)); }
+        }
+
+        private string filePath;
+        public string FilePath
+        {
+            get { return filePath; }
+            set
+            {
+                filePath = value;
+                OnPropertyChanged(nameof(FilePath));
+            }
+        }
+
+        public ICommand LoadCommand { get; }
+        public ICommand FilterCommand { get; }
+
+        public ICommand ShowDialogCommand { get; }
+
+        public MainViewModel()
+        {
+            ShowDialogCommand = new RelayCommand(ShowDialog);
+            LoadCommand = new RelayCommand(LoadData);
+            _repository = new ExcelRepository();
+        }
+
+        private void LoadData()
+        {
+            if(!string.IsNullOrEmpty(filePath))
+            {
+                var data = _repository.ReadExcelFile(FilePath);
+                Data = new ObservableCollection<ExcelData>(data);
+                FilteredData = new ObservableCollection<ExcelData>(data); ; // Initially, no filter is applied
+            }
+            
+        }
+
+        public void ShowDialog()
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Excel Files (*.xlsx)|*.xlsx"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                this.FilePath = dialog.FileName;
+                //this.FileName = Path.GetFileName(FilePath);
+            }
+        }
+        private string filterStatus { get; set; }
+        public string FilterStatus
+        {
+            get { return filterStatus; }
+            set
+            {
+                filterStatus = value;
+                OnPropertyChanged(nameof(FilterStatus));
+            }
+        }
+
+        private void FilterData(object parameter)
+        {
+            if (!string.IsNullOrWhiteSpace(FilterCategory))
+            {
+                FilteredData = new ObservableCollection<ExcelData>(
+                    Data.Where(row => row.Category != null &&
+                                      row.Category.IndexOf(FilterCategory, StringComparison.OrdinalIgnoreCase) >= 0));
+            }
+            else
+            {
+                FilteredData = new ObservableCollection<ExcelData>(Data); ; // Reset to original data
+            }
+        }
+     
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+}
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ExcelProject.Model;
+
+namespace ExcelProject.Repo
+{
+    public interface IRepo
+    {
+        List<ExcelData> ReadExcelFile(string filePath);
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+using ClosedXML.Excel;
+
+
+namespace ExcelProject.ExcelRepo
+{
+    public class ExcelRepository : IRepo
+    {
+        public List<ExcelData> ReadExcelFile(string filePath)
+        {
+            var data = new List<ExcelData>();
+
+            if (File.Exists(filePath))
+            {
+                using (var workbook = new XLWorkbook(filePath))
+                {
+                    var worksheet = workbook.Worksheet(1); // Read the first worksheet
+                    foreach (var row in worksheet.RowsUsed().Skip(1)) // Skip header row
+                    {
+                        data.Add(new ExcelData
+                        {
+                            Id = row.Cell(1).Value.ToString(),
+                            Project = row.Cell(2).Value.ToString(),
+                            Reporter = row.Cell(3).Value.ToString(),
+                            Category = row.Cell(9).Value.  ToString(),
+                            Status = row.Cell(17).Value.ToString(),
+                            Summary = row.Cell(16).Value.ToString(),
+                            Resolution = row.Cell(18).Value.ToString(),
+                            
+
+                        });
+                    }
+                }
+            }
+
+            return data;
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ExcelProject.Model
+{
+    public class ExcelData
+    {
+        public string Id {  get; set; }
+        public string Project { get; set; }
+        public string Reporter { get; set; }
+        public string Category { get; set; }
+
+        public string Status { get; set; }
+        public string Summary { get; set; }
+        public string Resolution { get; set; }
+        
+
+
+    }
+}
+Give the xaml code for this project that include two comboboxes for filtering corresponding to the Status such as assigned,resolved,new,feedback and Resolution such as open,fixed,reopened,unable to reproduce,no change required,duplicate,suspended
+
+
+
