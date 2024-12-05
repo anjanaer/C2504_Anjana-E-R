@@ -603,3 +603,155 @@ namespace ExcelProject.ViewModel
     }
 
 }
+
+
+//
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+using ExcelProject.ExcelRepo;
+
+namespace ExcelProject.ViewModel
+{
+    public class MainViewModel : INotifyPropertyChanged
+    {
+        private IRepo _repository;
+        private ObservableCollection<ExcelData> _data;
+        private ObservableCollection<ExcelData> _filteredData;
+        private string _filterCategory;
+
+        public ObservableCollection<ExcelData> Data
+        {
+            get => _data;
+            set { _data = value; OnPropertyChanged(nameof(Data)); }
+        }
+
+        public ObservableCollection<ExcelData> FilteredData
+        {
+            get => _filteredData;
+            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+        }
+
+        public string FilterCategory
+        {
+            get => _filterCategory;
+            set { _filterCategory = value; OnPropertyChanged(nameof(FilterCategory)); }
+        }
+
+        private string filePath;
+        public string FilePath
+        {
+            get { return filePath; }
+            set
+            {
+                filePath = value;
+                OnPropertyChanged(nameof(FilePath));
+            }
+        }
+
+        public ICommand LoadCommand { get; }
+        public ICommand FilterCommand { get; }
+
+        public ICommand ShowDialogCommand { get; }
+
+        public MainViewModel()
+        {
+            ShowDialogCommand = new RelayCommand(ShowDialog);
+            LoadCommand = new RelayCommand(LoadData);
+            _repository = new ExcelRepository();
+        }
+
+        private void LoadData()
+        {
+            if(!string.IsNullOrEmpty(filePath))
+            {
+                TempData = new ObservableCollection<ExcelData>(_repository.ReadExcelFile(FilePath));
+                var data = _repository.ReadExcelFile(FilePath);
+                Data = new ObservableCollection<ExcelData>(data);
+                FilteredData = new ObservableCollection<ExcelData>(data); ; // Initially, no filter is applied
+            }
+            
+        }
+
+        public void ShowDialog()
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Excel Files (*.xlsx)|*.xlsx"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                this.FilePath = dialog.FileName;
+                //this.FileName = Path.GetFileName(FilePath);
+            }
+        }
+
+        private string filterResolution;
+        public string FilterResolution
+        {
+            get { return filterResolution; }
+            set
+            {
+                filterResolution = value;
+                OnPropertyChanged(nameof(FilterResolution));
+                FilterData();
+            }
+        }
+        private string filterStatus;
+        public string FilterStatus
+        {
+            get { return filterStatus; }
+            set
+            {
+                filterStatus = value;
+                OnPropertyChanged(nameof(FilterResolution));
+                FilterData();
+            }
+        }
+
+        public bool IsFilterApplied { get; private set; }
+        public ObservableCollection<ExcelData> TempData { get; private set; }
+
+        private void FilterData()
+        {
+            IsFilterApplied = true;
+
+            var filteredList = new ObservableCollection<ExcelData>();
+            //FilteredClarifications.Clear();
+            foreach (var data in TempData)
+            {
+                // Check status and module filters
+                bool matchesStatus = string.IsNullOrEmpty(FilterStatus) ||
+                                     data.Status.Equals(FilterStatus, StringComparison.OrdinalIgnoreCase) ||
+                                     FilterStatus.Equals("All", StringComparison.OrdinalIgnoreCase);
+                bool matchesResolution = string.IsNullOrEmpty(FilterResolution) ||
+                                     data.Resolution.Equals(FilterResolution, StringComparison.OrdinalIgnoreCase) ||
+                                     FilterResolution.Equals("All", StringComparison.OrdinalIgnoreCase);
+                // If all conditions are met, add the clarification to the filtered list
+                if (matchesStatus && matchesResolution)
+                {
+                    filteredList.Add(data);
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+}
+what is the mistake in this code filtering is not working
