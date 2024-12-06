@@ -1,4 +1,4 @@
-Requirement 1
+niRequirement 1
 Read and display Quest Mantis exported CSV file. 
 […] button
 When […] is clicked, show Open file dialog. Display selected file path in the [File name] textbox. Show error message if file type is not csv.
@@ -159,3 +159,380 @@ When [Export Filter] button is clicked, save filter conditions in the XML format
         </Grid>
     </ScrollViewer>
 </Window>
+
+
+
+fffffffffffff
+huckctu hu
+lhcif
+
+
+ChatGPT
+
+You said:
+Uploaded image
+Read and display Quest Mantis exported CSV file. 
+[…] button
+When […] is clicked, show Open file dialog. Display selected file path in the [File name] textbox. Show error message if file type is not csv.
+Show Details button
+When the [Show Details] button is clicked, read the csv file mentioned in the [File name] text box and display content in the Bug details table.
+This button should be disabled if [File name] text box is empty.
+Big Detail table
+The number of columns and column names in the table shall be same as the CSV file header. The number of rows should be equal to the number of rows in the CSV file.
+e.g.
+ 
+Column name1 = Id, Column name 2 = Project etc. 
+ChatGPT said:
+ChatGPT
+The requirement in your screenshot involves creating a feature in your application to read and display data from a CSV file using a file dialog. Here's how you can implement this functionality in a C# WPF application:
+
+Steps to Implement
+Open File Dialog for CSV Selection:
+
+Use the Microsoft.Win32.OpenFileDialog class to allow the user to select a file.
+Validate if the file has a .csv extension.
+Display Selected File Path:
+
+Set the selected file path in the File name textbox.
+Show Error Message for Invalid File:
+
+Check if the file extension is not .csv, and show an error message using a MessageBox.
+Enable/Disable "Show Details" Button:
+
+Bind the "Show Details" button to the File name textbox. Disable it when the textbox is empty.
+Read CSV and Populate DataGrid:
+
+Use libraries like System.IO or CsvHelper to read the CSV file.
+Dynamically set the column headers and populate rows in the DataGrid.
+Code Example
+XAML (UI Layout)
+<Window x:Class="BugTracker.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Bug Tracker" Height="400" Width="600">
+    <Grid Margin="10">
+        <TextBox x:Name="FileNameTextBox" Width="300" Height="25" HorizontalAlignment="Left" />
+        <Button Content="..." Width="30" Height="25" HorizontalAlignment="Left" Margin="310,0,0,0" 
+                Click="BrowseFile_Click" />
+        <Button Content="Show Details" Width="100" Height="25" HorizontalAlignment="Left" Margin="350,0,0,0" 
+                Click="ShowDetails_Click" IsEnabled="False" />
+        <DataGrid x:Name="BugDetailsGrid" Margin="0,40,0,50" AutoGenerateColumns="True" />
+        <Button Content="Close" Width="100" Height="25" HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                Click="Close_Click" />
+    </Grid>
+</Window>
+Code-Behind (C#)
+using Microsoft.Win32;
+using System;
+using System.Data;
+using System.IO;
+using System.Windows;
+
+namespace BugTracker
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+            FileNameTextBox.TextChanged += FileNameTextBox_TextChanged;
+        }
+
+        private void BrowseFile_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string filePath = openFileDialog.FileName;
+                if (Path.GetExtension(filePath).Equals(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    FileNameTextBox.Text = filePath;
+                }
+                else
+                {
+                    MessageBox.Show("Please select a valid CSV file.", "Invalid File", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void ShowDetails_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string filePath = FileNameTextBox.Text;
+                if (File.Exists(filePath))
+                {
+                    DataTable dataTable = new DataTable();
+                    string[] csvLines = File.ReadAllLines(filePath);
+
+                    if (csvLines.Length > 0)
+                    {
+                        // Add headers
+                        string[] headers = csvLines[0].Split(',');
+                        foreach (string header in headers)
+                        {
+                            dataTable.Columns.Add(header);
+                        }
+
+                        // Add rows
+                        for (int i = 1; i < csvLines.Length; i++)
+                        {
+                            dataTable.Rows.Add(csvLines[i].Split(','));
+                        }
+                    }
+
+                    BugDetailsGrid.ItemsSource = dataTable.DefaultView;
+                }
+                else
+                {
+                    MessageBox.Show("File not found!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void FileNameTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            ShowDetailsButton.IsEnabled = !string.IsNullOrWhiteSpace(FileNameTextBox.Text);
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+    }
+}
+Key Features
+File Dialog: Restricts selection to CSV files.
+Validation: Ensures the selected file is valid.
+Dynamic DataGrid: Automatically adjusts to match the CSV structure.
+Error Handling: Displays appropriate messages for missing or invalid files.
+Let me know if you need further clarification!
+
+
+
+
+
+
+You said:
+Give the code using Csharp in mvvm
+ChatGPT said:
+ChatGPT
+Here’s how you can implement the described functionality using the MVVM pattern in a C# WPF application. This approach separates the logic into Model, ViewModel, and View, adhering to clean coding practices.
+
+1. Model
+The model represents the structure of the CSV file data.
+
+public class CsvRow
+{
+    public Dictionary<string, string> Columns { get; set; }
+
+    public CsvRow()
+    {
+        Columns = new Dictionary<string, string>();
+    }
+}
+2. ViewModel
+The ViewModel handles the logic for file selection, validation, and reading CSV data.
+
+using Microsoft.Win32;
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Input;
+
+public class MainViewModel : INotifyPropertyChanged
+{
+    private string _fileName;
+    private ObservableCollection<CsvRow> _csvData;
+    private bool _canShowDetails;
+
+    public string FileName
+    {
+        get => _fileName;
+        set
+        {
+            _fileName = value;
+            OnPropertyChanged(nameof(FileName));
+            CanShowDetails = !string.IsNullOrWhiteSpace(_fileName);
+        }
+    }
+
+    public bool CanShowDetails
+    {
+        get => _canShowDetails;
+        set
+        {
+            _canShowDetails = value;
+            OnPropertyChanged(nameof(CanShowDetails));
+        }
+    }
+
+    public ObservableCollection<CsvRow> CsvData
+    {
+        get => _csvData;
+        set
+        {
+            _csvData = value;
+            OnPropertyChanged(nameof(CsvData));
+        }
+    }
+
+    public ICommand BrowseCommand { get; }
+    public ICommand ShowDetailsCommand { get; }
+
+    public MainViewModel()
+    {
+        BrowseCommand = new RelayCommand(BrowseFile);
+        ShowDetailsCommand = new RelayCommand(ShowDetails, () => CanShowDetails);
+        CsvData = new ObservableCollection<CsvRow>();
+    }
+
+    private void BrowseFile()
+    {
+        OpenFileDialog openFileDialog = new OpenFileDialog
+        {
+            Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*"
+        };
+
+        if (openFileDialog.ShowDialog() == true)
+        {
+            if (Path.GetExtension(openFileDialog.FileName).Equals(".csv", StringComparison.OrdinalIgnoreCase))
+            {
+                FileName = openFileDialog.FileName;
+            }
+            else
+            {
+                MessageBox.Show("Please select a valid CSV file.", "Invalid File", MessageBoxButton.OK, MessageBoxImage.Error);
+                FileName = string.Empty;
+            }
+        }
+    }
+
+    private void ShowDetails()
+    {
+        try
+        {
+            var rows = new ObservableCollection<CsvRow>();
+            string[] lines = File.ReadAllLines(FileName);
+
+            if (lines.Length > 0)
+            {
+                // Split headers
+                string[] headers = lines[0].Split(',');
+
+                // Populate data
+                for (int i = 1; i < lines.Length; i++)
+                {
+                    string[] values = lines[i].Split(',');
+                    CsvRow row = new CsvRow();
+
+                    for (int j = 0; j < headers.Length; j++)
+                    {
+                        row.Columns[headers[j]] = j < values.Length ? values[j] : string.Empty;
+                    }
+
+                    rows.Add(row);
+                }
+            }
+
+            CsvData = rows;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+3. View
+The XAML layout binds to the ViewModel properties and commands.
+
+<Window x:Class="BugTracker.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Bug Tracker" Height="400" Width="600">
+    <Window.DataContext>
+        <local:MainViewModel />
+    </Window.DataContext>
+    <Grid Margin="10">
+        <TextBox Text="{Binding FileName, UpdateSourceTrigger=PropertyChanged}" 
+                 Width="300" Height="25" HorizontalAlignment="Left" />
+        <Button Content="..." Width="30" Height="25" HorizontalAlignment="Left" 
+                Margin="310,0,0,0" Command="{Binding BrowseCommand}" />
+        <Button Content="Show Details" Width="100" Height="25" HorizontalAlignment="Left" 
+                Margin="350,0,0,0" Command="{Binding ShowDetailsCommand}" 
+                IsEnabled="{Binding CanShowDetails}" />
+        <DataGrid ItemsSource="{Binding CsvData}" Margin="0,40,0,50" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <!-- Dynamic Columns -->
+                <DataGridTextColumn Header="Column 1" 
+                                    Binding="{Binding Columns[Id]}" />
+                <DataGridTextColumn Header="Column 2" 
+                                    Binding="{Binding Columns[Project]}" />
+                <!-- Add more columns dynamically if needed -->
+            </DataGrid.Columns>
+        </DataGrid>
+        <Button Content="Close" Width="100" Height="25" HorizontalAlignment="Right" 
+                VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
+    </Grid>
+</Window>
+4. RelayCommand
+A simple implementation of the ICommand interface for binding commands.
+
+using System;
+using System.Windows.Input;
+
+public class RelayCommand : ICommand
+{
+    private readonly Action _execute;
+    private readonly Func<bool> _canExecute;
+
+    public RelayCommand(Action execute, Func<bool> canExecute = null)
+    {
+        _execute = execute;
+        _canExecute = canExecute;
+    }
+
+    public bool CanExecute(object parameter) => _canExecute == null || _canExecute();
+
+    public void Execute(object parameter) => _execute();
+
+    public event EventHandler CanExecuteChanged
+    {
+        add => CommandManager.RequerySuggested += value;
+        remove => CommandManager.RequerySuggested -= value;
+    }
+}
+Key Features in the MVVM Version:
+Separation of Concerns: Logic is handled in the ViewModel, while the View is responsible only for UI.
+Data Binding: Properties in the ViewModel (FileName, CsvData, CanShowDetails) are bound to the View.
+Commands: Button actions are handled via ICommand implementations (BrowseCommand, ShowDetailsCommand).
+Dynamic Column Handling: The CsvRow model uses a dictionary for flexible column management.
+Let me know if you need further clarification or enhancements!
+
+
+
+
+
+
+
+
+
+
