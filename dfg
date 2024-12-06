@@ -1,3 +1,4 @@
+Requirement 1
 Read and display Quest Mantis exported CSV file. 
 […] button
 When […] is clicked, show Open file dialog. Display selected file path in the [File name] textbox. Show error message if file type is not csv.
@@ -9,5 +10,16 @@ The number of columns and column names in the table shall be same as the CSV fil
 e.g.
  
 Column name1 = Id, Column name 2 = Project etc. 
+Requirement 2
+Add filter conditions and update bug details table based on filter conditions.
  
+Show all column names in the filter conditions. When selecting a column name, then show unique row content like Excel filter.
+Apply Filter button
+When [Apply Filter] button is clicked, update bug details table with all filter conditions.
+Reset Filter button
+When [Reset Filter] button is clicked, update bug details table.
+Import Filter button
+When [Import Filter] button is clicked, import filter conditions from selected XML file. 
+Export Filter button
+When [Export Filter] button is clicked, save filter conditions in the XML format.
  
