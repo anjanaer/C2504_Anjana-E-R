@@ -1,0 +1,238 @@
+Updated MainViewModel Class
+csharp
+Copy code
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Windows;
+using System.Windows.Input;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+
+namespace ExcelProject.ViewModel
+{
+    public class MainViewModel : INotifyPropertyChanged
+    {
+        private IRepo _repository;
+        private ObservableCollection<ExcelData> _data;
+        private ObservableCollection<ExcelData> _filteredData;
+        private string _filterCategory;
+        private string _filePath;
+        private string _filterResolution;
+        private string _filterStatus;
+
+        public MainViewModel()
+        {
+            ShowDialogCommand = new RelayCommand(ShowDialog);
+            LoadCommand = new RelayCommand(LoadData);
+            _repository = new CsvRepository();
+        }
+
+        public ObservableCollection<ExcelData> Data
+        {
+            get => _data;
+            set { _data = value; OnPropertyChanged(nameof(Data)); }
+        }
+
+        public ObservableCollection<ExcelData> FilteredData
+        {
+            get => _filteredData;
+            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+        }
+
+        public string FilterCategory
+        {
+            get => _filterCategory;
+            set { _filterCategory = value; OnPropertyChanged(nameof(FilterCategory)); }
+        }
+
+        public string FilePath
+        {
+            get => _filePath;
+            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
+        }
+
+        public string FilterResolution
+        {
+            get => _filterResolution;
+            set
+            {
+                _filterResolution = value;
+                OnPropertyChanged(nameof(FilterResolution));
+                FilterData();
+            }
+        }
+
+        public string FilterStatus
+        {
+            get => _filterStatus;
+            set
+            {
+                _filterStatus = value;
+                OnPropertyChanged(nameof(FilterStatus));
+                FilterData();
+            }
+        }
+
+        public bool IsFilterApplied { get; private set; }
+        public ObservableCollection<ExcelData> TempData { get; private set; }
+
+        public ICommand LoadCommand { get; }
+        public ICommand ShowDialogCommand { get; }
+
+        private void LoadData()
+        {
+            if (!string.IsNullOrEmpty(FilePath))
+            {
+                var data = _repository.ReadCsvFile(FilePath);
+                Data = new ObservableCollection<ExcelData>(data);
+                FilteredData = new ObservableCollection<ExcelData>(data); // Initially, no filter is applied
+                TempData = new ObservableCollection<ExcelData>(data);
+            }
+        }
+
+        public void ShowDialog()
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "CSV Files (*.csv)|*.csv"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                FilePath = dialog.FileName;
+            }
+        }
+
+        private void FilterData()
+        {
+            if (TempData == null || TempData.Count == 0) return;
+
+            IsFilterApplied = true;
+            var filteredList = new ObservableCollection<ExcelData>();
+
+            foreach (var data in TempData)
+            {
+                bool matchesStatus = string.IsNullOrEmpty(FilterStatus) ||
+                                     data.Status.Equals(FilterStatus, StringComparison.OrdinalIgnoreCase) ||
+                                     FilterStatus.Equals("All", StringComparison.OrdinalIgnoreCase);
+
+                bool matchesResolution = string.IsNullOrEmpty(FilterResolution) ||
+                                         data.Resolution.Equals(FilterResolution, StringComparison.OrdinalIgnoreCase) ||
+                                         FilterResolution.Equals("All", StringComparison.OrdinalIgnoreCase);
+
+                if (matchesStatus && matchesResolution)
+                {
+                    filteredList.Add(data);
+                }
+            }
+
+            FilteredData = filteredList;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}
+Updated IRepo Interface
+csharp
+Copy code
+using System.Collections.Generic;
+using ExcelProject.Model;
+
+namespace ExcelProject.Repo
+{
+    public interface IRepo
+    {
+        List<ExcelData> ReadCsvFile(string filePath);
+    }
+}
+New CsvRepository Class
+csharp
+Copy code
+using System;
+using System.Collections.Generic;
+using System.IO;
+using ExcelProject.Model;
+
+namespace ExcelProject.Repo
+{
+    public class CsvRepository : IRepo
+    {
+        public List<ExcelData> ReadCsvFile(string filePath)
+        {
+            var data = new List<ExcelData>();
+
+            if (File.Exists(filePath))
+            {
+                using (var reader = new StreamReader(filePath))
+                {
+                    // Skip header row
+                    var header = reader.ReadLine();
+
+                    while (!reader.EndOfStream)
+                    {
+                        var line = reader.ReadLine();
+                        var values = line.Split(',');
+
+                        data.Add(new ExcelData
+                        {
+                            Id = values[0],
+                            Project = values[1],
+                            Reporter = values[2],
+                            AssignedTo = values[3],
+                            Priority = values[4],
+                            Severity = values[5],
+                            Reproducibility = values[6],
+                            ProductVersion = values[7],
+                            OS = values[8],
+                            OSVersion = values[9],
+                            Platform = values[10],
+                            ViewStatus = values[11],
+                            Updated = values[12],
+                            Summary = values[13],
+                            Status = values[14],
+                            Resolution = values[15],
+                            FixedInVersion = values[16],
+                            StepsToReproduce = values[17],
+                            CodeOwner = values[18],
+                            DateResolved = values[19],
+                            DefectImpactToUser = values[20],
+                            DefectType = values[21],
+                            Iteration = values[22],
+                            Responsibility = values[23],
+                            TestCaseId = values[24],
+                            TestedBy = values[25],
+                            TestingLevel = values[26],
+                            Version = values[27],
+                            Scope = values[28],
+                            BugAnalysisStatus = values[29]
+                        });
+                    }
+                }
+            }
+
+            return data;
+        }
+    }
+}
+This code now uses a CsvRepository to read data from CSV files and map it to ExcelData objects. The UI remains the same, and the DataGrid will automatically display the filtered data.
+
+
+
+
+
+
+
+
+
+
+
