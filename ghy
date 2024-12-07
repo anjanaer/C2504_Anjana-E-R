@@ -1,398 +1,93 @@
-<Window x:Class="ExcelProject.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ExcelProject"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
-        <!-- Upload Section -->
-        <StackPanel Orientation="Horizontal" Margin="10">
-            <TextBlock Text="FileName: " VerticalAlignment="Center" Width="60" />
-            <TextBox Width="400" Height="30" Margin="10 0 0 0" Padding="4 4 4 4" IsEnabled="False" Text="{Binding FilePath}" />
-            <Button Content="..." Width="70" Margin="10,0,0,0" Command="{Binding ShowDialogCommand}" />
-            <Button Content="Show Details" Width="70" Margin="10,0,0,0" Command="{Binding LoadCommand}" />
-        </StackPanel>
-
-        
-
-        <!-- DataGrid Section -->
-      
-            <DataGrid x:Name="dataGrid" Grid.Row="2" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="100" />
-                    <DataGridTextColumn Header="Project" Binding="{Binding Project}" Width="150" />
-                    <DataGridTextColumn Header="Reporter" Binding="{Binding Reporter}" Width="150" />
-                    <DataGridTextColumn Header="Assigned To" Binding="{Binding AssignedTo}" Width="150" />
-                    <DataGridTextColumn Header="Priority" Binding="{Binding Priority}" Width="150" />
-                    <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="150" />
-                    <DataGridTextColumn Header="Reproducibility" Binding="{Binding Reproducibility}" Width="150" />
-                    <DataGridTextColumn Header="ProductVersion" Binding="{Binding ProductVersion}" Width="100" />
-                    <DataGridTextColumn Header="OS" Binding="{Binding OS}" Width="150" />
-                    <DataGridTextColumn Header="OSVersion" Binding="{Binding OSVersion}" Width="150" />
-                    <DataGridTextColumn Header="Platform" Binding="{Binding Platform}" Width="150" />
-                    <DataGridTextColumn Header="ViewStatus" Binding="{Binding ViewStatus}" Width="150" />
-                    <DataGridTextColumn Header="Updated" Binding="{Binding Updated}" Width="150" />
-                    <DataGridTextColumn Header="Summary" Binding="{Binding Summary}" Width="150" />
-                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" />
-                    <DataGridTextColumn Header="Resolution" Binding="{Binding Resolution}" Width="150" />
-                    <DataGridTextColumn Header="Fixed in Version" Binding="{Binding FixedInVersion}" Width="150" />
-                    <DataGridTextColumn Header="Steps To Reproduce" Binding="{Binding StepsToReproduce}" Width="150" />
-                    <DataGridTextColumn Header="Code Owner" Binding="{Binding CodeOwner}" Width="150" />
-                    <DataGridTextColumn Header="Date Resolved" Binding="{Binding DateResolved}" Width="150" />
-                    <DataGridTextColumn Header="Defect Impact to User" Binding="{Binding DefectImpactToUser}" Width="150" />
-                    <DataGridTextColumn Header="Defect Type" Binding="{Binding DefectType}" Width="100" />
-                    <DataGridTextColumn Header="Iteration" Binding="{Binding Iteration}" Width="150" />
-                    <DataGridTextColumn Header="Iteration (Data Manager)" Binding="{Binding IterationDataManager}" Width="150" />
-                    <DataGridTextColumn Header="Iteration (XRD Measurement)" Binding="{Binding IterationXRDMeasurement}" Width="150" />
-                    <DataGridTextColumn Header="Module" Binding="{Binding Module}" Width="150" />
-                    <DataGridTextColumn Header="Module(Common Plugins)" Binding="{Binding ModuleCommonPlugins}" Width="150" />
-                    <DataGridTextColumn Header="ODC Period" Binding="{Binding ODCPeriod}" Width="150" />
-                    <DataGridTextColumn Header="Binding Phase of Origin" Binding="{Binding PhaseOfOrigin}" Width="100" />
-                    <DataGridTextColumn Header="Responsibility" Binding="{Binding Responsibility}" Width="150" />
-                    <DataGridTextColumn Header="Test Case Id" Binding="{Binding TestCaseId}" Width="150" />
-                    <DataGridTextColumn Header="Testing Level" Binding="{Binding TestingLevel}" Width="150" />
-                    <DataGridTextColumn Header="Tested By" Binding="{Binding TestedBy}" Width="150" />
-                    <DataGridTextColumn Header="Testing Level" Binding="{Binding TestingLevel}" Width="150" />
-                    <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="150" />
-                    <DataGridTextColumn Header="Iteration (Powder XRD)" Binding="{Binding IterationPowderXRD}" Width="100" />
-                    <DataGridTextColumn Header=" Iteration (SmartFlex)" Binding="{Binding IterationSmartFlex}" Width="150" />
-                    <DataGridTextColumn Header="Iteration(MDA)" Binding="{Binding IterationMDA}" Width="150" />
-                    <DataGridTextColumn Header="Iteration(XRD DSC Analysis)" Binding="{Binding IterationXRDDSCAnalysis}" Width="150" />
-                    <DataGridTextColumn Header="Scope" Binding="{Binding Scope}" Width="150" />
-                    <DataGridTextColumn Header="Bug Analysis Status" Binding="{Binding BugAnalysisStatus}" Width="150" />
-
-                </DataGrid.Columns>
-            </DataGrid>
-        
-    </Grid>
-
-</Window>    
+<StackPanel Grid.Row="1" Orientation="Vertical" Margin="10">
+    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+        <TextBlock Text="Column: " VerticalAlignment="Center" Width="60" />
+        <ComboBox x:Name="columnSelector" Width="150" ItemsSource="{Binding ColumnNames}" SelectedItem="{Binding SelectedColumn}" />
+        <Button Content="Apply Filter" Width="100" Margin="10,0,0,0" Command="{Binding ApplyFilterCommand}" />
+        <Button Content="Reset Filter" Width="100" Margin="10,0,0,0" Command="{Binding ResetFilterCommand}" />
+    </StackPanel>
+    <ListBox x:Name="filterValues" ItemsSource="{Binding FilterValues}" SelectionMode="Multiple" Margin="0,5,0,0">
+        <ListBox.ItemTemplate>
+            <DataTemplate>
+                <CheckBox Content="{Binding}" IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" />
+            </DataTemplate>
+        </ListBox.ItemTemplate>
+    </ListBox>
+</StackPanel>
 
 
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using ExcelProject;
-using ExcelProject.Repo;
-using ExcelProject.ViewModel;
-
-namespace ExcelProject
-{
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
-    {
-        private MainViewModel viewModel { get; set; } = null;
-        public MainWindow()
-        {
-            InitializeComponent();
-            viewModel = new MainViewModel();
-            DataContext = this.viewModel;
-
-        }
-    }
-
-    
-}
-
-
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
-using ExcelProject.Model;
-using ExcelProject.Repo;
-using ExcelProject.ExcelRepo;
-using Microsoft.Win32;
 
-namespace ExcelProject.ViewModel
+public class MainViewModel : ViewModelBase
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public ObservableCollection<string> ColumnNames { get; set; }
+    public ObservableCollection<string> FilterValues { get; set; }
+    public string SelectedColumn { get; set; }
+    public ObservableCollection<ExcelData> FilteredData { get; set; }
+
+    public RelayCommand ApplyFilterCommand { get; }
+    public RelayCommand ResetFilterCommand { get; }
+
+    public MainViewModel()
     {
+        // Initialize commands
+        ApplyFilterCommand = new RelayCommand(ApplyFilter);
+        ResetFilterCommand = new RelayCommand(ResetFilter);
 
-        private IRepo _repository;
-        private ObservableCollection<ExcelData> _data;
-        private ObservableCollection<ExcelData> _filteredData;
-        private string _filterCategory;
-        private string _filePath;
-        private string _filterResolution;
-        private string _filterStatus;
+        // Load data and set column names
+        var data = new ExcelRepository().ReadExcelFile("path/to/your/excel/file.xlsx");
+        FilteredData = new ObservableCollection<ExcelData>(data);
+        ColumnNames = new ObservableCollection<string>(typeof(ExcelData).GetProperties().Select(p => p.Name));
+    }
 
-        public MainViewModel()
+    private void ApplyFilter()
+    {
+        if (!string.IsNullOrEmpty(SelectedColumn) && FilterValues.Any())
         {
-            ShowDialogCommand = new RelayCommand(ShowDialog);
-            LoadCommand = new RelayCommand(LoadData);
-            _repository = new ExcelRepository();
-        }
-
-        public ObservableCollection<ExcelData> Data
-        {
-            get => _data;
-            set { _data = value; OnPropertyChanged(nameof(Data)); }
-        }
-
-        public ObservableCollection<ExcelData> FilteredData
-        {
-            get => _filteredData;
-            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
-        }
-
-        public string FilterCategory
-        {
-            get => _filterCategory;
-            set { _filterCategory = value; OnPropertyChanged(nameof(FilterCategory)); }
-        }
-
-        public string FilePath
-        {
-            get => _filePath;
-            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
-        }
-
-        public string FilterResolution
-        {
-            get => _filterResolution;
-            set
-            {
-                _filterResolution = value;
-                OnPropertyChanged(nameof(FilterResolution));
-                FilterData();
-            }
-        }
-
-        public string FilterStatus
-        {
-            get => _filterStatus;
-            set
-            {
-                _filterStatus = value;
-                OnPropertyChanged(nameof(FilterStatus));
-                FilterData();
-            }
-        }
-
-        public bool IsFilterApplied { get; private set; }
-        public ObservableCollection<ExcelData> TempData { get; private set; }
-
-        public ICommand LoadCommand { get; }
-        public ICommand ShowDialogCommand { get; }
-
-        private void LoadData()
-        {
-            if (!string.IsNullOrEmpty(FilePath))
-            {
-                var data = _repository.ReadExcelFile(FilePath);
-                Data = new ObservableCollection<ExcelData>(data);
-                FilteredData = new ObservableCollection<ExcelData>(data); // Initially, no filter is applied
-                TempData = new ObservableCollection<ExcelData>(data);
-            }
-        }
-
-        public void ShowDialog()
-        {
-            var dialog = new OpenFileDialog
-            {
-                Filter = "Excel Files (*.xlsx)|*.xlsx"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                FilePath = dialog.FileName;
-            }
-        }
-
-        private void FilterData()
-        {
-            if (TempData == null || TempData.Count == 0) return;
-
-            IsFilterApplied = true;
-            var filteredList = new ObservableCollection<ExcelData>();
-
-            foreach (var data in TempData)
-            {
-                bool matchesStatus = string.IsNullOrEmpty(FilterStatus) ||
-                                     data.Status.Equals(FilterStatus, StringComparison.OrdinalIgnoreCase) ||
-                                     FilterStatus.Equals("All", StringComparison.OrdinalIgnoreCase);
-
-                bool matchesResolution = string.IsNullOrEmpty(FilterResolution) ||
-                                         data.Resolution.Equals(FilterResolution, StringComparison.OrdinalIgnoreCase) ||
-                                         FilterResolution.Equals("All", StringComparison.OrdinalIgnoreCase);
-
-                if (matchesStatus && matchesResolution)
-                {
-                    filteredList.Add(data);
-                }
-            }
-
-            FilteredData = filteredList;
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            var propertyInfo = typeof(ExcelData).GetProperty(SelectedColumn);
+            FilteredData = new ObservableCollection<ExcelData>(
+                FilteredData.Where(item => FilterValues.Contains(propertyInfo.GetValue(item)?.ToString())));
         }
     }
 
-}
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ExcelProject.Model;
-
-namespace ExcelProject.Repo
-{
-    public interface IRepo
+    private void ResetFilter()
     {
-        List<ExcelData> ReadExcelFile(string filePath);
+        FilteredData = new ObservableCollection<ExcelData>(new ExcelRepository().ReadExcelFile("path/to/your/excel/file.xlsx"));
     }
 }
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ExcelProject.Model;
-using ExcelProject.Repo;
-using ClosedXML.Excel;
 
 
-namespace ExcelProject.ExcelRepo
+
+
+
+private string _selectedColumn;
+public string SelectedColumn
 {
-    public class ExcelRepository : IRepo
+    get => _selectedColumn;
+    set
     {
-        public List<ExcelData> ReadExcelFile(string filePath)
+        _selectedColumn = value;
+        OnPropertyChanged(nameof(SelectedColumn));
+
+        // Load unique values for the selected column
+        if (!string.IsNullOrEmpty(_selectedColumn))
         {
-            var data = new List<ExcelData>();
-
-            if (File.Exists(filePath))
-            {
-                using (var workbook = new XLWorkbook(filePath))
-                {
-                    var worksheet = workbook.Worksheet(1); // Read the first worksheet
-                    foreach (var row in worksheet.RowsUsed().Skip(1)) // Skip header row
-                    {
-                        data.Add(new ExcelData
-                        {
-                            Id = row.Cell(1).Value.ToString(),
-                            Project = row.Cell(2).Value.ToString(),
-                            Reporter = row.Cell(3).Value.ToString(),
-                            AssignedTo = row.Cell(4).Value.ToString(),
-                            Priority = row.Cell(5).Value.ToString(),
-                            Severity = row.Cell(6).Value.ToString(),
-                            Reproducibility = row.Cell(7).Value.ToString(),
-                            ProductVersion = row.Cell(8).Value.ToString(),
-                            Category = row.Cell(9).Value.  ToString(),
-                            DateSubmitted = row.Cell(10).Value.ToString(),
-                            OS = row.Cell(11).Value.ToString(),
-                            OSVersion = row.Cell(12).Value.ToString(),
-                            Platform = row.Cell(13).Value.ToString(),
-                            ViewStatus = row.Cell(14).Value.ToString(),
-                            Updated = row.Cell(15).Value.ToString(),
-                            Summary = row.Cell(16).Value.ToString(),
-                            Status = row.Cell(17).Value.ToString(),
-                            Resolution = row.Cell(18).Value.ToString(),
-                            FixedInVersion = row.Cell(19).Value.ToString(),
-                            Description = row.Cell(20).Value.ToString(),
-                            StepsToReproduce = row.Cell(21).Value.ToString(),
-                            CodeOwner = row.Cell(22).Value.ToString(),
-                            DateResolved = row.Cell(23).Value.ToString(),
-                            DefectImpactToUser = row.Cell(24).Value.ToString(),
-                            DefectType = row.Cell(25).Value.ToString(),
-                            Iteration = row.Cell(26).Value.ToString(),
-                            IterationDataManager = row.Cell(27).Value.ToString(),
-                            IterationXRDMeasurement = row.Cell(28).Value.ToString(),
-                            Module = row.Cell(29).Value.ToString(),
-                            ModuleCommonPlugins = row.Cell(30).Value.ToString(),
-                            ODCPeriod = row.Cell(31).Value.ToString(),
-                            PhaseOfOrigin = row.Cell(32).Value.ToString(),
-                            Responsibility = row.Cell(33).Value.ToString(),
-                            TestCaseId = row.Cell(34).Value.ToString(),
-                            TestedBy = row.Cell(35).Value.ToString(),
-                            TestingLevel = row.Cell(36).Value.ToString(),
-                            Version = row.Cell(37).Value.ToString(),
-                            IterationPowderXRD = row.Cell(38).Value.ToString(),
-                            IterationSmartFlex = row.Cell(39).Value.ToString(),
-                            IterationDBBrowser = row.Cell(40).Value.ToString(),
-                            IterationMDA = row.Cell(41).Value.ToString(),
-                            IterationXRDDSCAnalysis = row.Cell(42).Value.ToString(),
-                            Scope = row.Cell(43).Value.ToString(),
-                            BugAnalysisStatus = row.Cell(44).Value.ToString(),
-
-
-
-
-
-                        });
-                    }
-                }
-            }
-
-            return data;
+            var propertyInfo = typeof(ExcelData).GetProperty(_selectedColumn);
+            FilterValues = new ObservableCollection<string>(
+                FilteredData.Select(item => propertyInfo.GetValue(item)?.ToString()).Distinct());
         }
     }
 }
 
-all Aaj tu jjmkkllllll
+public RelayCommand ImportFilterCommand { get; }
+public RelayCommand ExportFilterCommand { get; }
 
-<Window x:Class="BugTracker.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Bug Tracker" Height="450" Width="800">
-    <Grid Margin="10">
-        <!-- Title Bar -->
-        <Border Background="#007acc" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" CornerRadius="5">
-            <TextBlock Text="Bug Tracker" Foreground="White" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Margin="10,0,0,0" />
-        </Border>
+private void ImportFilter()
+{
+    // Load filter conditions from XML
+}
 
-        <!-- File Selection Section -->
-        <StackPanel Orientation="Horizontal" Margin="10,50,10,0">
-            <TextBlock Text="File name:" VerticalAlignment="Center" Margin="0,0,5,0" />
-            <TextBox Text="{Binding FilePath}" Width="400" IsReadOnly="True" />
-            <Button Content="..." Width="30" Command="{Binding BrowseFileCommand}" />
-            <Button Content="Show Details" Width="100" Margin="5,0,0,0"
-                    Command="{Binding ShowDetailsCommand}" 
-                    IsEnabled="{Binding IsShowDetailsEnabled}" />
-        </StackPanel>
-
-        <!-- Bug Details Table -->
-        <DataGrid ItemsSource="{Binding BugDetails}" AutoGenerateColumns="True" Margin="10,100,10,50" />
-
-        <!-- Close Button -->
-        <Button Content="Close" Width="100" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
-
-        <!-- Error Message -->
-        <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" Margin="10,400,10,0" />
-    </Grid>
-</Window>
-
+private void ExportFilter()
+{
+    // Save filter conditions to XML
+}
