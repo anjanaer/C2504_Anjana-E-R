@@ -130,5 +130,148 @@ Remember to implement the CloseCommand in your ViewModel to handle the close but
  * https://github.com/clovett/tools
  * https://github.com/samueldjack/VirtualCollection
 
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Input;
+
+namespace BugTracker
+{
+    public class MainViewModel : INotifyPropertyChanged
+    {
+        private string _filePath;
+        private string _errorMessage;
+        private bool _isShowDetailsEnabled;
+        private ObservableCollection<DataRow> _bugDetails;
+        private DataTable _dataTable;
+
+        public string FilePath
+        {
+            get => _filePath;
+            set
+            {
+                _filePath = value;
+                OnPropertyChanged(nameof(FilePath));
+                IsShowDetailsEnabled = !string.IsNullOrEmpty(value);
+            }
+        }
+
+        public string ErrorMessage
+        {
+            get => _errorMessage;
+            set
+            {
+                _errorMessage = value;
+                OnPropertyChanged(nameof(ErrorMessage));
+            }
+        }
+
+        public bool IsShowDetailsEnabled
+        {
+            get => _isShowDetailsEnabled;
+            set
+            {
+                _isShowDetailsEnabled = value;
+                OnPropertyChanged(nameof(IsShowDetailsEnabled));
+            }
+        }
+
+        public ObservableCollection<DataRow> BugDetails
+        {
+            get => _bugDetails;
+            set
+            {
+                _bugDetails = value;
+                OnPropertyChanged(nameof(BugDetails));
+            }
+        }
+
+        public ICommand BrowseFileCommand { get; }
+        public ICommand ShowDetailsCommand { get; }
+        public ICommand CloseCommand { get; }
+
+        public MainViewModel()
+        {
+            BrowseFileCommand = new RelayCommand(BrowseFile);
+            ShowDetailsCommand = new RelayCommand(ShowDetails, () => IsShowDetailsEnabled);
+            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+            BugDetails = new ObservableCollection<DataRow>();
+        }
+
+        private void BrowseFile()
+        {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "CSV Files (*.csv)|*.csv",
+                Title = "Select CSV File"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                FilePath = openFileDialog.FileName;
+                ErrorMessage = string.Empty;
+            }
+        }
+
+        private void ShowDetails()
+        {
+            if (!File.Exists(FilePath))
+            {
+                ErrorMessage = "File not found.";
+                return;
+            }
+
+            if (Path.GetExtension(FilePath).ToLower() != ".csv")
+            {
+                ErrorMessage = "Invalid file type. Please select a CSV file.";
+                return;
+            }
+
+            try
+            {
+                var lines = File.ReadAllLines(FilePath);
+                if (lines.Length == 0)
+                {
+                    ErrorMessage = "The file is empty.";
+                    return;
+                }
+
+                ErrorMessage = string.Empty;
+
+                // Process CSV
+                var headers = lines[0].Split(',');
+                _dataTable = new DataTable();
+
+                foreach (var header in headers)
+                    _dataTable.Columns.Add(header);
+
+                for (int i = 1; i < lines.Length; i++)
+                {
+                    var rowValues = lines[i].Split(',');
+                    _dataTable.Rows.Add(rowValues);
+                }
+
+                BugDetails = new ObservableCollection<DataRow>(_dataTable.AsEnumerable().ToList());
+            }
+            catch
+            {
+                ErrorMessage = "An error occurred while reading the CSV file.";
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}
+
+
+
 
 
