@@ -318,6 +318,32 @@ This code now uses a CsvRepository to read data from CSV files and map it to Exc
 
 </Window>    
 
+<DataGrid x:Name="dataGrid" Grid.Row="2" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="False">
+    <!-- Define Column Header Style -->
+    <DataGrid.ColumnHeaderStyle>
+        <Style TargetType="DataGridColumnHeader">
+            <!-- Set Background and Foreground Colors -->
+            <Setter Property="Background" Value="Teal" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+    </DataGrid.ColumnHeaderStyle>
+
+    <!-- DataGrid Columns -->
+    <DataGrid.Columns>
+        <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="100" />
+        <DataGridTextColumn Header="Project" Binding="{Binding Project}" Width="150" />
+        <DataGridTextColumn Header="Reporter" Binding="{Binding Reporter}" Width="150" />
+        <DataGridTextColumn Header="Assigned To" Binding="{Binding AssignedTo}" Width="150" />
+        <DataGridTextColumn Header="Priority" Binding="{Binding Priority}" Width="150" />
+        <!-- Add more columns here as required -->
+    </DataGrid.Columns>
+</DataGrid>
+
+
+
 
 
 
