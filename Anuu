@@ -107,3 +107,64 @@ private IEnumerable<string> GetUniqueValuesForColumn(string columnName)
         .ToList();
 }
 ---------------------------------------------------------------
+
+<DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="False">
+    <DataGrid.Columns>
+        <!-- Reporter Column -->
+        <DataGridTemplateColumn Header="Reporter">
+            <DataGridTemplateColumn.HeaderTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <TextBlock Text="Reporter" HorizontalAlignment="Center"/>
+                        <ComboBox Width="100"
+                                  ItemsSource="{Binding ReporterFilterOptions}"
+                                  SelectedItem="{Binding SelectedReporterFilter, Mode=TwoWay}" />
+                    </StackPanel>
+                </DataTemplate>
+            </DataGridTemplateColumn.HeaderTemplate>
+            <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Reporter}" />
+                </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- Status Column -->
+        <DataGridTemplateColumn Header="Status">
+            <DataGridTemplateColumn.HeaderTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <TextBlock Text="Status" HorizontalAlignment="Center"/>
+                        <ComboBox Width="100"
+                                  ItemsSource="{Binding StatusFilterOptions}"
+                                  SelectedItem="{Binding SelectedStatusFilter, Mode=TwoWay}" />
+                    </StackPanel>
+                </DataTemplate>
+            </DataGridTemplateColumn.HeaderTemplate>
+            <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Status}" />
+                </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- Summary Column -->
+        <DataGridTemplateColumn Header="Summary">
+            <DataGridTemplateColumn.HeaderTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <TextBlock Text="Summary" HorizontalAlignment="Center"/>
+                        <TextBox Width="100"
+                                 Text="{Binding SelectedSummaryFilter, Mode=TwoWay}" />
+                    </StackPanel>
+                </DataTemplate>
+            </DataGridTemplateColumn.HeaderTemplate>
+            <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Summary}" />
+                </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+    </DataGrid.Columns>
+</DataGrid>
+
