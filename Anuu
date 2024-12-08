@@ -89,3 +89,20 @@ private void UpdateFilterValues(ColumnFilter filter)
         }
     }
 }
+
+
+
+private IEnumerable<string> GetUniqueValuesForColumn(string columnName)
+{
+    // Use reflection to get values for the specified column
+    return OriginalData
+        .Select(item =>
+        {
+            var property = item.GetType().GetProperty(columnName);
+            return property?.GetValue(item)?.ToString();
+        })
+        .Where(value => !string.IsNullOrEmpty(value)) // Exclude null or empty values
+        .Distinct() // Get unique values
+        .OrderBy(value => value) // Optional: sort the values
+        .ToList();
+}
