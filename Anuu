@@ -168,3 +168,70 @@ private IEnumerable<string> GetUniqueValuesForColumn(string columnName)
     </DataGrid.Columns>
 </DataGrid>
 
+
+
+<Window x:Class="BugTracker.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Bug Tracker" Height="600" Width="800">
+    <Grid Margin="10">
+        <!-- File Selection Section -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0,0,0,10">
+            <TextBlock Text="File Name:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBox Width="300"/>
+            <Button Content="..." Width="30" Margin="10,0,0,0"/>
+            <Button Content="Show Details" Margin="10,0,0,0"/>
+        </StackPanel>
+
+        <!-- Filter Section -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Filter Conditions -->
+            <GroupBox Header="Filter Conditions" Margin="0,0,10,0">
+                <StackPanel>
+                    <ListBox>
+                        <ListBoxItem>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox Content="Select All"/>
+                            </StackPanel>
+                        </ListBoxItem>
+                        <ListBoxItem>East</ListBoxItem>
+                        <ListBoxItem>North</ListBoxItem>
+                        <ListBoxItem>South</ListBoxItem>
+                        <ListBoxItem>West</ListBoxItem>
+                    </ListBox>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- Buttons -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Top">
+                <Button Content="Apply Filter" Margin="0,0,0,10"/>
+                <Button Content="Reset Filter" Margin="0,0,0,10"/>
+                <Button Content="Import Filter..." Margin="0,0,0,10"/>
+                <Button Content="Export Filter..." Margin="0,0,0,10"/>
+            </StackPanel>
+        </Grid>
+        
+        <!-- DataGrid -->
+        <DataGrid Grid.Row="1" Margin="0,10,0,0" AutoGenerateColumns="False">
+            <!-- Define Columns -->
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Column Name 1" Binding="{Binding Column1}"/>
+                <DataGridTextColumn Header="Column Name 2" Binding="{Binding Column2}"/>
+                <DataGridTextColumn Header="Column Name N" Binding="{Binding ColumnN}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>
+
+
+
