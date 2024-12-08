@@ -43,3 +43,43 @@
         </StackPanel>
     </ScrollViewer>
 </Border>
+
+
+[08/12, 8:34 am] Amma🥰😘😘: public ObservableCollection<ColumnFilter> ColumnFilters { get; set; }
+public ObservableCollection<string> ColumnNames { get; set; } // List of 44 column names
+[08/12, 8:34 am] Amma🥰😘😘: public class ColumnFilter
+{
+    public string SelectedColumn { get; set; } // Selected column name
+    public ObservableCollection<FilterItem> FilterValues { get; set; } // Unique values for the selected column
+}
+
+public class FilterItem
+{
+    public string Value { get; set; } // Display value
+    public bool IsSelected { get; set; } // Whether the item is checked
+}
+[08/12, 8:34 am] Amma🥰😘😘: public void InitializeFilters()
+{
+    ColumnFilters = new ObservableCollection<ColumnFilter>();
+    foreach (var columnName in ColumnNames)
+    {
+        ColumnFilters.Add(new ColumnFilter
+        {
+            SelectedColumn = columnName,
+            FilterValues = new ObservableCollection<FilterItem>()
+        });
+    }
+}
+[08/12, 8:35 am] Amma🥰😘😘: private void UpdateFilterValues(ColumnFilter filter)
+{
+    if (filter.SelectedColumn != null)
+    {
+        // Fetch unique values for the selected column
+        var uniqueValues = GetUniqueValuesForColumn(filter.SelectedColumn);
+        filter.FilterValues.Clear();
+        foreach (var value in uniqueValues)
+        {
+            filter.FilterValues.Add(new FilterItem { Value = value, IsSelected = false });
+        }
+    }
+}
