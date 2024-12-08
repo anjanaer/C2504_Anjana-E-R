@@ -212,3 +212,8 @@ namespace ExcelProject.ViewModel
     }
 
 }
+
+I need to add the following requirements in gui and the code also Add filter conditions and update bug details table based on filter conditions.
+ 
+Show all column names in the filter conditions. When selecting a column name, then show unique row content like Excel filter.
+
