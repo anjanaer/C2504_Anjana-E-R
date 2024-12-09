@@ -582,3 +582,210 @@ namespace ExcelProject.ViewModel
 Severity	Code	Description	Project	File	Line	Suppression State
 Error (active)	CS8370	Feature 'target-typed object creation' is not available in C# 7.3. Please use language version 9.0 or greater.	ExcelProject	C:\Users\2021508\source\repos\ExcelProject\ExcelProject\ViewModel\MainViewModel.cs	176	
 public ObservableCollection<FilterValue> FilterValues { get; set; } = new();Solve
+
+
+Build started at 4:37 PM...
+1>------ Build started: Project: ExcelProject, Configuration: Debug Any CPU ------
+1>C:\Users\2021508\source\repos\ExcelProject\ExcelProject\ViewModel\MainViewModel.cs(186,18,186,29): error CS0101: The namespace 'ExcelProject.ViewModel' already contains a definition for 'FilterValue'
+========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ==========
+========== Build completed at 4:37 PM and took 00.855 seconds ==========
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+using ExcelProject.ExcelRepo;
+using Microsoft.Win32;
+using System.IO;
+using DocumentFormat.OpenXml.Office2021.Excel.NamedSheetViews;
+
+namespace ExcelProject.ViewModel
+{
+    public class MainViewModel : INotifyPropertyChanged
+    {
+        private string _filePath;
+        private ObservableCollection<ExcelData> _originalData;
+        private ObservableCollection<ExcelData> _filteredData;
+
+        public ObservableCollection<string> ColumnNames { get; set; }
+        public ObservableCollection<ExcelData> OriginalData
+        {
+            get => _originalData;
+            set { _originalData = value; OnPropertyChanged(nameof(OriginalData)); }
+        }
+        public ObservableCollection<ExcelData> FilteredData
+        {
+            get => _filteredData;
+            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+        }
+        public ObservableCollection<ColumnFilter> ColumnFilterOptions { get; set; }
+        public string FilePath
+        {
+            get => _filePath;
+            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
+        }
+
+        public ICommand LoadCommand { get; }
+        public ICommand ShowDialogCommand { get; }
+        public ICommand ApplyFilterCommand { get; }
+        public ICommand ResetFilterCommand { get; }
+        public ICommand ExportFilterCommand { get; }
+        public ICommand ImportFilterCommand { get; }
+
+        public MainViewModel()
+        {
+            // Commands
+            ShowDialogCommand = new RelayCommand(ShowDialog);
+            LoadCommand = new RelayCommand(LoadData);
+            ApplyFilterCommand = new RelayCommand(ApplyFilter);
+            ResetFilterCommand = new RelayCommand(ResetFilter);
+            ExportFilterCommand = new RelayCommand(ExportFilters);
+            ImportFilterCommand = new RelayCommand(ImportFilters);
+
+            // Initialize properties
+            OriginalData = new ObservableCollection<ExcelData>();
+            FilteredData = new ObservableCollection<ExcelData>();
+            ColumnNames = new ObservableCollection<string>(); // Populate with actual column names
+            ColumnFilterOptions = new ObservableCollection<ColumnFilter>();
+        }
+
+        private void ShowDialog()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Excel Files (*.xlsx)|*.xlsx"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                FilePath = dialog.FileName;
+            }
+        }
+
+        private void LoadData()
+        {
+            if (string.IsNullOrEmpty(FilePath)) return;
+
+            // Simulating data loading
+            OriginalData = new ObservableCollection<ExcelData>
+            {
+                new ExcelData { Id = "1", Priority = "High", Summary = "Bug A" },
+                new ExcelData { Id = "2", Priority = "Low", Summary = "Bug B" },
+                new ExcelData { Id = "3", Priority = "Immediate", Summary = "Bug C" }
+            };
+
+            FilteredData = new ObservableCollection<ExcelData>(OriginalData);
+
+            InitializeFilters();
+        }
+
+        private void InitializeFilters()
+        {
+            ColumnFilterOptions.Clear();
+            foreach (var columnName in ColumnNames)
+            {
+                var uniqueValues = GetUniqueValuesForColumn(columnName);
+                var filter = new ColumnFilter { ColumnName = columnName };
+
+                foreach (var value in uniqueValues)
+                {
+                    filter.FilterValues.Add(new FilterValue { Value = value, IsSelected = true });
+                }
+
+                ColumnFilterOptions.Add(filter);
+            }
+        }
+
+        private IEnumerable<string> GetUniqueValuesForColumn(string columnName)
+        {
+            return OriginalData
+                .Select(item =>
+                {
+                    var property = item.GetType().GetProperty(columnName);
+                    return property?.GetValue(item)?.ToString();
+                })
+                .Where(value => !string.IsNullOrEmpty(value))
+                .Distinct()
+                .OrderBy(value => value)
+                .ToList();
+        }
+
+        private void ApplyFilter()
+        {
+            var filteredData = OriginalData.ToList();
+
+            foreach (var filter in ColumnFilterOptions)
+            {
+                var selectedValues = filter.FilterValues.Where(f => f.IsSelected).Select(f => f.Value).ToList();
+                if (selectedValues.Any())
+                {
+                    filteredData = filteredData.Where(item =>
+                    {
+                        var property = item.GetType().GetProperty(filter.ColumnName);
+                        var value = property?.GetValue(item)?.ToString();
+                        return selectedValues.Contains(value);
+                    }).ToList();
+                }
+            }
+
+            FilteredData = new ObservableCollection<ExcelData>(filteredData);
+        }
+
+        private void ResetFilter()
+        {
+            foreach (var filter in ColumnFilterOptions)
+            {
+                foreach (var filterValue in filter.FilterValues)
+                {
+                    filterValue.IsSelected = true;
+                }
+            }
+
+            FilteredData = new ObservableCollection<ExcelData>(OriginalData);
+        }
+
+        private void ExportFilters()
+        {
+            // Export filter logic
+        }
+
+        private void ImportFilters()
+        {
+            // Import filter logic
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public class ColumnFilter
+    {
+        public string ColumnName { get; set; }
+        public ObservableCollection<FilterValue> FilterValues { get; set; } = new ObservableCollection<FilterValue>();
+    }
+
+    public class FilterValue
+    {
+        public string Value { get; set; }
+        public bool IsSelected { get; set; }
+    }
+
+   
+
+}  
+
+    
+
+
+
+
