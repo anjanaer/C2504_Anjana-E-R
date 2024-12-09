@@ -1,471 +1,3 @@
-Here's how to structure your WPF application using the MVVM pattern to meet the requirements:
-
-1. Model (BugDetail.cs)
-This represents the data from the CSV file.
-
-csharp
-Copy code
-public class BugDetail
-{
-    public string Id { get; set; }
-    public string Project { get; set; }
-    public string Reporter { get; set; }
-    public string AssignedTo { get; set; }
-}
-2. Interface for Repository (IRepository.cs)
-This defines methods for reading the CSV file.
-
-csharp
-Copy code
-using System.Collections.Generic;
-
-public interface IRepository
-{
-    IEnumerable<BugDetail> ReadCsv(string filePath);
-}
-3. Repository Implementation (CsvRepository.cs)
-Implements the repository to read CSV files.
-
-csharp
-Copy code
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
-public class CsvRepository : IRepository
-{
-    public IEnumerable<BugDetail> ReadCsv(string filePath)
-    {
-        if (Path.GetExtension(filePath)?.ToLower() != ".csv")
-            throw new ArgumentException("Invalid file type. Only CSV files are supported.");
-
-        var lines = File.ReadAllLines(filePath);
-        var data = lines.Skip(1) // Skip header row
-            .Select(line => line.Split(','))
-            .Select(values => new BugDetail
-            {
-                Id = values[0],
-                Project = values[1],
-                Reporter = values[2],
-                AssignedTo = values[3]
-            });
-
-        return data;
-    }
-}
-4. RelayCommand (RelayCommand.cs)
-This class is used for commands in MVVM.
-
-csharp
-Copy code
-using System;
-using System.Windows.Input;
-
-public class RelayCommand : ICommand
-{
-    private readonly Action<object> _execute;
-    private readonly Predicate<object> _canExecute;
-
-    public RelayCommand(Action<object> execute, Predicate<object> canExecute = null)
-    {
-        _execute = execute;
-        _canExecute = canExecute;
-    }
-
-    public bool CanExecute(object parameter) => _canExecute == null || _canExecute(parameter);
-    public void Execute(object parameter) => _execute(parameter);
-
-    public event EventHandler CanExecuteChanged
-    {
-        add => CommandManager.RequerySuggested += value;
-        remove => CommandManager.RequerySuggested -= value;
-    }
-}
-5. ViewModel (MainViewModel.cs)
-Handles application logic and binds to the View.
-
-csharp
-Copy code
-using System.Collections.ObjectModel;
-using Microsoft.Win32;
-
-public class MainViewModel : BaseViewModel
-{
-    private readonly IRepository _repository;
-    private string _filePath;
-    private ObservableCollection<BugDetail> _bugDetails;
-
-    public MainViewModel()
-    {
-        _repository = new CsvRepository();
-        BrowseCommand = new RelayCommand(OnBrowse);
-        ShowDetailsCommand = new RelayCommand(OnShowDetails, CanShowDetails);
-        BugDetails = new ObservableCollection<BugDetail>();
-    }
-
-    public string FilePath
-    {
-        get => _filePath;
-        set
-        {
-            _filePath = value;
-            OnPropertyChanged(nameof(FilePath));
-            CommandManager.InvalidateRequerySuggested(); // Notify command system
-        }
-    }
-
-    public ObservableCollection<BugDetail> BugDetails
-    {
-        get => _bugDetails;
-        set
-        {
-            _bugDetails = value;
-            OnPropertyChanged(nameof(BugDetails));
-        }
-    }
-
-    public RelayCommand BrowseCommand { get; }
-    public RelayCommand ShowDetailsCommand { get; }
-
-    private void OnBrowse(object parameter)
-    {
-        var openFileDialog = new OpenFileDialog { Filter = "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*" };
-        if (openFileDialog.ShowDialog() == true)
-        {
-            FilePath = openFileDialog.FileName;
-        }
-    }
-
-    private void OnShowDetails(object parameter)
-    {
-        try
-        {
-            var data = _repository.ReadCsv(FilePath);
-            BugDetails.Clear();
-            foreach (var item in data)
-            {
-                BugDetails.Add(item);
-            }
-        }
-        catch (Exception ex)
-        {
-            // Handle exceptions (e.g., show message box)
-        }
-    }
-
-    private bool CanShowDetails(object parameter) => !string.IsNullOrEmpty(FilePath);
-}
-6. View (XAML) (MainWindow.xaml)
-This is the UI for the application.
-
-xml
-Copy code
-<Window x:Class="BugTracker.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Bug Tracker" Height="400" Width="600">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <!-- Top Panel -->
-        <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="0">
-            <TextBox Width="300" Text="{Binding FilePath, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
-            <Button Content="..." Command="{Binding BrowseCommand}" Width="30" Margin="5,0"/>
-            <Button Content="Show Details" Command="{Binding ShowDetailsCommand}" Width="100" IsEnabled="{Binding Path=FilePath, Converter={StaticResource StringToBooleanConverter}}" Margin="5,0"/>
-        </StackPanel>
-
-        <!-- Data Grid -->
-        <DataGrid ItemsSource="{Binding BugDetails}" AutoGenerateColumns="True" Margin="10" Grid.Row="1"/>
-    </Grid>
-</Window>
-7. Base ViewModel (BaseViewModel.cs)
-Base class for implementing property change notifications.
-
-csharp
-Copy code
-using System.ComponentModel;
-
-public class BaseViewModel : INotifyPropertyChanged
-{
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    protected virtual void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-}
-Summary
-Browse button: Opens a file dialog for selecting the CSV file.
-Show Details button: Reads the CSV and displays it in the DataGrid.
-Validation: Ensures the file is a valid CSV before proceeding.
-Let me know if you need additional help or refinements!
-
-
-
-
-
-
-You said:
-Irepo and CSV repo
-ChatGPT said:
-ChatGPT
-Here’s how you can define and implement IRepository (IRepo) and CsvRepository (CSVRepo), following the requirements and adhering to good design principles:
-
-1. IRepo Interface
-The IRepo interface defines the contract for reading CSV files.
-
-csharp
-Copy code
-using System.Collections.Generic;
-
-public interface IRepo
-{
-    /// <summary>
-    /// Reads the CSV file from the given file path and returns a list of BugDetail objects.
-    /// </summary>
-    /// <param name="filePath">The path of the CSV file to read.</param>
-    /// <returns>A collection of BugDetail objects.</returns>
-    IEnumerable<BugDetail> ReadCsv(string filePath);
-}
-2. CsvRepo Implementation
-The CsvRepo implements the IRepo interface and handles reading the CSV file.
-
-csharp
-Copy code
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
-public class CsvRepo : IRepo
-{
-    /// <summary>
-    /// Reads a CSV file, validates its format, and converts it into a list of BugDetail objects.
-    /// </summary>
-    /// <param name="filePath">The path of the CSV file.</param>
-    /// <returns>A collection of BugDetail objects parsed from the CSV.</returns>
-    public IEnumerable<BugDetail> ReadCsv(string filePath)
-    {
-        if (Path.GetExtension(filePath)?.ToLower() != ".csv")
-            throw new ArgumentException("Invalid file type. Only CSV files are supported.");
-
-        if (!File.Exists(filePath))
-            throw new FileNotFoundException("File not found.", filePath);
-
-        var lines = File.ReadAllLines(filePath);
-
-        // Ensure the file has at least a header and one row of data
-        if (lines.Length < 2)
-            throw new InvalidDataException("CSV file is empty or does not have valid data.");
-
-        var data = lines.Skip(1) // Skip the header row
-                        .Select(line => line.Split(',')) // Split each line into values
-                        .Select(values => new BugDetail
-                        {
-                            Id = values.Length > 0 ? values[0].Trim() : string.Empty,
-                            Project = values.Length > 1 ? values[1].Trim() : string.Empty,
-                            Reporter = values.Length > 2 ? values[2].Trim() : string.Empty,
-                            AssignedTo = values.Length > 3 ? values[3].Trim() : string.Empty
-                        });
-
-        return data;
-    }
-}
-Explanation
-1. IRepo:
-Acts as the abstraction for repositories that manage bug data.
-Ensures that any repository implementation (e.g., CsvRepo) will adhere to the defined contract.
-2. CsvRepo:
-Implements the IRepo interface to read and parse CSV files.
-Validates the file type (only .csv is allowed).
-Reads all lines in the file.
-Skips the header row and converts subsequent rows into a collection of BugDetail objects.
-Handles cases where the file is empty, invalid, or missing data.
-Usage in ViewModel
-In your ViewModel (MainViewModel), inject CsvRepo as the repository:
-
-csharp
-Copy code
-public class MainViewModel : BaseViewModel
-{
-    private readonly IRepo _repository;
-    private string _filePath;
-    private ObservableCollection<BugDetail> _bugDetails;
-
-    public MainViewModel()
-    {
-        _repository = new CsvRepo(); // Use CsvRepo as the implementation of IRepo
-        BrowseCommand = new RelayCommand(OnBrowse);
-        ShowDetailsCommand = new RelayCommand(OnShowDetails, CanShowDetails);
-        BugDetails = new ObservableCollection<BugDetail>();
-    }
-
-    // ViewModel logic continues...
-}
-Benefits of this Design
-Separation of Concerns:
-IRepo defines the abstraction.
-CsvRepo handles specific logic for reading CSV files.
-Flexibility: You can easily swap CsvRepo with another implementation (e.g., a database or API repository) without modifying the ViewModel.
-Reusability: The repository can be reused across other parts of the application or for testing.
-Let me know if you'd like further clarification!
-
-
-<Window x:Class="ExcelProject.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ExcelProject"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <!-- Title Bar -->
-        <Border Background="Teal" Grid.Row="0" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" CornerRadius="5">
-            <TextBlock Text="Bug Tracker" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Margin="10,0,0,0" />
-        </Border>
-
-        <!-- Upload Section -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
-            <TextBlock Text="FileName: " VerticalAlignment="Center" Width="60" />
-            <TextBox Width="400" Height="30" Margin="10 0 0 0" Padding="4 4 4 4" IsEnabled="False" Text="{Binding FilePath}" />
-            <Button Content="..." Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding ShowDialogCommand}" />
-            <Button Content="Show Details" Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding LoadCommand}" />
-        </StackPanel>
-        <!-- Filter Conditions Section -->
-        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Margin="10">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="10">
-                <StackPanel Orientation="Vertical" Margin="10">
-                    <!-- Label -->
-                    <TextBlock Text="Filter Conditions" FontWeight="Bold" Margin="0,0,0,10"/>
-
-                    <!-- Dynamic Filter Rows -->
-                    <ItemsControl ItemsSource="{Binding ColumnFilters}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Margin="0,5,0,5">
-                                    <!-- ComboBox for Column Selection -->
-                                    <ComboBox Width="200" Height="30" 
-                                      ItemsSource="{Binding ColumnNames}" 
-                                      SelectedItem="{Binding SelectedColumn}" 
-                                      VerticalAlignment="Center" 
-                                      Margin="0,0,10,0" />
-
-                                    <!-- ListBox for Unique Values -->
-                                    <ListBox Width="300" Height="150" 
-                                     ItemsSource="{Binding FilterValues}" 
-                                     SelectionMode="Multiple" 
-                                     Margin="0,0,10,0">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <CheckBox Content="{Binding Value}" 
-                                                  IsChecked="{Binding IsSelected}" />
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
-                    <!-- Buttons -->
-                    <StackPanel Orientation="Vertical" HorizontalAlignment="Right" Margin="0,10,0,0">
-                        <Button Content="Apply Filter" Width="100" Height="30" Margin="5" Command="{Binding ApplyFilterCommand}" />
-                        <Button Content="Reset Filter" Width="100" Height="30" Margin="5" Command="{Binding ResetFilterCommand}" />
-                        <Button Content="Import Filter..." Width="100" Height="30" Margin="5" Command="{Binding ImportFilterCommand}" />
-                        <Button Content="Export Filter..." Width="100" Height="30" Margin="5" Command="{Binding ExportFilterCommand}" />
-                    </StackPanel>
-                </StackPanel>
-            </ScrollViewer>
-        </Border>
-
-        <!-- DataGrid Section -->
-
-        <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True">
-            <!-- Define Column Header Style -->
-            <DataGrid.ColumnHeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                    <!-- Set Background and Foreground Colors -->
-                    <Setter Property="Background" Value="Teal" />
-                    <Setter Property="Foreground" Value="White" />
-                    <Setter Property="FontWeight" Value="Bold" />
-                    <Setter Property="HorizontalContentAlignment" Value="Center" />
-                    <Setter Property="VerticalContentAlignment" Value="Center" />
-                </Style>
-            </DataGrid.ColumnHeaderStyle>
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="100" />
-                <DataGridTextColumn Header="Project" Binding="{Binding Project}" Width="150" />
-                <DataGridTextColumn Header="Reporter" Binding="{Binding Reporter}" Width="150" />
-                <DataGridTextColumn Header="Assigned To" Binding="{Binding AssignedTo}" Width="150" />
-                <DataGridTextColumn Header="Priority" Binding="{Binding Priority}" Width="150" />
-                <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="150" />
-                <DataGridTextColumn Header="Reproducibility" Binding="{Binding Reproducibility}" Width="150" />
-                <DataGridTextColumn Header="Product Version" Binding="{Binding ProductVersion}" Width="100" />
-                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="100" />
-                <DataGridTextColumn Header="Date Submitted" Binding="{Binding DateSubmitted}" Width="150" />
-                <DataGridTextColumn Header="OS" Binding="{Binding OS}" Width="150" />
-                <DataGridTextColumn Header="OS Version" Binding="{Binding OSVersion}" Width="150" />
-                <DataGridTextColumn Header="Platform" Binding="{Binding Platform}" Width="150" />
-                <DataGridTextColumn Header="View Status" Binding="{Binding ViewStatus}" Width="150" />
-                <DataGridTextColumn Header="Updated" Binding="{Binding Updated}" Width="150" />
-                <DataGridTextColumn Header="Summary" Binding="{Binding Summary}" Width="150" />
-                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" />
-                <DataGridTextColumn Header="Resolution" Binding="{Binding Resolution}" Width="150" />
-                <DataGridTextColumn Header="Fixed in Version" Binding="{Binding FixedInVersion}" Width="150" />
-                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="150" />
-                <DataGridTextColumn Header="Steps To Reproduce" Binding="{Binding StepsToReproduce}" Width="150" />
-                <DataGridTextColumn Header="Code Owner" Binding="{Binding CodeOwner}" Width="150" />
-                <DataGridTextColumn Header="Date Resolved" Binding="{Binding DateResolved}" Width="150" />
-                <DataGridTextColumn Header="Defect Impact to User" Binding="{Binding DefectImpactToUser}" Width="150" />
-                <DataGridTextColumn Header="Defect Type" Binding="{Binding DefectType}" Width="100" />
-                <DataGridTextColumn Header="Iteration" Binding="{Binding Iteration}" Width="150" />
-                <DataGridTextColumn Header="Iteration (Data Manager)" Binding="{Binding IterationDataManager}" Width="150" />
-                <DataGridTextColumn Header="Iteration (XRD Measurement)" Binding="{Binding IterationXRDMeasurement}" Width="150" />
-                <DataGridTextColumn Header="Module" Binding="{Binding Module}" Width="150" />
-                <DataGridTextColumn Header="Module(Common Plugins)" Binding="{Binding ModuleCommonPlugins}" Width="150" />
-                <DataGridTextColumn Header="ODC Period" Binding="{Binding ODCPeriod}" Width="150" />
-                <DataGridTextColumn Header="Phase of Origin" Binding="{Binding PhaseOfOrigin}" Width="100" />
-                <DataGridTextColumn Header="Responsibility" Binding="{Binding Responsibility}" Width="150" />
-                <DataGridTextColumn Header="Test Case Id" Binding="{Binding TestCaseId}" Width="150" />
-                <DataGridTextColumn Header="Tested By" Binding="{Binding TestedBy}" Width="150" />
-                <DataGridTextColumn Header="Testing Level" Binding="{Binding TestingLevel}" Width="150" />
-                <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="150" />
-                <DataGridTextColumn Header="Iteration (Powder XRD)" Binding="{Binding IterationPowderXRD}" Width="100" />
-                <DataGridTextColumn Header=" Iteration (SmartFlex)" Binding="{Binding IterationSmartFlex}" Width="150" />
-                <DataGridTextColumn Header=" Iteration(DB Browser)" Binding="{Binding IterationDBBrowser}" Width="150" />
-                <DataGridTextColumn Header="Iteration(MDA)" Binding="{Binding IterationMDA}" Width="150" />
-                <DataGridTextColumn Header="Iteration(XRD DSC Analysis)" Binding="{Binding IterationXRDDSCAnalysis}" Width="150" />
-                <DataGridTextColumn Header="Scope" Binding="{Binding Scope}" Width="150" />
-                <DataGridTextColumn Header="Bug Analysis Status" Binding="{Binding BugAnalysisStatus}" Width="150" />
-
-
-            </DataGrid.Columns>
-        </DataGrid>
-        <!-- Close Button -->
-        <Button Content="Close" Grid.Row="3" Background="Teal" Width="100" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
-
-
-    </Grid>
-
-
-
-</Window>    
-
-
-
-Based on this GUI how to change the code to work fiter based on the unique values
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -481,6 +13,8 @@ using ExcelProject.ExcelRepo;
 using Microsoft.Win32;
 using System.IO;
 using DocumentFormat.OpenXml.Office2021.Excel.NamedSheetViews;
+using System.Runtime.InteropServices;
+using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace ExcelProject.ViewModel
 {
@@ -490,14 +24,43 @@ namespace ExcelProject.ViewModel
         private IRepo _repository;
         private ObservableCollection<ExcelData> _data;
         private ObservableCollection<ExcelData> _filteredData;
-        public ObservableCollection<ColumnFilter> ColumnFilters { get; set; }
-
-        public ObservableCollection<string> ColumnNames { get; set; } // List of 44 column names
-        public ObservableCollection<ExcelData> OriginalData { get; set; }
         private string _filterCategory;
         private string _filePath;
+        private string selectedFilter;
+        private ObservableCollection<string> filterValues;
+        public bool IsSelected {  get; set; }
+        public ObservableCollection<string> ColumnNames { get; set; } // List of 44 column names
+        public ObservableCollection<ExcelData> OriginalData { get; set; }
         
 
+        public string SelectedFilter
+        {
+            get
+            {
+                return selectedFilter;
+            }
+            set
+            {
+                selectedFilter = value;
+                LoadFilterValues();
+                OnPropertyChanged(nameof(SelectedFilter));
+            }
+        }
+
+        public ObservableCollection<string> FilterValues
+        {
+            get
+            {
+                return filterValues;
+            }
+            set
+            {
+                filterValues = value;
+                OnPropertyChanged(nameof(FilterValues));
+            }
+        }
+
+        public bool IsFilterApplied { get; private set; }
         public MainViewModel()
         {
             _repository = new ExcelRepository();
@@ -505,6 +68,13 @@ namespace ExcelProject.ViewModel
             LoadCommand = new RelayCommand(LoadData);
             CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
+            ColumnFilters = new ObservableCollection<string>(BugTrackerDatas.ColumnNames);
+            ColumnNames = new ObservableCollection<string>();
+            FilteredData = new ObservableCollection<ExcelData>();
+            selectedFilter = string.Empty;
+            filterValues = new ObservableCollection<string>();
+
+            
             
         }
 
@@ -537,15 +107,14 @@ namespace ExcelProject.ViewModel
             set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
         }
 
-        
 
-        public bool IsFilterApplied { get; private set; }
         public ObservableCollection<ExcelData> TempData { get; private set; }
 
         public ICommand LoadCommand { get; }
         public ICommand ShowDialogCommand { get; }
         public ICommand CloseCommand { get; }
         public ICommand ApplyFilterCommand { get; }
+
 
         private void LoadData()
         {
@@ -555,8 +124,20 @@ namespace ExcelProject.ViewModel
                 Data = new ObservableCollection<ExcelData>(data);
                 FilteredData = new ObservableCollection<ExcelData>(data); // Initially, no filter is applied
                 TempData = new ObservableCollection<ExcelData>(data);
+                OriginalData = new ObservableCollection<ExcelData>(data);
+                //FilterValues = new ObservableCollection<string>(BugTrackerDatas.GetColumnData(selectedFilter, Data));
+                // Initialize column filters after loading data
+                LoadFilterValues();
+                //InitializeFilters();
             }
         }
+
+        private void LoadFilterValues()
+        {
+            FilterValues = new ObservableCollection<string>(BugTrackerDatas.GetColumnData(selectedFilter, Data));
+        }
+
+
 
         public void ShowDialog()
         {
@@ -570,63 +151,28 @@ namespace ExcelProject.ViewModel
                 FilePath = dialog.FileName;
             }
         }
-        public class ColumnFilter
+
+        private ObservableCollection<string> columnFilters;
+        public ObservableCollection<string> ColumnFilters
         {
-            public string SelectedColumn { get; set; } // Selected column name
-            public ObservableCollection<FilterItem> FilterValues { get; set; } // Unique values for the selected column
+            get
+            {
+                return columnFilters;
+
+            }
+            set
+            {
+                columnFilters = value;
+                OnPropertyChanged(nameof(columnFilters));
+            }
         }
 
         public class FilterItem
         {
             public string Value { get; set; } // Display value
             public bool IsSelected { get; set; } // Whether the item is checked
+
         }
-
-
-
-        public void InitializeFilters()
-        {
-            ColumnFilters = new ObservableCollection<ColumnFilter>();
-            foreach (var columnName in ColumnNames)
-            {
-                ColumnFilters.Add(new ColumnFilter
-                {
-                    SelectedColumn = columnName,
-                    FilterValues = new ObservableCollection<FilterItem>()
-                });
-            }
-        }
-
-
-        private void UpdateFilterValues(ColumnFilter filter)
-        {
-            if (filter.SelectedColumn != null)
-            {
-                // Fetch unique values for the selected column
-                var uniqueValues = GetUniqueValuesForColumn(filter.SelectedColumn);
-                filter.FilterValues.Clear();
-                foreach (var value in uniqueValues)
-                {
-                    filter.FilterValues.Add(new FilterItem { Value = value, IsSelected = false });
-                }
-            }
-        }
-
-        
-            private IEnumerable<string> GetUniqueValuesForColumn(string columnName)
-            {
-                // Use reflection to get values for the specified column
-                return OriginalData
-                    .Select(item =>
-                    {
-                        var property = item.GetType().GetProperty(columnName);
-                        return property?.GetValue(item)?.ToString();
-                    })
-                    .Where(value => !string.IsNullOrEmpty(value)) // Exclude null or empty values
-                    .Distinct() // Get unique values
-                    .OrderBy(value => value) // Optional: sort the values
-                    .ToList();
-            }
         
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -637,96 +183,8 @@ namespace ExcelProject.ViewModel
         }
     }
 
-}
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ExcelProject.Model;
-using ExcelProject.Repo;
-using ClosedXML.Excel;
+}  
 
-
-namespace ExcelProject.ExcelRepo
-{
-    public class ExcelRepository : IRepo
-    {
-        public List<ExcelData> ReadExcelFile(string filePath)
-        {
-            var data = new List<ExcelData>();
-
-            if (File.Exists(filePath))
-            {
-                using (var workbook = new XLWorkbook(filePath))
-                {
-                    var worksheet = workbook.Worksheet(1); // Read the first worksheet
-                    foreach (var row in worksheet.RowsUsed().Skip(1)) // Skip header row
-                    {
-                        data.Add(new ExcelData
-                        {
-                            Id = row.Cell(1).Value.ToString(),
-                            Project = row.Cell(2).Value.ToString(),
-                            Reporter = row.Cell(3).Value.ToString(),
-                            AssignedTo = row.Cell(4).Value.ToString(),
-                            Priority = row.Cell(5).Value.ToString(),
-                            Severity = row.Cell(6).Value.ToString(),
-                            Reproducibility = row.Cell(7).Value.ToString(),
-                            ProductVersion = row.Cell(8).Value.ToString(),
-                            Category = row.Cell(9).Value.  ToString(),
-                            DateSubmitted = row.Cell(10).Value.ToString(),
-                            OS = row.Cell(11).Value.ToString(),
-                            OSVersion = row.Cell(12).Value.ToString(),
-                            Platform = row.Cell(13).Value.ToString(),
-                            ViewStatus = row.Cell(14).Value.ToString(),
-                            Updated = row.Cell(15).Value.ToString(),
-                            Summary = row.Cell(16).Value.ToString(),
-                            Status = row.Cell(17).Value.ToString(),
-                            Resolution = row.Cell(18).Value.ToString(),
-                            FixedInVersion = row.Cell(19).Value.ToString(),
-                            Description = row.Cell(20).Value.ToString(),
-                            StepsToReproduce = row.Cell(21).Value.ToString(),
-                            CodeOwner = row.Cell(22).Value.ToString(),
-                            DateResolved = row.Cell(23).Value.ToString(),
-                            DefectImpactToUser = row.Cell(24).Value.ToString(),
-                            DefectType = row.Cell(25).Value.ToString(),
-                            Iteration = row.Cell(26).Value.ToString(),
-                            IterationDataManager = row.Cell(27).Value.ToString(),
-                            IterationXRDMeasurement = row.Cell(28).Value.ToString(),
-                            Module = row.Cell(29).Value.ToString(),
-                            ModuleCommonPlugins = row.Cell(30).Value.ToString(),
-                            ODCPeriod = row.Cell(31).Value.ToString(),
-                            PhaseOfOrigin = row.Cell(32).Value.ToString(),
-                            Responsibility = row.Cell(33).Value.ToString(),
-                            TestCaseId = row.Cell(34).Value.ToString(),
-                            TestedBy = row.Cell(35).Value.ToString(),
-                            TestingLevel = row.Cell(36).Value.ToString(),
-                            Version = row.Cell(37).Value.ToString(),
-                            IterationPowderXRD = row.Cell(38).Value.ToString(),
-                            IterationSmartFlex = row.Cell(39).Value.ToString(),
-                            IterationDBBrowser = row.Cell(40).Value.ToString(),
-                            IterationMDA = row.Cell(41).Value.ToString(),
-                            IterationXRDDSCAnalysis = row.Cell(42).Value.ToString(),
-                            Scope = row.Cell(43).Value.ToString(),
-                            BugAnalysisStatus = row.Cell(44).Value.ToString(),
-
-
-
-
-
-                        });
-                    }
-                }
-            }
-
-            return data;
-        }
-    }
-}
-
-
-
-
+    
 
 
