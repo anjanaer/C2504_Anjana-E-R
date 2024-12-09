@@ -784,6 +784,30 @@ namespace ExcelProject.ViewModel
 
 }  
 
+
+
+
+<StackPanel Orientation="Horizontal" Margin="10" >
+    <!-- Dynamic Filter Rows -->
+    <ListBox ItemsSource="{Binding ColumnFilters}" Height="100" SelectedItem="{Binding SelectedFilter}">
+        <ListBox.ItemTemplate>
+            <DataTemplate>
+                <TextBlock Text="{Binding}"/>
+            </DataTemplate>
+        </ListBox.ItemTemplate>
+    </ListBox>
+
+    <StackPanel Orientation="Vertical" Margin="10">
+        <!-- Dynamic Checkbox Filters -->
+        <ListBox ItemsSource="{Binding FilterValues}" Height="100" SelectedItem="{Binding SelectedFilter}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </StackPanel>
+
     
 
 
