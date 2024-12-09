@@ -177,6 +177,262 @@ namespace ExcelProject.ViewModel
 
 }
 
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Windows;
+using System.Windows.Input;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+using ExcelProject.ExcelRepo;
+using Microsoft.Win32;
+
+namespace ExcelProject.ViewModel
+{
+    /// <summary>
+    /// Main ViewModel class that implements the MVVM pattern.
+    /// </summary>
+    public class MainViewModel : INotifyPropertyChanged
+    {
+        #region Fields and Properties
+
+        private IRepo _repository;
+        private ObservableCollection<ExcelData> _data;
+        private ObservableCollection<ExcelData> _filteredData;
+        private string _filterCategory;
+        private string _filePath;
+        private string _selectedFilter;
+        private ObservableCollection<string> _filterValues;
+        private bool _isSelectAllChecked;
+
+        /// <summary>
+        /// Gets or sets the original data loaded from the Excel file.
+        /// </summary>
+        public ObservableCollection<ExcelData> OriginalData { get; set; }
+
+        /// <summary>
+        /// Gets or sets the selected filter category.
+        /// </summary>
+        public string SelectedFilter
+        {
+            get => _selectedFilter;
+            set
+            {
+                _selectedFilter = value;
+                LoadFilterValues();
+                OnPropertyChanged(nameof(SelectedFilter));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the filter values for the selected filter category.
+        /// </summary>
+        public ObservableCollection<string> FilterValues
+        {
+            get => _filterValues;
+            set
+            {
+                _filterValues = value;
+                OnPropertyChanged(nameof(FilterValues));
+            }
+        }
+
+        /// <summary>
+        /// Indicates whether a filter is applied.
+        /// </summary>
+        public bool IsFilterApplied { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the data from the Excel file.
+        /// </summary>
+        public ObservableCollection<ExcelData> Data
+        {
+            get => _data;
+            set
+            {
+                _data = value;
+                OnPropertyChanged(nameof(Data));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the filtered data based on the applied filters.
+        /// </summary>
+        public ObservableCollection<ExcelData> FilteredData
+        {
+            get => _filteredData;
+            set
+            {
+                _filteredData = value;
+                OnPropertyChanged(nameof(FilteredData));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the current filter category.
+        /// </summary>
+        public string FilterCategory
+        {
+            get => _filterCategory;
+            set
+            {
+                _filterCategory = value;
+                OnPropertyChanged(nameof(FilterCategory));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the file path of the loaded Excel file.
+        /// </summary>
+        public string FilePath
+        {
+            get => _filePath;
+            set
+            {
+                _filePath = value;
+                OnPropertyChanged(nameof(FilePath));
+            }
+        }
+
+        /// <summary>
+        /// Temporary storage for data during operations.
+        /// </summary>
+        public ObservableCollection<ExcelData> TempData { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the available column filters.
+        /// </summary>
+        public ObservableCollection<string> ColumnFilters { get; set; }
+
+        /// <summary>
+        /// Gets or sets the column names from the Excel data.
+        /// </summary>
+        public ObservableCollection<string> ColumnNames { get; set; }
+
+        #endregion
+
+        #region Commands
+
+        public ICommand LoadCommand { get; }
+        public ICommand ShowDialogCommand { get; }
+        public ICommand CloseCommand { get; }
+        public ICommand ApplyFilterCommand { get; }
+
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MainViewModel"/> class.
+        /// </summary>
+        /// <param name="isSelectAllChecked">Indicates whether "Select All" is checked by default.</param>
+        public MainViewModel(bool isSelectAllChecked)
+        {
+            _repository = new ExcelRepository();
+            ShowDialogCommand = new RelayCommand(ShowDialog);
+            LoadCommand = new RelayCommand(LoadData);
+            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+            ApplyFilterCommand = new RelayCommand(ApplyFilter);
+
+            ColumnFilters = new ObservableCollection<string>(BugTrackerDatas.ColumnNames);
+            ColumnNames = new ObservableCollection<string>();
+            FilteredData = new ObservableCollection<ExcelData>();
+
+            _selectedFilter = string.Empty;
+            _filterValues = new ObservableCollection<string>();
+            _isSelectAllChecked = isSelectAllChecked;
+        }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Loads data from the selected Excel file.
+        /// </summary>
+        private void LoadData()
+        {
+            if (!string.IsNullOrEmpty(FilePath))
+            {
+                var data = _repository.ReadExcelFile(FilePath);
+                Data = new ObservableCollection<ExcelData>(data);
+                FilteredData = new ObservableCollection<ExcelData>(data);
+                TempData = new ObservableCollection<ExcelData>(data);
+                OriginalData = new ObservableCollection<ExcelData>(data);
+
+                LoadFilterValues();
+            }
+        }
+
+        /// <summary>
+        /// Loads filter values based on the selected filter.
+        /// </summary>
+        private void LoadFilterValues()
+        {
+            FilterValues = new ObservableCollection<string>(BugTrackerDatas.GetColumnData(_selectedFilter, Data));
+        }
+
+        /// <summary>
+        /// Displays the Open File dialog to select an Excel file.
+        /// </summary>
+        public void ShowDialog()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Excel Files (*.xlsx)|*.xlsx"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                FilePath = dialog.FileName;
+            }
+        }
+
+        /// <summary>
+        /// Applies the selected filter to the data.
+        /// </summary>
+        private void ApplyFilter()
+        {
+            // Implementation for applying the filter goes here
+        }
+
+        #endregion
+
+        #region INotifyPropertyChanged Members
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Notifies listeners about a property change.
+        /// </summary>
+        /// <param name="propertyName">Name of the changed property.</param>
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Represents a filter item with a value and selection state.
+    /// </summary>
+    public class FilterItem
+    {
+        /// <summary>
+        /// Gets or sets the value of the filter item.
+        /// </summary>
+        public string Value { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the filter item is selected.
+        /// </summary>
+        public bool IsSelected { get; set; }
+    }
+}
+
 ----------------------------------------------------------------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
@@ -254,6 +510,102 @@ namespace ExcelProject
         }
 
         
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using ExcelProject.Model;
+
+namespace ExcelProject
+{
+    /// <summary>
+    /// Provides column names and helper methods for working with bug tracker data.
+    /// </summary>
+    public static class BugTrackerDatas
+    {
+        /// <summary>
+        /// Gets or sets the list of column names used in the bug tracker data.
+        /// </summary>
+        public static List<string> ColumnNames { get; set; } = new List<string>
+        {
+            "Id",
+            "Project",
+            "Reporter",
+            "AssignedTo",
+            "Priority",
+            "Severity",
+            "Reproducibility",
+            "ProductVersion",
+            "Category",
+            "DateSubmitted",
+            "OS",
+            "OSVersion",
+            "Platform",
+            "ViewStatus",
+            "Updated",
+            "Summary",
+            "Resolution",
+            "FixedInVersion",
+            "Description",
+            "StepsToReproduce",
+            "CodeOwner",
+            "DateResolved",
+            "DefectImpactToUser",
+            "DefectType",
+            "Iteration",
+            "IterationDataManager",
+            "IterationXRDMeasurement",
+            "Module",
+            "ModuleCommonPlugins",
+            "ODCPeriod",
+            "PhaseOfOrigin",
+            "Responsibility",
+            "TestCaseId",
+            "TestedBy",
+            "TestingLevel",
+            "Version",
+            "IterationPowderXRD",
+            "IterationSmartFlex",
+            "IterationDBBrowser",
+            "IterationMDA",
+            "IterationXRDDSCAnalysis",
+            "Scope",
+            "BugAnalysisStatus"
+        };
+
+        /// <summary>
+        /// Retrieves unique data from a specified column in the provided data collection.
+        /// </summary>
+        /// <param name="columnName">The name of the column to retrieve data from.</param>
+        /// <param name="originalData">The collection of Excel data.</param>
+        /// <returns>A list of unique values from the specified column.</returns>
+        public static List<string> GetColumnData(string columnName, ObservableCollection<ExcelData> originalData)
+        {
+            if (string.IsNullOrEmpty(columnName))
+            {
+                throw new ArgumentException("Column name cannot be null or empty.", nameof(columnName));
+            }
+
+            if (originalData == null)
+            {
+                throw new ArgumentNullException(nameof(originalData), "Data collection cannot be null.");
+            }
+
+            return originalData
+                .Select(item =>
+                {
+                    var property = item.GetType().GetProperty(columnName);
+                    return property?.GetValue(item)?.ToString();
+                })
+                .Where(value => !string.IsNullOrEmpty(value)) // Exclude null or empty values
+                .Distinct() // Get unique values
+                .OrderBy(value => value) // Sort the values alphabetically
+                .ToList();
+        }
     }
 }
 ----------------------------------------------------------------------------------------------------------------------------------------
@@ -430,7 +782,79 @@ namespace ExcelProject.ViewModel
 
 
 }
-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+----using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows.Input;
+
+namespace ExcelProject.ViewModel
+{
+    /// <summary>
+    /// Represents the main ViewModel for managing filter-related operations in the Excel project.
+    /// </summary>
+    public class MainViewModel : INotifyPropertyChanged
+    {
+        #region Fields
+
+        private ObservableCollection<string> _columnFilters;
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// Gets or sets the available column filters.
+        /// </summary>
+        public ObservableCollection<string> ColumnFilters
+        {
+            get => _columnFilters;
+            set
+            {
+                _columnFilters = value;
+                OnPropertyChanged(nameof(ColumnFilters));
+            }
+        }
+
+        #endregion
+
+        #region INotifyPropertyChanged Implementation
+
+        /// <summary>
+        /// Occurs when a property value changes.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Raises the <see cref="PropertyChanged"/> event for a specific property.
+        /// </summary>
+        /// <param name="propertyName">The name of the property that changed.</param>
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Represents a filter item with a value and a selection state.
+    /// </summary>
+    public class FilterItem
+    {
+        /// <summary>
+        /// Gets or sets the value of the filter item.
+        /// </summary>
+        public string Value { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the filter item is selected.
+        /// </summary>
+        public bool IsSelected { get; set; }
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -550,6 +974,92 @@ namespace ExcelProject.ExcelRepo
         }
     }
 }
+
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using ClosedXML.Excel;
+using ExcelProject.Model;
+
+namespace ExcelProject.ExcelRepo
+{
+    /// <summary>
+    /// Repository for handling Excel file operations.
+    /// </summary>
+    public class ExcelRepository : IRepo
+    {
+        /// <summary>
+        /// Reads data from an Excel file and maps it to a list of <see cref="ExcelData"/>.
+        /// </summary>
+        /// <param name="filePath">The path of the Excel file to read.</param>
+        /// <returns>A list of <see cref="ExcelData"/> populated with data from the Excel file.</returns>
+        public List<ExcelData> ReadExcelFile(string filePath)
+        {
+            var data = new List<ExcelData>();
+
+            if (File.Exists(filePath))
+            {
+                using (var workbook = new XLWorkbook(filePath))
+                {
+                    var worksheet = workbook.Worksheet(1); // Read the first worksheet
+                    foreach (var row in worksheet.RowsUsed().Skip(1)) // Skip header row
+                    {
+                        data.Add(new ExcelData
+                        {
+                            Id = row.Cell(1).Value.ToString(),
+                            Project = row.Cell(2).Value.ToString(),
+                            Reporter = row.Cell(3).Value.ToString(),
+                            AssignedTo = row.Cell(4).Value.ToString(),
+                            Priority = row.Cell(5).Value.ToString(),
+                            Severity = row.Cell(6).Value.ToString(),
+                            Reproducibility = row.Cell(7).Value.ToString(),
+                            ProductVersion = row.Cell(8).Value.ToString(),
+                            Category = row.Cell(9).Value.ToString(),
+                            DateSubmitted = row.Cell(10).Value.ToString(),
+                            OS = row.Cell(11).Value.ToString(),
+                            OSVersion = row.Cell(12).Value.ToString(),
+                            Platform = row.Cell(13).Value.ToString(),
+                            ViewStatus = row.Cell(14).Value.ToString(),
+                            Updated = row.Cell(15).Value.ToString(),
+                            Summary = row.Cell(16).Value.ToString(),
+                            Status = row.Cell(17).Value.ToString(),
+                            Resolution = row.Cell(18).Value.ToString(),
+                            FixedInVersion = row.Cell(19).Value.ToString(),
+                            Description = row.Cell(20).Value.ToString(),
+                            StepsToReproduce = row.Cell(21).Value.ToString(),
+                            CodeOwner = row.Cell(22).Value.ToString(),
+                            DateResolved = row.Cell(23).Value.ToString(),
+                            DefectImpactToUser = row.Cell(24).Value.ToString(),
+                            DefectType = row.Cell(25).Value.ToString(),
+                            Iteration = row.Cell(26).Value.ToString(),
+                            IterationDataManager = row.Cell(27).Value.ToString(),
+                            IterationXRDMeasurement = row.Cell(28).Value.ToString(),
+                            Module = row.Cell(29).Value.ToString(),
+                            ModuleCommonPlugins = row.Cell(30).Value.ToString(),
+                            ODCPeriod = row.Cell(31).Value.ToString(),
+                            PhaseOfOrigin = row.Cell(32).Value.ToString(),
+                            Responsibility = row.Cell(33).Value.ToString(),
+                            TestCaseId = row.Cell(34).Value.ToString(),
+                            TestedBy = row.Cell(35).Value.ToString(),
+                            TestingLevel = row.Cell(36).Value.ToString(),
+                            Version = row.Cell(37).Value.ToString(),
+                            IterationPowderXRD = row.Cell(38).Value.ToString(),
+                            IterationSmartFlex = row.Cell(39).Value.ToString(),
+                            IterationDBBrowser = row.Cell(40).Value.ToString(),
+                            IterationMDA = row.Cell(41).Value.ToString(),
+                            IterationXRDDSCAnalysis = row.Cell(42).Value.ToString(),
+                            Scope = row.Cell(43).Value.ToString(),
+                            BugAnalysisStatus = row.Cell(44).Value.ToString(),
+                        });
+                    }
+                }
+            }
+
+            return data;
+        }
+    }
+}
 -----------------------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
@@ -565,7 +1075,26 @@ namespace ExcelProject.Repo
         List<ExcelData> ReadExcelFile(string filePath);
     }
 }
----------------------------------------------------------------------------------------------------------------------------
+
+
+---using System.Collections.Generic;
+using ExcelProject.Model;
+
+namespace ExcelProject.Repo
+{
+    /// <summary>
+    /// Interface for repository handling Excel data operations.
+    /// </summary>
+    public interface IRepo
+    {
+        /// <summary>
+        /// Reads data from an Excel file.
+        /// </summary>
+        /// <param name="filePath">The file path of the Excel file.</param>
+        /// <returns>A list of <see cref="ExcelData"/>.</returns>
+        List<ExcelData> ReadExcelFile(string filePath);
+    }
+}-----------------------------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -641,6 +1170,60 @@ namespace ExcelProject.Model
 
     }
 
+}
+
+namespace ExcelProject.Model
+{
+    /// <summary>
+    /// Represents a data row in the Excel file.
+    /// </summary>
+    public class ExcelData
+    {
+        public string Id { get; set; }
+        public string Project { get; set; }
+        public string Reporter { get; set; }
+        public string AssignedTo { get; set; }
+        public string Priority { get; set; }
+        public string Severity { get; set; }
+        public string Reproducibility { get; set; }
+        public string ProductVersion { get; set; }
+        public string Category { get; set; }
+        public string DateSubmitted { get; set; }
+        public string OS { get; set; }
+        public string OSVersion { get; set; }
+        public string Platform { get; set; }
+        public string ViewStatus { get; set; }
+        public string Updated { get; set; }
+        public string Summary { get; set; }
+        public string Status { get; set; }
+        public string Resolution { get; set; }
+        public string FixedInVersion { get; set; }
+        public string Description { get; set; }
+        public string StepsToReproduce { get; set; }
+        public string CodeOwner { get; set; }
+        public string DateResolved { get; set; }
+        public string DefectImpactToUser { get; set; }
+        public string DefectType { get; set; }
+        public string Iteration { get; set; }
+        public string IterationDataManager { get; set; }
+        public string IterationXRDMeasurement { get; set; }
+        public string Module { get; set; }
+        public string ModuleCommonPlugins { get; set; }
+        public string ODCPeriod { get; set; }
+        public string PhaseOfOrigin { get; set; }
+        public string Responsibility { get; set; }
+        public string TestCaseId { get; set; }
+        public string TestedBy { get; set; }
+        public string TestingLevel { get; set; }
+        public string Version { get; set; }
+        public string IterationPowderXRD { get; set; }
+        public string IterationSmartFlex { get; set; }
+        public string IterationDBBrowser { get; set; }
+        public string IterationMDA { get; set; }
+        public string IterationXRDDSCAnalysis { get; set; }
+        public string Scope { get; set; }
+        public string BugAnalysisStatus { get; set; }
+    }
 }
 ----------------------------------------------------------------------------------------------
 
