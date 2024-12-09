@@ -122,3 +122,305 @@
     
 </Window>
 Based on this xaml give me the code for IRepo,excelrepo,viewmodel
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ExcelProject.Model;
+
+namespace ExcelProject.Repo
+{
+    public interface IRepo
+    {
+        List<ExcelData> ReadExcelFile(string filePath);
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+using ClosedXML.Excel;
+
+
+namespace ExcelProject.ExcelRepo
+{
+    public class ExcelRepository : IRepo
+    {
+        public List<ExcelData> ReadExcelFile(string filePath)
+        {
+            var data = new List<ExcelData>();
+
+            if (File.Exists(filePath))
+            {
+                using (var workbook = new XLWorkbook(filePath))
+                {
+                    var worksheet = workbook.Worksheet(1); // Read the first worksheet
+                    foreach (var row in worksheet.RowsUsed().Skip(1)) // Skip header row
+                    {
+                        data.Add(new ExcelData
+                        {
+                            Id = row.Cell(1).Value.ToString(),
+                            Project = row.Cell(2).Value.ToString(),
+                            Reporter = row.Cell(3).Value.ToString(),
+                            AssignedTo = row.Cell(4).Value.ToString(),
+                            Priority = row.Cell(5).Value.ToString(),
+                            Severity = row.Cell(6).Value.ToString(),
+                            Reproducibility = row.Cell(7).Value.ToString(),
+                            ProductVersion = row.Cell(8).Value.ToString(),
+                            Category = row.Cell(9).Value.  ToString(),
+                            DateSubmitted = row.Cell(10).Value.ToString(),
+                            OS = row.Cell(11).Value.ToString(),
+                            OSVersion = row.Cell(12).Value.ToString(),
+                            Platform = row.Cell(13).Value.ToString(),
+                            ViewStatus = row.Cell(14).Value.ToString(),
+                            Updated = row.Cell(15).Value.ToString(),
+                            Summary = row.Cell(16).Value.ToString(),
+                            Status = row.Cell(17).Value.ToString(),
+                            Resolution = row.Cell(18).Value.ToString(),
+                            FixedInVersion = row.Cell(19).Value.ToString(),
+                            Description = row.Cell(20).Value.ToString(),
+                            StepsToReproduce = row.Cell(21).Value.ToString(),
+                            CodeOwner = row.Cell(22).Value.ToString(),
+                            DateResolved = row.Cell(23).Value.ToString(),
+                            DefectImpactToUser = row.Cell(24).Value.ToString(),
+                            DefectType = row.Cell(25).Value.ToString(),
+                            Iteration = row.Cell(26).Value.ToString(),
+                            IterationDataManager = row.Cell(27).Value.ToString(),
+                            IterationXRDMeasurement = row.Cell(28).Value.ToString(),
+                            Module = row.Cell(29).Value.ToString(),
+                            ModuleCommonPlugins = row.Cell(30).Value.ToString(),
+                            ODCPeriod = row.Cell(31).Value.ToString(),
+                            PhaseOfOrigin = row.Cell(32).Value.ToString(),
+                            Responsibility = row.Cell(33).Value.ToString(),
+                            TestCaseId = row.Cell(34).Value.ToString(),
+                            TestedBy = row.Cell(35).Value.ToString(),
+                            TestingLevel = row.Cell(36).Value.ToString(),
+                            Version = row.Cell(37).Value.ToString(),
+                            IterationPowderXRD = row.Cell(38).Value.ToString(),
+                            IterationSmartFlex = row.Cell(39).Value.ToString(),
+                            IterationDBBrowser = row.Cell(40).Value.ToString(),
+                            IterationMDA = row.Cell(41).Value.ToString(),
+                            IterationXRDDSCAnalysis = row.Cell(42).Value.ToString(),
+                            Scope = row.Cell(43).Value.ToString(),
+                            BugAnalysisStatus = row.Cell(44).Value.ToString(),
+
+
+
+
+
+                        });
+                    }
+                }
+            }
+
+            return data;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+using ExcelProject.ExcelRepo;
+using Microsoft.Win32;
+using System.IO;
+using DocumentFormat.OpenXml.Office2021.Excel.NamedSheetViews;
+
+namespace ExcelProject.ViewModel
+{
+    public class MainViewModel : INotifyPropertyChanged
+    {
+
+        private IRepo _repository;
+        private ObservableCollection<ExcelData> _data;
+        private ObservableCollection<ExcelData> _filteredData;
+        public ObservableCollection<ColumnFilter> ColumnFilters { get; set; }
+        public ObservableCollection<string> ColumnNames { get; set; } // List of 44 column names
+        public ObservableCollection<ExcelData> OriginalData { get; set; }
+        private string _filterCategory;
+        private string _filePath;
+
+        public MainViewModel()
+        {
+            _repository = new ExcelRepository();
+            ShowDialogCommand = new RelayCommand(ShowDialog);
+            LoadCommand = new RelayCommand(LoadData);
+            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+            ApplyFilterCommand = new RelayCommand(ApplyFilter);
+            ColumnFilters = new ObservableCollection<ColumnFilter>();
+            ColumnNames = new ObservableCollection<string>();
+        }
+
+        public ObservableCollection<ExcelData> Data
+        {
+            get => _data;
+            set { _data = value; OnPropertyChanged(nameof(Data)); }
+        }
+
+        public ObservableCollection<ExcelData> FilteredData
+        {
+            get => _filteredData;
+            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+        }
+
+        public string FilterCategory
+        {
+            get => _filterCategory;
+            set { _filterCategory = value; OnPropertyChanged(nameof(FilterCategory)); }
+        }
+
+        public string FilePath
+        {
+            get => _filePath;
+            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
+        }
+
+        public bool IsFilterApplied { get; private set; }
+        public ObservableCollection<ExcelData> TempData { get; private set; }
+
+        public ICommand LoadCommand { get; }
+        public ICommand ShowDialogCommand { get; }
+        public ICommand CloseCommand { get; }
+        public ICommand ApplyFilterCommand { get; }
+
+        private void LoadData()
+        {
+            if (!string.IsNullOrEmpty(FilePath))
+            {
+                var data = _repository.ReadExcelFile(FilePath);
+                Data = new ObservableCollection<ExcelData>(data);
+                FilteredData = new ObservableCollection<ExcelData>(data); // Initially, no filter is applied
+                TempData = new ObservableCollection<ExcelData>(data);
+                OriginalData = new ObservableCollection<ExcelData>(data);
+
+                // Initialize column filters after loading data
+                InitializeFilters();
+            }
+        }
+
+        private void ApplyFilter()
+        {
+            if (ColumnFilters == null || !ColumnFilters.Any())
+            {
+                FilteredData = new ObservableCollection<ExcelData>(OriginalData);
+                return;
+            }
+
+            var filtered = OriginalData.AsEnumerable();
+
+            foreach (var filter in ColumnFilters)
+            {
+                if (filter.FilterValues != null && filter.FilterValues.Any(f => f.IsSelected))
+                {
+                    var selectedValues = filter.FilterValues
+                                                .Where(f => f.IsSelected)
+                                                .Select(f => f.Value)
+                                                .ToList();
+
+                    filtered = filtered.Where(item =>
+                    {
+                        var property = item.GetType().GetProperty(filter.SelectedColumn);
+                        var value = property?.GetValue(item)?.ToString();
+                        return selectedValues.Contains(value);
+                    });
+                }
+            }
+
+            FilteredData = new ObservableCollection<ExcelData>(filtered);
+        }
+
+        public void ShowDialog()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Excel Files (*.xlsx)|*.xlsx"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                FilePath = dialog.FileName;
+            }
+        }
+
+        public class ColumnFilter
+        {
+            public string SelectedColumn { get; set; } // Selected column name
+            public ObservableCollection<FilterItem> FilterValues { get; set; } // Unique values for the selected column
+        }
+
+        public class FilterItem
+        {
+            public string Value { get; set; } // Display value
+            public bool IsSelected { get; set; } // Whether the item is checked
+        }
+
+        public void InitializeFilters()
+        {
+            ColumnFilters = new ObservableCollection<ColumnFilter>();
+            foreach (var columnName in ColumnNames)
+            {
+                var filter = new ColumnFilter
+                {
+                    SelectedColumn = columnName,
+                    FilterValues = new ObservableCollection<FilterItem>()
+                };
+
+                UpdateFilterValues(filter);
+                ColumnFilters.Add(filter);
+            }
+        }
+
+        private void UpdateFilterValues(ColumnFilter filter)
+        {
+            if (filter.SelectedColumn != null)
+            {
+                // Fetch unique values for the selected column
+                var uniqueValues = GetUniqueValuesForColumn(filter.SelectedColumn);
+                filter.FilterValues.Clear();
+                foreach (var value in uniqueValues)
+                {
+                    filter.FilterValues.Add(new FilterItem { Value = value, IsSelected = false });
+                }
+            }
+        }
+
+        private IEnumerable<string> GetUniqueValuesForColumn(string columnName)
+        {
+            // Use reflection to get values for the specified column
+            return OriginalData
+                .Select(item =>
+                {
+                    var property = item.GetType().GetProperty(columnName);
+                    return property?.GetValue(item)?.ToString();
+                })
+                .Where(value => !string.IsNullOrEmpty(value)) // Exclude null or empty values
+                .Distinct() // Get unique values
+                .OrderBy(value => value) // Optional: sort the values
+                .ToList();
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+        
+
+    
+}
+
