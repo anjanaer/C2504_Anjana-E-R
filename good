@@ -1,84 +1,44 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using ExcelProject.Model;
 using ExcelProject.Repo;
 using ExcelProject.ExcelRepo;
 using Microsoft.Win32;
-using System.IO;
-using DocumentFormat.OpenXml.Office2021.Excel.NamedSheetViews;
-using System.Runtime.InteropServices;
-using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace ExcelProject.ViewModel
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-
         private IRepo _repository;
         private ObservableCollection<ExcelData> _data;
         private ObservableCollection<ExcelData> _filteredData;
         private string _filterCategory;
         private string _filePath;
         private string selectedFilter;
-        private ObservableCollection<string> filterValues;
-        public ObservableCollection<string> ColumnNames { get; set; } // List of 44 column names
+        private ObservableCollection<FilterItem> filterValues;
+
+        public ObservableCollection<string> ColumnNames { get; set; }
         public ObservableCollection<ExcelData> OriginalData { get; set; }
-       
-      
 
-        public string SelectedFilter
-        {
-            get
-            {
-                return selectedFilter;
-            }
-            set
-            {
-                selectedFilter = value;
-                LoadFilterValues();
-                OnPropertyChanged(nameof(SelectedFilter));
-            }
-        }
-
-        public ObservableCollection<string> FilterValues
-        {
-            get
-            {
-                return filterValues;
-            }
-            set
-            {
-                filterValues = value;
-                OnPropertyChanged(nameof(FilterValues));
-            }
-        }
-
-       // public bool IsFilterApplied { get; private set; }
         public MainViewModel()
         {
             _repository = new ExcelRepository();
             ShowDialogCommand = new RelayCommand(ShowDialog);
             LoadCommand = new RelayCommand(LoadData);
+            ApplyFilterCommand = new RelayCommand(ApplyFilter);
+            SelectAllCommand = new RelayCommand(SelectAllFilters);
             CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
-           // ApplyFilterCommand = new RelayCommand(ApplyFilter);
-            ColumnFilters = new ObservableCollection<string>(BugTrackerDatas.ColumnNames);
+
+            ColumnFilters = new ObservableCollection<string>();
             ColumnNames = new ObservableCollection<string>();
             FilteredData = new ObservableCollection<ExcelData>();
             selectedFilter = string.Empty;
-            filterValues = new ObservableCollection<string>();
-
-            
-            
+            filterValues = new ObservableCollection<FilterItem>();
         }
-
-
 
         public ObservableCollection<ExcelData> Data
         {
@@ -92,28 +52,32 @@ namespace ExcelProject.ViewModel
             set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
         }
 
-        public string FilterCategory
+        public string SelectedFilter
         {
-            get => _filterCategory;
-            set { _filterCategory = value; OnPropertyChanged(nameof(FilterCategory)); }
+            get => selectedFilter;
+            set
+            {
+                selectedFilter = value;
+                LoadFilterValues();
+                OnPropertyChanged(nameof(SelectedFilter));
+            }
         }
 
-        public string FilePath
+        public ObservableCollection<FilterItem> FilterValues
         {
-            get => _filePath;
-            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
+            get => filterValues;
+            set
+            {
+                filterValues = value;
+                OnPropertyChanged(nameof(FilterValues));
+            }
         }
 
-
-        public ObservableCollection<ExcelData> TempData { get; private set; }
-
-        private bool isSelectAllChecked;
-       
         public ICommand LoadCommand { get; }
         public ICommand ShowDialogCommand { get; }
-        public ICommand CloseCommand { get; }
         public ICommand ApplyFilterCommand { get; }
-
+        public ICommand SelectAllCommand { get; }
+        public ICommand CloseCommand { get; }
 
         private void LoadData()
         {
@@ -121,22 +85,51 @@ namespace ExcelProject.ViewModel
             {
                 var data = _repository.ReadExcelFile(FilePath);
                 Data = new ObservableCollection<ExcelData>(data);
-                FilteredData = new ObservableCollection<ExcelData>(data); // Initially, no filter is applied
-                TempData = new ObservableCollection<ExcelData>(data);
+                FilteredData = new ObservableCollection<ExcelData>(data); // No filter initially
                 OriginalData = new ObservableCollection<ExcelData>(data);
-                //FilterValues = new ObservableCollection<string>(BugTrackerDatas.GetColumnData(selectedFilter, Data));
-                // Initialize column filters after loading data
+
+                // Initialize filters
                 LoadFilterValues();
-                //InitializeFilters();
             }
         }
 
         private void LoadFilterValues()
         {
-            FilterValues = new ObservableCollection<string>(BugTrackerDatas.GetColumnData(selectedFilter, Data));
+            if (!string.IsNullOrEmpty(SelectedFilter) && Data != null)
+            {
+                var columnValues = BugTrackerDatas.GetColumnData(SelectedFilter, Data); // Unique column values
+                FilterValues = new ObservableCollection<FilterItem>(
+                    columnValues.Select(value => new FilterItem { Value = value, IsSelected = false }));
+            }
         }
 
+        private void ApplyFilter()
+        {
+            if (FilterValues.Any(f => f.IsSelected))
+            {
+                var selectedValues = FilterValues.Where(f => f.IsSelected).Select(f => f.Value).ToList();
 
+                FilteredData = new ObservableCollection<ExcelData>(
+                    Data.Where(d => selectedValues.Contains(d.GetPropertyValue(SelectedFilter)?.ToString())));
+
+                MessageBox.Show("Filters applied successfully!");
+            }
+            else
+            {
+                FilteredData = new ObservableCollection<ExcelData>(Data); // Reset to original data if no filter is selected
+                MessageBox.Show("No filters selected. Showing all data.");
+            }
+        }
+
+        private void SelectAllFilters()
+        {
+            foreach (var filter in FilterValues)
+            {
+                filter.IsSelected = true;
+            }
+
+            OnPropertyChanged(nameof(FilterValues));
+        }
 
         public void ShowDialog()
         {
@@ -151,25 +144,17 @@ namespace ExcelProject.ViewModel
             }
         }
 
-        private ObservableCollection<string> columnFilters;
-        public ObservableCollection<string> ColumnFilters
+        public string FilePath
         {
-            get
-            {
-                return columnFilters;
-
-            }
-            set
-            {
-                columnFilters = value;
-                OnPropertyChanged(nameof(columnFilters));
-            }
+            get => _filePath;
+            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
         }
 
-       
+        public ObservableCollection<string> ColumnFilters { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        protected virtual void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     public class FilterItem
@@ -177,10 +162,5 @@ namespace ExcelProject.ViewModel
         public string Value { get; set; }
         public bool IsSelected { get; set; }
     }
-
-
-}  
-
-Based n this code give me the code for Apply filterWhen [Apply Filter] button is clicked, update bug details table with all filter conditions.    
-
+}
 
