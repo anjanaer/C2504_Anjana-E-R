@@ -1,29 +1,206 @@
-<ListBox ItemsSource="{Binding FilterValues}" Height="100">
-    <ListBox.ItemTemplate>
-        <DataTemplate>
-            <CheckBox Content="{Binding Value}" IsChecked="{Binding IsSelected, Mode=TwoWay}" />
-        </DataTemplate>
-    </ListBox.ItemTemplate>
-</ListBox>
-<CheckBox Content="Select All" 
-          IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
-          Command="{Binding SelectAllCommand}" />
-private bool isSelectAllChecked;
-public bool IsSelectAllChecked
-{
-    get => isSelectAllChecked;
-    set
-    {
-        isSelectAllChecked = value;
-        foreach (var filterItem in FilterValues)
-        {
-            filterItem.IsSelected = value;
-        }
-        OnPropertyChanged(nameof(IsSelectAllChecked));
-    }
-}
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+using ExcelProject.ExcelRepo;
+using Microsoft.Win32;
+using System.IO;
+using DocumentFormat.OpenXml.Office2021.Excel.NamedSheetViews;
+using System.Runtime.InteropServices;
+using DocumentFormat.OpenXml.Office2010.Excel;
 
-public ICommand SelectAllCommand => new RelayCommand(() =>
+namespace ExcelProject.ViewModel
 {
-    IsSelectAllChecked = !IsSelectAllChecked;
-});
+    public class MainViewModel : INotifyPropertyChanged
+    {
+
+        private IRepo _repository;
+        private ObservableCollection<ExcelData> _data;
+        private ObservableCollection<ExcelData> _filteredData;
+        private string _filterCategory;
+        private string _filePath;
+        private string selectedFilter;
+        private ObservableCollection<string> filterValues;
+        public ObservableCollection<string> ColumnNames { get; set; } // List of 44 column names
+        public ObservableCollection<ExcelData> OriginalData { get; set; }
+       
+      
+
+        public string SelectedFilter
+        {
+            get
+            {
+                return selectedFilter;
+            }
+            set
+            {
+                selectedFilter = value;
+                LoadFilterValues();
+                OnPropertyChanged(nameof(SelectedFilter));
+            }
+        }
+
+        public ObservableCollection<string> FilterValues
+        {
+            get
+            {
+                return filterValues;
+            }
+            set
+            {
+                filterValues = value;
+                OnPropertyChanged(nameof(FilterValues));
+            }
+        }
+
+        public bool IsFilterApplied { get; private set; }
+        public MainViewModel()
+        {
+            _repository = new ExcelRepository();
+            ShowDialogCommand = new RelayCommand(ShowDialog);
+            LoadCommand = new RelayCommand(LoadData);
+            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+           // ApplyFilterCommand = new RelayCommand(ApplyFilter);
+            ColumnFilters = new ObservableCollection<string>(BugTrackerDatas.ColumnNames);
+            ColumnNames = new ObservableCollection<string>();
+            FilteredData = new ObservableCollection<ExcelData>();
+            selectedFilter = string.Empty;
+            filterValues = new ObservableCollection<string>();
+
+            
+            
+        }
+
+
+
+        public ObservableCollection<ExcelData> Data
+        {
+            get => _data;
+            set { _data = value; OnPropertyChanged(nameof(Data)); }
+        }
+
+        public ObservableCollection<ExcelData> FilteredData
+        {
+            get => _filteredData;
+            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+        }
+
+        public string FilterCategory
+        {
+            get => _filterCategory;
+            set { _filterCategory = value; OnPropertyChanged(nameof(FilterCategory)); }
+        }
+
+        public string FilePath
+        {
+            get => _filePath;
+            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
+        }
+
+
+        public ObservableCollection<ExcelData> TempData { get; private set; }
+
+        private bool isSelectAllChecked;
+        public bool IsSelectAllChecked
+        {
+            get => isSelectAllChecked;
+            set
+            {
+                isSelectAllChecked = value;
+                foreach (var filterItem in FilterValues)
+                {
+                    filterItem.IsSelected = value;
+                }
+                OnPropertyChanged(nameof(IsSelectAllChecked));
+            }
+        }
+
+        public ICommand SelectAllCommand => new RelayCommand(() =>
+        {
+            IsSelectAllChecked = !IsSelectAllChecked;
+        });
+        public ICommand LoadCommand { get; }
+        public ICommand ShowDialogCommand { get; }
+        public ICommand CloseCommand { get; }
+        public ICommand ApplyFilterCommand { get; }
+
+
+        private void LoadData()
+        {
+            if (!string.IsNullOrEmpty(FilePath))
+            {
+                var data = _repository.ReadExcelFile(FilePath);
+                Data = new ObservableCollection<ExcelData>(data);
+                FilteredData = new ObservableCollection<ExcelData>(data); // Initially, no filter is applied
+                TempData = new ObservableCollection<ExcelData>(data);
+                OriginalData = new ObservableCollection<ExcelData>(data);
+                //FilterValues = new ObservableCollection<string>(BugTrackerDatas.GetColumnData(selectedFilter, Data));
+                // Initialize column filters after loading data
+                LoadFilterValues();
+                //InitializeFilters();
+            }
+        }
+
+        private void LoadFilterValues()
+        {
+            FilterValues = new ObservableCollection<string>(BugTrackerDatas.GetColumnData(selectedFilter, Data));
+        }
+
+
+
+        public void ShowDialog()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Excel Files (*.xlsx)|*.xlsx"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                FilePath = dialog.FileName;
+            }
+        }
+
+        private ObservableCollection<string> columnFilters;
+        public ObservableCollection<string> ColumnFilters
+        {
+            get
+            {
+                return columnFilters;
+
+            }
+            set
+            {
+                columnFilters = value;
+                OnPropertyChanged(nameof(columnFilters));
+            }
+        }
+
+       
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public class FilterItem
+    {
+        public string Value { get; set; }
+        public bool IsSelected { get; set; }
+    }
+
+
+}  
+
+    
+
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS1061	'string' does not contain a definition for 'IsSelected' and no accessible extension method 'IsSelected' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)	ExcelProject	C:\Users\2021508\source\repos\ExcelProject\ExcelProject\ViewModel\MainViewModel.cs	119	
+Solve the error
