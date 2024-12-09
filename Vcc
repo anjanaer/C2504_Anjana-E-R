@@ -41,32 +41,28 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
 
-                <GroupBox Header="Column Filters" Grid.Row="2" Margin="10" BorderBrush="Gray" BorderThickness="1">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel Orientation="Vertical" Margin="10">
-                            <!-- Dynamic Checkbox Filters -->
-                            <ItemsControl ItemsSource="{Binding ColumnFilterOptions}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Vertical" Margin="5">
-                                            <TextBlock Text="{Binding ColumnNames}" FontWeight="Bold" />
-                                            <ItemsControl ItemsSource="{Binding FilterValues}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <CheckBox Content="{Binding Value}" 
-                                                  IsChecked="{Binding IsSelected, Mode=TwoWay}" 
-                                                  Command="{Binding DataContext.ApplyColumnFilterCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  CommandParameter="{Binding}" />
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </ScrollViewer>
-                </GroupBox>
+                <StackPanel Orientation="Vertical" Margin="10">
+                    <!-- Dynamic Checkbox Filters -->
+                    <ItemsControl ItemsSource="{Binding ColumnFilterOptions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Vertical" Margin="5">
+                                    <TextBlock Text="{Binding ColumnNames}" FontWeight="Bold" />
+                                    <ItemsControl ItemsSource="{Binding FilterValues}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <CheckBox Content="{Binding Value}" 
+                          IsChecked="{Binding IsSelected, Mode=TwoWay}" 
+                          Command="{Binding DataContext.ApplyColumnFilterCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                          CommandParameter="{Binding}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
                 <!-- Buttons -->
                 <StackPanel Orientation="Vertical" HorizontalAlignment="Right" Margin="0,10,0,0">
                     <Button Content="Apply Filter" Width="100" Height="33" Margin="5" Background="Teal" Command="{Binding ApplyFilterCommand}" />
@@ -153,160 +149,3 @@
 
 
 
-Based on this xaml code i need the changes in the mainviewmodel code for Show all column names in the filter conditions. When selecting a column name, then show unique row content like Excel filter.
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
-using ExcelProject.Model;
-using ExcelProject.Repo;
-using ExcelProject.ExcelRepo;
-using Microsoft.Win32;
-using System.IO;
-using DocumentFormat.OpenXml.Office2021.Excel.NamedSheetViews;
-
-namespace ExcelProject.ViewModel
-{
-    public class MainViewModel : INotifyPropertyChanged
-    {
-
-        private IRepo _repository;
-        private ObservableCollection<ExcelData> _data;
-        private ObservableCollection<ExcelData> _filteredData;
-        private string _filterCategory;
-        private string _filePath;
-        public ObservableCollection<string> ColumnNames { get; set; } // List of 44 column names
-        public ObservableCollection<ExcelData> OriginalData { get; set; }
-
-        public ObservableCollection<FilterValue> FilterValues { get; set; }
-        public ObservableCollection<ColumnFilter> ColumnFilterOptions { get; set; }
-
-        public bool IsFilterApplied { get; private set; }
-        public MainViewModel()
-        {
-            _repository = new ExcelRepository();
-            ShowDialogCommand = new RelayCommand(ShowDialog);
-            LoadCommand = new RelayCommand(LoadData);
-            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
-            //ApplyFilterCommand = new RelayCommand(ApplyFilter);
-            ColumnFilters = new ObservableCollection<string>(BugTrackerDatas.ColumnNames);
-            ColumnNames = new ObservableCollection<string>();
-            ColumnFilterOptions = new ObservableCollection<ColumnFilter>();
-        }
-
-        public ObservableCollection<ExcelData> Data
-        {
-            get => _data;
-            set { _data = value; OnPropertyChanged(nameof(Data)); }
-        }
-
-        public ObservableCollection<ExcelData> FilteredData
-        {
-            get => _filteredData;
-            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
-        }
-
-        public string FilterCategory
-        {
-            get => _filterCategory;
-            set { _filterCategory = value; OnPropertyChanged(nameof(FilterCategory)); }
-        }
-
-        public string FilePath
-        {
-            get => _filePath;
-            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
-        }
-
-
-        public ObservableCollection<ExcelData> TempData { get; private set; }
-
-        public ICommand LoadCommand { get; }
-        public ICommand ShowDialogCommand { get; }
-        public ICommand CloseCommand { get; }
-        public ICommand ApplyFilterCommand { get; }
-
-        private void LoadData()
-        {
-            if (!string.IsNullOrEmpty(FilePath))
-            {
-                var data = _repository.ReadExcelFile(FilePath);
-                Data = new ObservableCollection<ExcelData>(data);
-                FilteredData = new ObservableCollection<ExcelData>(data); // Initially, no filter is applied
-                TempData = new ObservableCollection<ExcelData>(data);
-                OriginalData = new ObservableCollection<ExcelData>(data);
-
-                // Initialize column filters after loading data
-                //InitializeFilters();
-            }
-        }
-
-
-
-        public void ShowDialog()
-        {
-            var dialog = new OpenFileDialog
-            {
-                Filter = "Excel Files (*.xlsx)|*.xlsx"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                FilePath = dialog.FileName;
-            }
-        }
-
-        private ObservableCollection<string> columnFilters;
-        public ObservableCollection<string> ColumnFilters
-        {
-            get
-            {
-                return columnFilters;
-
-            }
-            set
-            {
-                columnFilters = value;
-                OnPropertyChanged(nameof(columnFilters));
-            }
-        }
-
-        public class FilterItem
-        {
-            public string Value { get; set; } // Display value
-            public bool IsSelected { get; set; } // Whether the item is checked
-
-        }
-        private IEnumerable<string> GetUniqueValuesForColumn(string columnName)
-        {
-            // Use reflection to get values for the specified column
-            return OriginalData
-                .Select(item =>
-                {
-                    var property = item.GetType().GetProperty(columnName);
-                    return property?.GetValue(item)?.ToString();
-                })
-                .Where(value => !string.IsNullOrEmpty(value)) // Exclude null or empty values
-                .Distinct() // Get unique values
-                .OrderBy(value => value) // Optional: sort the values
-                .ToList();
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-    }
-
-    
-
-}
-This code not give the filtering .How its possible
