@@ -579,4 +579,6 @@ namespace ExcelProject.ViewModel
 }
 
 
-
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS8370	Feature 'target-typed object creation' is not available in C# 7.3. Please use language version 9.0 or greater.	ExcelProject	C:\Users\2021508\source\repos\ExcelProject\ExcelProject\ViewModel\MainViewModel.cs	176	
+public ObservableCollection<FilterValue> FilterValues { get; set; } = new();Solve
