@@ -185,6 +185,36 @@ namespace ExcelProject.ViewModel
 
 }  
 
+
+private void ApplyFilter()
+{
+    if (string.IsNullOrEmpty(SelectedFilter) || FilterValues == null || FilterValues.Count == 0)
+    {
+        // No filter applied; reset to original data
+        FilteredData = new ObservableCollection<ExcelData>(OriginalData);
+        IsFilterApplied = false;
+        return;
+    }
+
+    // Filter logic
+    var selectedValues = FilterValues.Where(value => !string.IsNullOrEmpty(value)).ToList();
+
+    if (selectedValues.Any())
+    {
+        // Filter based on the selected column and values
+        FilteredData = new ObservableCollection<ExcelData>(
+            Data.Where(item => selectedValues.Contains(BugTrackerDatas.GetColumnValue(item, SelectedFilter)))
+        );
+
+        IsFilterApplied = true;
+    }
+    else
+    {
+        // Reset if no values are selected
+        FilteredData = new ObservableCollection<ExcelData>(OriginalData);
+        IsFilterApplied = false;
+    }
+}
     
 
 
