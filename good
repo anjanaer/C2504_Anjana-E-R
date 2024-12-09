@@ -14,6 +14,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
+
         <!-- Title Bar -->
         <Border Background="Teal" Grid.Row="0" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" CornerRadius="5">
             <TextBlock Text="Bug Tracker" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Margin="10,0,0,0" />
@@ -27,32 +28,32 @@
             <Button Content="Show Details" Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding LoadCommand}" />
         </StackPanel>
 
-
         <!-- Filter Conditions Section -->
-
         <GroupBox Header="Filter Conditions" Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Margin="10">
-            <StackPanel Orientation="Horizontal" Margin="10" >
+            <StackPanel Orientation="Horizontal" Margin="10">
                 <!-- Dynamic Filter Rows -->
                 <ListBox ItemsSource="{Binding ColumnFilters}" Height="100" SelectedItem="{Binding SelectedFilter}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding}"/>
+                            <TextBlock Text="{Binding}" />
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
 
                 <StackPanel Orientation="Vertical" Margin="10">
-                    <!-- Select All Checkbox  -->
-            
+                    <!-- Select All Checkbox -->
+                    <CheckBox Content="Select All" IsChecked="{Binding AreAllFiltersSelected, Mode=TwoWay}" />
+                    
                     <!-- Dynamic Checkbox Filters -->
                     <ListBox ItemsSource="{Binding FilterValues}" Height="100">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <CheckBox Content="{Binding}" IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
+                                <CheckBox Content="{Binding Value}" IsChecked="{Binding IsSelected, Mode=TwoWay}" />
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </StackPanel>
+
                 <!-- Buttons -->
                 <StackPanel Orientation="Vertical" HorizontalAlignment="Right" Margin="0,10,0,0">
                     <Button Content="Apply Filter" Width="100" Height="33" Margin="5" Background="Teal" Command="{Binding ApplyFilterCommand}" />
@@ -61,19 +62,12 @@
                     <Button Content="Export Filter..." Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ExportFilterCommand}" />
                 </StackPanel>
             </StackPanel>
-
         </GroupBox>
 
-
-
-
         <!-- DataGrid Section -->
-
         <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True">
-            <!-- Define Column Header Style -->
             <DataGrid.ColumnHeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
-                    <!-- Set Background and Foreground Colors -->
                     <Setter Property="Background" Value="Teal" />
                     <Setter Property="Foreground" Value="White" />
                     <Setter Property="FontWeight" Value="Bold" />
@@ -81,251 +75,101 @@
                     <Setter Property="VerticalContentAlignment" Value="Center" />
                 </Style>
             </DataGrid.ColumnHeaderStyle>
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="100" />
-                <DataGridTextColumn Header="Project" Binding="{Binding Project}" Width="150" />
-                <DataGridTextColumn Header="Reporter" Binding="{Binding Reporter}" Width="150" />
-                <DataGridTextColumn Header="Assigned To" Binding="{Binding AssignedTo}" Width="150" />
-                <DataGridTextColumn Header="Priority" Binding="{Binding Priority}" Width="150" />
-                <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="150" />
-                <DataGridTextColumn Header="Reproducibility" Binding="{Binding Reproducibility}" Width="150" />
-                <DataGridTextColumn Header="Product Version" Binding="{Binding ProductVersion}" Width="100" />
-                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="100" />
-                <DataGridTextColumn Header="Date Submitted" Binding="{Binding DateSubmitted}" Width="150" />
-                <DataGridTextColumn Header="OS" Binding="{Binding OS}" Width="150" />
-                <DataGridTextColumn Header="OS Version" Binding="{Binding OSVersion}" Width="150" />
-                <DataGridTextColumn Header="Platform" Binding="{Binding Platform}" Width="150" />
-                <DataGridTextColumn Header="View Status" Binding="{Binding ViewStatus}" Width="150" />
-                <DataGridTextColumn Header="Updated" Binding="{Binding Updated}" Width="150" />
-                <DataGridTextColumn Header="Summary" Binding="{Binding Summary}" Width="150" />
-                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" />
-                <DataGridTextColumn Header="Resolution" Binding="{Binding Resolution}" Width="150" />
-                <DataGridTextColumn Header="Fixed in Version" Binding="{Binding FixedInVersion}" Width="150" />
-                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="150" />
-                <DataGridTextColumn Header="Steps To Reproduce" Binding="{Binding StepsToReproduce}" Width="150" />
-                <DataGridTextColumn Header="Code Owner" Binding="{Binding CodeOwner}" Width="150" />
-                <DataGridTextColumn Header="Date Resolved" Binding="{Binding DateResolved}" Width="150" />
-                <DataGridTextColumn Header="Defect Impact to User" Binding="{Binding DefectImpactToUser}" Width="150" />
-                <DataGridTextColumn Header="Defect Type" Binding="{Binding DefectType}" Width="100" />
-                <DataGridTextColumn Header="Iteration" Binding="{Binding Iteration}" Width="150" />
-                <DataGridTextColumn Header="Iteration (Data Manager)" Binding="{Binding IterationDataManager}" Width="150" />
-                <DataGridTextColumn Header="Iteration (XRD Measurement)" Binding="{Binding IterationXRDMeasurement}" Width="150" />
-                <DataGridTextColumn Header="Module" Binding="{Binding Module}" Width="150" />
-                <DataGridTextColumn Header="Module(Common Plugins)" Binding="{Binding ModuleCommonPlugins}" Width="150" />
-                <DataGridTextColumn Header="ODC Period" Binding="{Binding ODCPeriod}" Width="150" />
-                <DataGridTextColumn Header="Phase of Origin" Binding="{Binding PhaseOfOrigin}" Width="100" />
-                <DataGridTextColumn Header="Responsibility" Binding="{Binding Responsibility}" Width="150" />
-                <DataGridTextColumn Header="Test Case Id" Binding="{Binding TestCaseId}" Width="150" />
-                <DataGridTextColumn Header="Tested By" Binding="{Binding TestedBy}" Width="150" />
-                <DataGridTextColumn Header="Testing Level" Binding="{Binding TestingLevel}" Width="150" />
-                <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="150" />
-                <DataGridTextColumn Header="Iteration (Powder XRD)" Binding="{Binding IterationPowderXRD}" Width="100" />
-                <DataGridTextColumn Header=" Iteration (SmartFlex)" Binding="{Binding IterationSmartFlex}" Width="150" />
-                <DataGridTextColumn Header=" Iteration(DB Browser)" Binding="{Binding IterationDBBrowser}" Width="150" />
-                <DataGridTextColumn Header="Iteration(MDA)" Binding="{Binding IterationMDA}" Width="150" />
-                <DataGridTextColumn Header="Iteration(XRD DSC Analysis)" Binding="{Binding IterationXRDDSCAnalysis}" Width="150" />
-                <DataGridTextColumn Header="Scope" Binding="{Binding Scope}" Width="150" />
-                <DataGridTextColumn Header="Bug Analysis Status" Binding="{Binding BugAnalysisStatus}" Width="150" />
-
-
-            </DataGrid.Columns>
         </DataGrid>
+
         <!-- Close Button -->
         <Button Content="Close" Grid.Row="3" Background="Teal" Width="100" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
-
-
     </Grid>
-</Window>    
-
+</Window>
 
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using ExcelProject.Model;
 using ExcelProject.Repo;
-using ExcelProject.ExcelRepo;
-using Microsoft.Win32;
-using System.IO;
-using DocumentFormat.OpenXml.Office2021.Excel.NamedSheetViews;
-using System.Runtime.InteropServices;
-using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace ExcelProject.ViewModel
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+        private ObservableCollection<FilterItem> _filterValues;
+        private bool _areAllFiltersSelected;
 
-        private IRepo _repository;
-        private ObservableCollection<ExcelData> _data;
-        private ObservableCollection<ExcelData> _filteredData;
-        private string _filterCategory;
-        private string _filePath;
-        private string selectedFilter;
-        private ObservableCollection<string> filterValues;
-        public bool IsSelected {  get; set; }
-        public ObservableCollection<string> ColumnNames { get; set; } // List of 44 column names
-        public ObservableCollection<ExcelData> OriginalData { get; set; }
-        
-
-        public string SelectedFilter
+        public ObservableCollection<ExcelData> Data { get; set; }
+        public ObservableCollection<ExcelData> FilteredData { get; set; }
+        public ObservableCollection<string> ColumnFilters { get; set; }
+        public ObservableCollection<FilterItem> FilterValues
         {
-            get
-            {
-                return selectedFilter;
-            }
+            get => _filterValues;
+            set { _filterValues = value; OnPropertyChanged(nameof(FilterValues)); }
+        }
+
+        public string SelectedFilter { get; set; }
+        public bool AreAllFiltersSelected
+        {
+            get => _areAllFiltersSelected;
             set
             {
-                selectedFilter = value;
-                LoadFilterValues();
-                OnPropertyChanged(nameof(SelectedFilter));
+                _areAllFiltersSelected = value;
+                foreach (var item in FilterValues)
+                {
+                    item.IsSelected = _areAllFiltersSelected;
+                }
+                OnPropertyChanged(nameof(AreAllFiltersSelected));
             }
         }
 
-        public ObservableCollection<string> FilterValues
-        {
-            get
-            {
-                return filterValues;
-            }
-            set
-            {
-                filterValues = value;
-                OnPropertyChanged(nameof(FilterValues));
-            }
-        }
+        public ICommand ApplyFilterCommand { get; }
+        public ICommand ResetFilterCommand { get; }
+        public ICommand LoadCommand { get; }
+        public ICommand ShowDialogCommand { get; }
+        public ICommand CloseCommand { get; }
 
-        public bool IsFilterApplied { get; private set; }
         public MainViewModel()
         {
-            _repository = new ExcelRepository();
-            ShowDialogCommand = new RelayCommand(ShowDialog);
-            LoadCommand = new RelayCommand(LoadData);
-            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+            ColumnFilters = new ObservableCollection<string> { "Column1", "Column2", "Column3" }; // Example
+            FilterValues = new ObservableCollection<FilterItem>();
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
-            ColumnFilters = new ObservableCollection<string>(BugTrackerDatas.ColumnNames);
-            ColumnNames = new ObservableCollection<string>();
-            FilteredData = new ObservableCollection<ExcelData>();
-            selectedFilter = string.Empty;
-            filterValues = new ObservableCollection<string>();
-
-            
-            
+            ResetFilterCommand = new RelayCommand(ResetFilter);
         }
 
         private void ApplyFilter()
         {
-            throw new NotImplementedException();
-        }
-
-        public ObservableCollection<ExcelData> Data
-        {
-            get => _data;
-            set { _data = value; OnPropertyChanged(nameof(Data)); }
-        }
-
-        public ObservableCollection<ExcelData> FilteredData
-        {
-            get => _filteredData;
-            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
-        }
-
-        public string FilterCategory
-        {
-            get => _filterCategory;
-            set { _filterCategory = value; OnPropertyChanged(nameof(FilterCategory)); }
-        }
-
-        public string FilePath
-        {
-            get => _filePath;
-            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
-        }
-
-
-        public ObservableCollection<ExcelData> TempData { get; private set; }
-
-        public ICommand LoadCommand { get; }
-        public ICommand ShowDialogCommand { get; }
-        public ICommand CloseCommand { get; }
-        public ICommand ApplyFilterCommand { get; }
-
-
-        private void LoadData()
-        {
-            if (!string.IsNullOrEmpty(FilePath))
+            if (SelectedFilter == null || !FilterValues.Any(f => f.IsSelected))
             {
-                var data = _repository.ReadExcelFile(FilePath);
-                Data = new ObservableCollection<ExcelData>(data);
-                FilteredData = new ObservableCollection<ExcelData>(data); // Initially, no filter is applied
-                TempData = new ObservableCollection<ExcelData>(data);
-                OriginalData = new ObservableCollection<ExcelData>(data);
-                //FilterValues = new ObservableCollection<string>(BugTrackerDatas.GetColumnData(selectedFilter, Data));
-                // Initialize column filters after loading data
-                LoadFilterValues();
-                //InitializeFilters();
+                MessageBox.Show("Select a filter and at least one value.");
+                return;
             }
+
+            var selectedValues = FilterValues.Where(f => f.IsSelected).Select(f => f.Value).ToList();
+            FilteredData = new ObservableCollection<ExcelData>(Data.Where(d => selectedValues.Contains(d.GetType().GetProperty(SelectedFilter).GetValue(d)?.ToString())));
+            OnPropertyChanged(nameof(FilteredData));
         }
 
-        private void LoadFilterValues()
+        private void ResetFilter()
         {
-            FilterValues = new ObservableCollection<string>(BugTrackerDatas.GetColumnData(selectedFilter, Data));
-        }
-
-
-
-        public void ShowDialog()
-        {
-            var dialog = new OpenFileDialog
+            FilteredData = new ObservableCollection<ExcelData>(Data);
+            foreach (var item in FilterValues)
             {
-                Filter = "Excel Files (*.xlsx)|*.xlsx"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                FilePath = dialog.FileName;
+                item.IsSelected = false;
             }
+            AreAllFiltersSelected = false;
+            OnPropertyChanged(nameof(FilteredData));
         }
-
-        private ObservableCollection<string> columnFilters;
-        public ObservableCollection<string> ColumnFilters
-        {
-            get
-            {
-                return columnFilters;
-
-            }
-            set
-            {
-                columnFilters = value;
-                OnPropertyChanged(nameof(columnFilters));
-            }
-        }
-
-        public class FilterItem
-        {
-            public string Value { get; set; } // Display value
-            public bool IsSelected { get; set; } // Whether the item is checked
-
-        }
-        
 
         public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-}  
-
-    
+    public class FilterItem
+    {
+        public string Value { get; set; }
+        public bool IsSelected { get; set; }
+    }
+}
 
 
