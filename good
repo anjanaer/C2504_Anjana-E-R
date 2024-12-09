@@ -26,138 +26,135 @@
 </GroupBox>
 
 
-using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
-using System.Windows.Input;
+ public class MainViewModel : INotifyPropertyChanged
+ {
 
-public class FilterConditionViewModel : INotifyPropertyChanged
-{
-    public string ColumnName { get; set; }
-    public ObservableCollection<FilterValue> FilterValues { get; set; }
-}
+     private IRepo _repository;
+     private ObservableCollection<ExcelData> _data;
+     private ObservableCollection<ExcelData> _filteredData;
+     public ObservableCollection<string> ColumnNames { get; set; } // List of 44 column names
+     public ObservableCollection<ExcelData> OriginalData { get; set; }
+     private string _filterCategory;
+     private string _filePath;
+     public ObservableCollection<FilterValue> FilterValues { get; set; }
 
-public class FilterValue : INotifyPropertyChanged
-{
-    public string Value { get; set; }
-    private bool _isSelected;
+     public MainViewModel()
+     {
+         _repository = new ExcelRepository();
+         ShowDialogCommand = new RelayCommand(ShowDialog);
+         LoadCommand = new RelayCommand(LoadData);
+         CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+         //ApplyFilterCommand = new RelayCommand(ApplyFilter);
+         ColumnFilters = new ObservableCollection<string>(BugTrackerDatas.ColumnNames);
+         ColumnNames = new ObservableCollection<string>();
+     }
 
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set
+     public ObservableCollection<ExcelData> Data
+     {
+         get => _data;
+         set { _data = value; OnPropertyChanged(nameof(Data)); }
+     }
+
+     public ObservableCollection<ExcelData> FilteredData
+     {
+         get => _filteredData;
+         set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+     }
+
+     public string FilterCategory
+     {
+         get => _filterCategory;
+         set { _filterCategory = value; OnPropertyChanged(nameof(FilterCategory)); }
+     }
+
+     public string FilePath
+     {
+         get => _filePath;
+         set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
+     }
+
+     public bool IsFilterApplied { get; private set; }
+     public ObservableCollection<ExcelData> TempData { get; private set; }
+
+     public ICommand LoadCommand { get; }
+     public ICommand ShowDialogCommand { get; }
+     public ICommand CloseCommand { get; }
+     public ICommand ApplyFilterCommand { get; }
+
+     private void LoadData()
+     {
+         if (!string.IsNullOrEmpty(FilePath))
+         {
+             var data = _repository.ReadExcelFile(FilePath);
+             Data = new ObservableCollection<ExcelData>(data);
+             FilteredData = new ObservableCollection<ExcelData>(data); // Initially, no filter is applied
+             TempData = new ObservableCollection<ExcelData>(data);
+             OriginalData = new ObservableCollection<ExcelData>(data);
+
+             // Initialize column filters after loading data
+             //InitializeFilters();
+         }
+     }
+
+ public void ShowDialog()
+ {
+     var dialog = new OpenFileDialog
+     {
+         Filter = "Excel Files (*.xlsx)|*.xlsx"
+     };
+
+     if (dialog.ShowDialog() == true)
+     {
+         FilePath = dialog.FileName;
+     }
+ }
+
+private ObservableCollection<string> columnFilters;
+public ObservableCollection<string> ColumnFilters
+ {
+     get
+     {
+         return columnFilters;
+
+     }
+     set
+     {
+         columnFilters = value;
+         OnPropertyChanged(nameof(columnFilters));
+     }
+ }
+
+ public class FilterItem
+ {
+     public string Value { get; set; } // Display value
+     public bool IsSelected { get; set; } // Whether the item is checked
+     
+ }
+        private IEnumerable<string> GetUniqueValuesForColumn(string columnName)
         {
-            _isSelected = value;
-            OnPropertyChanged(nameof(IsSelected));
-        }
-    }
-
-    public event PropertyChangedEventHandler PropertyChanged;
-    protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-}
-
-public class MainViewModel : INotifyPropertyChanged
-{
-    private ObservableCollection<FilterConditionViewModel> _columnFilterOptions;
-    private ObservableCollection<object> _filteredData;
-    private ObservableCollection<object> _originalData;
-
-    public ObservableCollection<FilterConditionViewModel> ColumnFilterOptions
-    {
-        get => _columnFilterOptions;
-        set
-        {
-            _columnFilterOptions = value;
-            OnPropertyChanged(nameof(ColumnFilterOptions));
-        }
-    }
-
-    public ObservableCollection<object> FilteredData
-    {
-        get => _filteredData;
-        set
-        {
-            _filteredData = value;
-            OnPropertyChanged(nameof(FilteredData));
-        }
-    }
-
-    public ICommand ApplyColumnFilterCommand { get; }
-
-    public MainViewModel()
-    {
-        _originalData = new ObservableCollection<object>(); // Load original data here.
-        FilteredData = new ObservableCollection<object>(_originalData);
-
-        ColumnFilterOptions = new ObservableCollection<FilterConditionViewModel>
-        {
-            new FilterConditionViewModel
-            {
-                ColumnName = "Status",
-                FilterValues = new ObservableCollection<FilterValue>
+            // Use reflection to get values for the specified column
+            return OriginalData
+                .Select(item =>
                 {
-                    new FilterValue { Value = "Open" },
-                    new FilterValue { Value = "Closed" },
-                    new FilterValue { Value = "In Progress" }
-                }
-            },
-            new FilterConditionViewModel
-            {
-                ColumnName = "Priority",
-                FilterValues = new ObservableCollection<FilterValue>
-                {
-                    new FilterValue { Value = "High" },
-                    new FilterValue { Value = "Medium" },
-                    new FilterValue { Value = "Low" }
-                }
-            }
-        };
-
-        ApplyColumnFilterCommand = new RelayCommand(ApplyFilters);
-    }
-
-    private void ApplyFilters(object parameter)
-    {
-        var filters = ColumnFilterOptions
-            .SelectMany(f => f.FilterValues.Where(v => v.IsSelected).Select(v => new { f.ColumnName, v.Value }))
-            .ToList();
-
-        if (!filters.Any())
-        {
-            FilteredData = new ObservableCollection<object>(_originalData);
-            return;
+                    var property = item.GetType().GetProperty(columnName);
+                    return property?.GetValue(item)?.ToString();
+                })
+                .Where(value => !string.IsNullOrEmpty(value)) // Exclude null or empty values
+                .Distinct() // Get unique values
+                .OrderBy(value => value) // Optional: sort the values
+                .ToList();
         }
 
-        FilteredData = new ObservableCollection<object>(_originalData.Where(item =>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
         {
-            foreach (var filter in filters)
-            {
-                var property = item.GetType().GetProperty(filter.ColumnName);
-                if (property == null || property.GetValue(item)?.ToString() != filter.Value)
-                    return false;
-            }
-            return true;
-        }));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
+        
 
-    public event PropertyChangedEventHandler PropertyChanged;
-    protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    
 }
 
-public class RelayCommand : ICommand
-{
-    private readonly Action<object> _execute;
-    private readonly Predicate<object> _canExecute;
 
-    public RelayCommand(Action<object> execute, Predicate<object> canExecute = null)
-    {
-        _execute = execute;
-        _canExecute = canExecute;
-    }
-
-    public bool CanExecute(object parameter) => _canExecute?.Invoke(parameter) ?? true;
-    public void Execute(object parameter) => _execute(parameter);
-    public event EventHandler CanExecuteChanged;
-    public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
-}
