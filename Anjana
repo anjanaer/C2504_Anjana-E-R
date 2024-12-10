@@ -2082,6 +2082,53 @@ namespace ExcelProject.ViewModel
 }
 
 
+private void ApplyFilter()
+{
+    // Check if a filter is selected
+    if (string.IsNullOrEmpty(SelectedFilter)) return;
+
+    // Get selected filter values
+    List<string> selectedValues = new List<string>();
+    foreach (var filter in FilterValues)
+    {
+        if (filter.IsSelected)
+        {
+            selectedValues.Add(filter.Value);
+        }
+    }
+
+    // Check if there are any selected values
+    if (selectedValues.Count > 0)
+    {
+        // Create a new ObservableCollection for filtered data
+        ObservableCollection<ExcelData> filteredData = new ObservableCollection<ExcelData>();
+
+        // Filter the data based on the selected values
+        foreach (var dataItem in Data)
+        {
+            // Get the value of the property specified by SelectedFilter
+            var propertyValue = dataItem.GetType().GetProperty(SelectedFilter)?.GetValue(dataItem)?.ToString();
+
+            // Check if the property value is in the selected values
+            if (selectedValues.Contains(propertyValue))
+            {
+                filteredData.Add(dataItem);
+            }
+        }
+
+        // Assign the filtered data to FilteredData
+        FilteredData = filteredData;
+        IsFilterApplied = true;
+    }
+    else
+    {
+        // If no filter values are selected, reset to original data
+        FilteredData = new ObservableCollection<ExcelData>(Data);
+        IsFilterApplied = false;
+    }
+}
+
+
 
 
 
