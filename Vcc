@@ -35,3 +35,31 @@ IsChecked="{Binding IsAllChecked, Mode=TwoWay}" Margin="10"/>
               </ItemsControl>
           </WrapPanel>
       </StackPanel>without changing the binding values of the above code
+
+
+
+<StackPanel Orientation="Horizontal" Margin="10">
+    <TextBlock Text="Modules: " VerticalAlignment="Center" Width="70"/>
+    <WrapPanel Orientation="Horizontal" Width="300">
+        <!-- Select All Checkbox -->
+        <CheckBox x:Name="FilterValues" Content="Select All" 
+                  IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" Margin="10"/>
+        
+        <!-- Dynamic Checkbox Filters -->
+        <ItemsControl ItemsSource="{Binding FilterValues}" Margin="0 0 0 0">
+            <ItemsControl.ItemsPanel>
+                <!-- Use WrapPanel for dynamic layout -->
+                <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <CheckBox Margin="10 0 0 0" Content="{Binding Value}" 
+                              IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </WrapPanel>
+</StackPanel>
+
