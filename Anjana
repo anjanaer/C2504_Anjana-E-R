@@ -1474,6 +1474,31 @@ private void LoadFilterValues()
 }
 
 
+private void ApplyFilter()
+{
+    if (string.IsNullOrEmpty(SelectedFilter)) return;
+
+    // Get selected filter values
+    var selectedValues = FilterValues.Where(f => f.IsSelected).Select(f => f.Value).ToList();
+
+    if (selectedValues.Any())
+    {
+        // Filter the data based on the selected values
+        FilteredData = new ObservableCollection<ExcelData>(
+            Data.Where(d => selectedValues.Contains(d.GetType().GetProperty(SelectedFilter)?.GetValue(d)?.ToString()))
+        );
+        IsFilterApplied = true;
+    }
+    else
+    {
+        // If no filter values are selected, reset to original data
+        FilteredData = new ObservableCollection<ExcelData>(Data);
+        IsFilterApplied = false;
+    }
+}
+
+
+
 
 
 
