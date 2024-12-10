@@ -1462,6 +1462,16 @@ namespace ExcelProject.ExcelRepo
     }
 }
 
+private void LoadFilterValues()
+{
+    // Get column data as strings
+    var columnData = BugTrackerDatas.GetColumnData(selectedFilter, Data);
+
+    // Convert to FilterItem objects
+    FilterValues = new ObservableCollection<FilterItem>(
+        columnData.Select(value => new FilterItem { Value = value, IsSelected = false })
+    );
+}
 
 
 
