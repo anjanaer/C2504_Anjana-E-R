@@ -355,6 +355,27 @@ namespace ExcelProject.ViewModel
 
 Give the code for reset filter
 
+public void ResetFilter()
+{
+    // Clear the selection in FilterValues
+    foreach (var filter in FilterValues)
+    {
+        filter.IsSelected = false;
+    }
+
+    // Reset the FilteredData to the original Data
+    FilteredData = new ObservableCollection<ExcelData>(Data);
+
+    // Indicate that the filter is no longer applied
+    IsFilterApplied = false;
+
+    // Notify that FilterValues and FilteredData have changed
+    OnPropertyChanged(nameof(FilterValues));
+    OnPropertyChanged(nameof(FilteredData));
+}
+
+
+
 
 
 
