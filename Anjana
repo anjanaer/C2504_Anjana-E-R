@@ -1118,6 +1118,65 @@ public class MainViewModel : INotifyPropertyChanged
     protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
 
+--------------***
+private void ImportFilter()
+{
+    var dialog = new OpenFileDialog
+    {
+        Filter = "XML Files (*.xml)|*.xml"
+    };
+
+    if (dialog.ShowDialog() == true)
+    {
+        var filePath = dialog.FileName;
+
+        // Deserialize XML to filter conditions
+        var serializer = new XmlSerializer(typeof(List<FilterItem>));
+        using (var reader = new StreamReader(filePath))
+        {
+            var importedFilters = (List<FilterItem>)serializer.Deserialize(reader);
+            FilterValues = new ObservableCollection<FilterItem>(importedFilters);
+        }
+
+        // Update the "Select All" checkbox based on imported data
+        IsSelectAllChecked = FilterValues.All(filter => filter.IsSelected);
+    }
+}
+
+private void ExportFilter()
+{
+    var dialog = new SaveFileDialog
+    {
+        Filter = "XML Files (*.xml)|*.xml"
+    };
+
+    if (dialog.ShowDialog() == true)
+    {
+        var filePath = dialog.FileName;
+
+        // Serialize filter conditions to XML
+        var serializer = new XmlSerializer(typeof(List<FilterItem>));
+        using (var writer = new StreamWriter(filePath))
+        {
+            serializer.Serialize(writer, FilterValues.ToList());
+        }
+    }
+}
+
+
+// Commands
+public ICommand ImportFilterCommand { get; }
+public ICommand ExportFilterCommand { get; }
+
+// Constructor
+public YourViewModel()
+{
+    ImportFilterCommand = new RelayCommand(ImportFilter);
+    ExportFilterCommand = new RelayCommand(ExportFilter);
+}
+
+
+
 
 
 
