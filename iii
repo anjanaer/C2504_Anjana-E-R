@@ -15,18 +15,37 @@ namespace YourNamespace
     /// </summary>
     public class MainViewModel : INotifyPropertyChanged
     {
-        private string _selectedFilter;
-        private ObservableCollection<ExcelData> _data;
-        private ObservableCollection<ExcelData> _filteredData;
-        private ObservableCollection<FilterItem> _filterValues;
-        private bool _isSelectAllChecked;
+        // Private fields
+private string _selectedFilter; 
+// Stores the name of the selected filter column.
 
-        // Commands
-        public ICommand LoadCommand { get; }
-        public ICommand ShowDialogCommand { get; }
-        public ICommand CloseCommand { get; }
-        public ICommand ApplyFilterCommand { get; }
-        public ICommand ResetFilterCommand { get; }
+private ObservableCollection<ExcelData> _data; 
+// Holds the entire collection of Excel data loaded from the file.
+
+private ObservableCollection<ExcelData> _filteredData; 
+// Contains the filtered data based on the applied filters.
+
+private ObservableCollection<FilterItem> _filterValues; 
+// Stores the unique filter values (e.g., column values) for the selected filter column.
+
+private bool _isSelectAllChecked; 
+// Indicates whether the "Select All" checkbox in the filter list is checked.
+
+// Commands
+public ICommand LoadCommand { get; }
+// Command to load data from the selected Excel file.
+
+public ICommand ShowDialogCommand { get; }
+// Command to open a file dialog for selecting an Excel file.
+
+public ICommand CloseCommand { get; }
+// Command to close the application or the current view.
+
+public ICommand ApplyFilterCommand { get; }
+// Command to apply the selected filter conditions to the data.
+
+public ICommand ResetFilterCommand { get; }
+// Command to reset all filter conditions and clear any applied filters.
 
         /// <summary>
         /// Gets or sets the collection of Excel data.
