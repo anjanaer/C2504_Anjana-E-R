@@ -396,6 +396,242 @@ namespace ExcelProject.ViewModel
 Based on this Xaml and Viewmodel how the selectall button works using checked and unchecked the requirement is by clicking the selectall select all the filervalues checkboxes and and also again clickin it deselectit
 
 
+public class MainViewModel : INotifyPropertyChanged
+{
+    private bool isSelectAllChecked;
+
+    /// <summary>
+    /// Property to bind the "Select All" CheckBox.
+    /// </summary>
+    public bool IsSelectAllChecked
+    {
+        get => isSelectAllChecked;
+        set
+        {
+            if (isSelectAllChecked != value)
+            {
+                isSelectAllChecked = value;
+                OnPropertyChanged(nameof(IsSelectAllChecked));
+                SelectAllFilters(value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Selects or deselects all filter items based on the "Select All" checkbox state.
+    /// </summary>
+    /// <param name="selectAll">True to select all, false to deselect all.</param>
+    private void SelectAllFilters(bool selectAll)
+    {
+        if (FilterValues == null) return;
+
+        foreach (var filter in FilterValues)
+        {
+            filter.IsSelected = selectAll;
+        }
+
+        OnPropertyChanged(nameof(FilterValues));
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Windows;
+using System.Windows.Input;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+using Microsoft.Win32;
+
+namespace ExcelProject.ViewModel
+{
+    public class MainViewModel : INotifyPropertyChanged
+    {
+        // Fields and Properties
+        private ObservableCollection<ExcelData> _data;
+        private ObservableCollection<ExcelData> _filteredData;
+        private string _filePath;
+        private string selectedFilter;
+        private ObservableCollection<FilterItem> filterValues;
+        private bool isSelectAllChecked;
+
+        private readonly IRepo _repository;
+
+        public MainViewModel()
+        {
+            _repository = new ExcelRepository();
+            
+            // Commands
+            ShowDialogCommand = new RelayCommand(ShowDialog);
+            LoadCommand = new RelayCommand(LoadData);
+            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+            ApplyFilterCommand = new RelayCommand(ApplyFilter);
+            ResetFilterCommand = new RelayCommand(ResetFilter);
+
+            // Initialize Collections
+            ColumnFilters = new ObservableCollection<string>(BugTrackerDatas.ColumnNames);
+            ColumnNames = new ObservableCollection<string>();
+            FilteredData = new ObservableCollection<ExcelData>();
+            filterValues = new ObservableCollection<FilterItem>();
+        }
+
+        public ObservableCollection<ExcelData> Data
+        {
+            get => _data;
+            set { _data = value; OnPropertyChanged(nameof(Data)); }
+        }
+
+        public ObservableCollection<ExcelData> FilteredData
+        {
+            get => _filteredData;
+            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+        }
+
+        public string FilePath
+        {
+            get => _filePath;
+            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
+        }
+
+        public string SelectedFilter
+        {
+            get => selectedFilter;
+            set
+            {
+                selectedFilter = value;
+                LoadFilterValues();
+                OnPropertyChanged(nameof(SelectedFilter));
+            }
+        }
+
+        public ObservableCollection<string> ColumnFilters { get; set; }
+        public ObservableCollection<string> ColumnNames { get; set; }
+
+        public ObservableCollection<FilterItem> FilterValues
+        {
+            get => filterValues;
+            set
+            {
+                filterValues = value;
+                OnPropertyChanged(nameof(FilterValues));
+            }
+        }
+
+        public bool IsSelectAllChecked
+        {
+            get => isSelectAllChecked;
+            set
+            {
+                isSelectAllChecked = value;
+                SelectAllFilters(isSelectAllChecked);
+                OnPropertyChanged(nameof(IsSelectAllChecked));
+            }
+        }
+
+        public ICommand LoadCommand { get; }
+        public ICommand ShowDialogCommand { get; }
+        public ICommand CloseCommand { get; }
+        public ICommand ApplyFilterCommand { get; }
+        public ICommand ResetFilterCommand { get; }
+
+        // Methods
+        public void ShowDialog()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Excel Files (*.xlsx)|*.xlsx"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                FilePath = dialog.FileName;
+            }
+        }
+
+        private void LoadData()
+        {
+            if (!string.IsNullOrEmpty(FilePath))
+            {
+                var data = _repository.ReadExcelFile(FilePath);
+                Data = new ObservableCollection<ExcelData>(data);
+                FilteredData = new ObservableCollection<ExcelData>(data); // Initially, no filter is applied
+                LoadFilterValues();
+            }
+        }
+
+        private void LoadFilterValues()
+        {
+            if (string.IsNullOrEmpty(SelectedFilter)) return;
+
+            // Get column data as strings
+            var columnData = BugTrackerDatas.GetColumnData(SelectedFilter, Data);
+
+            // Convert to FilterItem objects
+            FilterValues = new ObservableCollection<FilterItem>(
+                columnData.Select(value => new FilterItem { Value = value, IsSelected = false })
+            );
+
+            // Reset the Select All checkbox when loading filter values
+            IsSelectAllChecked = false;
+        }
+
+        private void ApplyFilter()
+        {
+            if (string.IsNullOrEmpty(SelectedFilter)) return;
+
+            var selectedValues = FilterValues
+                .Where(filter => filter.IsSelected)
+                .Select(filter => filter.Value)
+                .ToList();
+
+            if (selectedValues.Count > 0)
+            {
+                FilteredData = new ObservableCollection<ExcelData>(
+                    Data.Where(dataItem =>
+                    {
+                        var propertyValue = dataItem.GetType().GetProperty(SelectedFilter)?.GetValue(dataItem)?.ToString();
+                        return selectedValues.Contains(propertyValue);
+                    })
+                );
+            }
+            else
+            {
+                // If no filter values are selected, reset to original data
+                FilteredData = new ObservableCollection<ExcelData>(Data);
+            }
+        }
+
+        private void ResetFilter()
+        {
+            foreach (var filter in FilterValues)
+            {
+                filter.IsSelected = false;
+            }
+
+            FilteredData = new ObservableCollection<ExcelData>(Data);
+            IsSelectAllChecked = false;
+        }
+
+        private void SelectAllFilters(bool selectAll)
+        {
+            foreach (var filter in FilterValues)
+            {
+                filter.IsSelected = selectAll;
+            }
+
+            OnPropertyChanged(nameof(FilterValues));
+        }
+
+        // INotifyPropertyChanged Implementation
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+
 
 
 
