@@ -1,65 +1,356 @@
-          <!-- Select All Checkbox -->
-          <CheckBox x:Name="FilterValues" Content="Select All" 
-IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
-      />
-          <!-- Dynamic Checkbox Filters -->
-          <ListBox ItemsSource="{Binding FilterValues}" Height="100">
-              <ListBox.ItemTemplate>
-                  <DataTemplate>
-                      <CheckBox Content="{Binding Value}" IsChecked="{Binding IsSelected, Mode=TwoWay}" />
-                           
-                  </DataTemplate>
-              </ListBox.ItemTemplate>
-          </ListBox>
-change the above code like below code
-      <StackPanel Orientation="Horizontal" Margin="10">
-          <TextBlock Text="Modules: " VerticalAlignment="Center" Width="70"/>
-          <WrapPanel Orientation="Horizontal" Width="300">
-              <CheckBox x:Name="Modules" Content="Select All" 
-IsChecked="{Binding IsAllChecked, Mode=TwoWay}" Margin="10"/>
-              <ItemsControl ItemsSource="{Binding Modules}" Margin="0 0 0 0">
-                  <ItemsControl.ItemsPanel>
-                      <!-- Set WrapPanel as the panel for ItemsControl items -->
-                      <ItemsPanelTemplate>
-                          <WrapPanel Orientation="Horizontal"/>
-                      </ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                      <DataTemplate>
-                          <CheckBox Margin="10 0 0 0" Content="{Binding Name}" 
-            IsChecked="{Binding IsChecked, Mode=TwoWay}" 
-            Checked="ModulesChecked"
-            Unchecked="ModulesUnchecked"/>
-                      </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-              </ItemsControl>
-          </WrapPanel>
-      </StackPanel>without changing the binding values of the above code
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+using ExcelProject.ExcelRepo;
+using Microsoft.Win32;
+using System.IO;
+using DocumentFormat.OpenXml.Office2021.Excel.NamedSheetViews;
+using System.Runtime.InteropServices;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using System.Reflection;
+using System.Xml.Serialization;
+
+namespace ExcelProject.ViewModel
+{
+    /// <summary>
+    /// Main ViewModel class that implements the MVVM pattern.
+    /// </summary>
+    public class MainViewModel : INotifyPropertyChanged
+    {
+        // Fields and Properties
+        private ObservableCollection<ExcelData> _data;
+        private ObservableCollection<ExcelData> _filteredData;
+        private string _filePath;
+        private string selectedFilter;
+        private ObservableCollection<FilterItem> filterValues;
+        private bool isSelectAllChecked;
+        private readonly IRepo _repository;
+        public bool IsFilterApplied { get; private set; }
+
+        public MainViewModel()
+        {
+            _repository = new ExcelRepository();
+
+            // Commands
+            ShowDialogCommand = new RelayCommand(ShowDialog);
+            LoadCommand = new RelayCommand(LoadData);
+            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+            ApplyFilterCommand = new RelayCommand(ApplyFilter);
+            ResetFilterCommand = new RelayCommand(ResetFilter);
+            ImportFilterCommand = new RelayCommand(ImportFilter());
+            ExportFilterCommand = new RelayCommand(ExportFilter());
+
+  
+
+
+        // Initialize Collections
+            ColumnFilters = new ObservableCollection<string>(BugTrackerDatas.ColumnNames);
+            ColumnNames = new ObservableCollection<string>();
+            FilteredData = new ObservableCollection<ExcelData>();
+            FilterValues = new ObservableCollection<FilterItem>();
+        }
+
+        /// <summary>
+        /// Gets or sets the collection of Excel data.
+        /// </summary>
+        public ObservableCollection<ExcelData> Data
+        {
+            get => _data;
+            set { _data = value; OnPropertyChanged(nameof(Data)); }
+        }
+
+        /// <summary>
+        /// Gets or sets the filtered collection of Excel data.
+        /// </summary>
+        public ObservableCollection<ExcelData> FilteredData
+        {
+            get => _filteredData;
+            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+        }
+
+        /// <summary>
+        /// Gets or sets the file path.
+        /// </summary>
+        public string FilePath
+        {
+            get => _filePath;
+            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
+        }
+
+        /// <summary>
+        /// Gets or sets the selected filter column.
+        /// </summary>
+        public string SelectedFilter
+        {
+            get => selectedFilter;
+            set
+            {
+                selectedFilter = value;
+                LoadFilterValues();
+                OnPropertyChanged(nameof(SelectedFilter));
+            }
+        }
+
+        public ObservableCollection<string> ColumnFilters { get; set; }
+        public ObservableCollection<string> ColumnNames { get; set; }
+
+        /// <summary>
+        /// Gets or sets the filter values available for the selected filter column.
+        /// </summary>
+        public ObservableCollection<FilterItem> FilterValues
+        {
+            get
+            {
+                return filterValues;
+            }
+            set
+            {
+                filterValues = value;
+                OnPropertyChanged(nameof(FilterValues));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the "Select All" checkbox is checked.
+        /// </summary>
+        public bool IsSelectAllChecked
+        {
+            get
+            {
+               return isSelectAllChecked;
+            }
+            set
+            {
+                isSelectAllChecked = value;
+                SelectAllFilters(isSelectAllChecked);
+                OnPropertyChanged(nameof(IsSelectAllChecked));
+            }
+        }
+
+        // Command to load data from the selected Excel file.
+        public ICommand LoadCommand { get; }
+
+        // Command to open a file dialog for selecting an Excel file.
+        public ICommand ShowDialogCommand { get; }
+
+        // Command to close the application or the current view.
+        public ICommand CloseCommand { get; }
+
+        // Command to apply the selected filter conditions to the data.
+        public ICommand ApplyFilterCommand { get; }
+
+        // Command to reset all filter conditions and clear any applied filters.
+        public ICommand ResetFilterCommand { get; }
+        public ICommand ImportFilterCommand { get; }
+        public ICommand ExportFilterCommand { get; }
+
+        /// <summary>
+        /// Opens a file dialog for selecting an Excel file.
+        /// </summary>
+        public void ShowDialog()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Excel Files (*.xlsx)|*.xlsx"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                FilePath = dialog.FileName;
+            }
+        }
+
+        /// <summary>
+        /// Loads data from the selected Excel file.
+        /// </summary>
+        private void LoadData()
+        {
+            if (!string.IsNullOrEmpty(FilePath))
+            {
+                var data = _repository.ReadExcelFile(FilePath);
+                Data = new ObservableCollection<ExcelData>(data);
+                FilteredData = new ObservableCollection<ExcelData>(data); // Initially, no filter is applied
+                LoadFilterValues();
+            }
+        }
+
+        /// <summary>
+        /// Loads unique filter values for the selected column.
+        /// </summary>
+        private void LoadFilterValues()
+        {
+            if (string.IsNullOrEmpty(SelectedFilter)) return;
+
+            // Get column data as strings
+            var columnData = BugTrackerDatas.GetColumnData(SelectedFilter, Data);
+
+            // Convert to FilterItem objects
+            FilterValues = new ObservableCollection<FilterItem>(
+                columnData.Select(value => new FilterItem { Value = value, IsSelected = false })
+            );
+
+            // Reset the Select All checkbox when loading filter values
+            IsSelectAllChecked = false;
+        }
+
+        /// <summary>
+        /// Applies filters based on user-selected criteria.
+        /// </summary>
+        private void ApplyFilter()
+        {    // Check if a filter is selected
+            if (string.IsNullOrEmpty(SelectedFilter)) return;
+
+            // Get selected filter values
+            List<string> selectedValues = new List<string>();
+            foreach (var filter in FilterValues)
+            {
+                if (filter.IsSelected)
+                {
+                    selectedValues.Add(filter.Value);
+                }
+            }
+
+            // Check if there are any selected values
+            if (selectedValues.Count > 0)
+            {
+                // Create a new ObservableCollection for filtered data
+                ObservableCollection<ExcelData> filteredData = new ObservableCollection<ExcelData>();
+
+                // Filter the data based on the selected values
+                foreach (var dataItem in Data)
+                {
+                    // Get the value of the property specified by SelectedFilter
+                    var propertyValue = dataItem.GetType().GetProperty(SelectedFilter)?.GetValue(dataItem)?.ToString();
+
+                    // Check if the property value is in the selected values
+                    if (selectedValues.Contains(propertyValue))
+                    {
+                        filteredData.Add(dataItem);
+                    }
+                }
+
+                // Assign the filtered data to FilteredData
+                FilteredData = filteredData;
+                IsFilterApplied = true;
+            }
+            else
+            {
+                // If no filter values are selected, reset to original data
+                FilteredData = new ObservableCollection<ExcelData>(Data);
+                IsFilterApplied = false;
+            }
+        }
+
+        /// <summary>
+        /// Resets all filters and clears filtered data.
+        /// </summary>
+        private void ResetFilter()
+        {
+            foreach (var filter in FilterValues)
+            {
+                filter.IsSelected = false;
+            }
+
+            FilteredData = new ObservableCollection<ExcelData>(Data);
+            IsSelectAllChecked = false;
+        }
+
+        /// <summary>
+        /// Selects or deselects all filter items.
+        /// </summary>
+        /// <param name="selectAll">True to select all; false to deselect all.</param>
+        private void SelectAllFilters(bool selectAll)
+        {
+            foreach (var filter in FilterValues)
+            {
+                filter.IsSelected = selectAll;
+            }
+
+            OnPropertyChanged(nameof(FilterValues));
+        }
+        private void ImportFilter()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "XML Files (*.xml)|*.xml"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                var filePath = dialog.FileName;
+
+                // Deserialize XML to filter conditions
+                var serializer = new XmlSerializer(typeof(List<FilterItem>));
+                using (var reader = new StreamReader(filePath))
+                {
+                    var importedFilters = (List<FilterItem>)serializer.Deserialize(reader);
+                    FilterValues = new ObservableCollection<FilterItem>(importedFilters);
+                }
+
+                // Update the "Select All" checkbox based on imported data
+                IsSelectAllChecked = FilterValues.All(filter => filter.IsSelected);
+            }
+        }
+
+        private void ExportFilter()
+        {
+            var dialog = new SaveFileDialog
+            {
+                Filter = "XML Files (*.xml)|*.xml"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                var filePath = dialog.FileName;
+
+                // Serialize filter conditions to XML
+                var serializer = new XmlSerializer(typeof(List<FilterItem>));
+                using (var writer = new StreamWriter(filePath))
+                {
+                    serializer.Serialize(writer, FilterValues.ToList());
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Occurs when a property value changes.
+        /// </summary>
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Invokes the PropertyChanged event for the specified property name.
+        /// </summary>
+        /// <param name="propertyName">The name of the property that changed.</param>
+        protected virtual void OnPropertyChanged(string propertyName) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+
+}
+
+What is the reason for the error in this code and solve
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS1503	Argument 1: cannot convert from 'void' to 'System.Action'	ExcelProject	C:\Users\2021508\source\repos\ExcelProject\ExcelProject\ViewModel\MainViewModel.cs	48	
 
 
 
-<StackPanel Orientation="Horizontal" Margin="10">
-    <TextBlock Text="Modules: " VerticalAlignment="Center" Width="70"/>
-    <WrapPanel Orientation="Horizontal" Width="300">
-        <!-- Select All Checkbox -->
-        <CheckBox x:Name="FilterValues" Content="Select All" 
-                  IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" Margin="10"/>
-        
-        <!-- Dynamic Checkbox Filters -->
-        <ItemsControl ItemsSource="{Binding FilterValues}" Margin="0 0 0 0">
-            <ItemsControl.ItemsPanel>
-                <!-- Use WrapPanel for dynamic layout -->
-                <ItemsPanelTemplate>
-                    <WrapPanel Orientation="Horizontal"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <CheckBox Margin="10 0 0 0" Content="{Binding Value}" 
-                              IsChecked="{Binding IsSelected, Mode=TwoWay}" />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </WrapPanel>
-</StackPanel>
+
+
+
+
+
+
+
+
+
 
