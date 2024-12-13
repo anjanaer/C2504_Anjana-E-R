@@ -1,62 +1,210 @@
-/// <summary>
-/// Retrieves column names from the Excel file.
-/// </summary>
-/// <param name="filePath">The path of the Excel file.</param>
-/// <returns>A list of column names from the Excel file.</returns>
-public List<string> GetColumnNames(string filePath)
-{
-    var columnNames = new List<string>();
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Input;
+using Microsoft.Win32;
 
-    if (File.Exists(filePath))
+namespace ExcelProject
+{
+    /// <summary>
+    /// ViewModel for the main application logic.
+    /// </summary>
+    public class MainViewModel : INotifyPropertyChanged
     {
-        using (var workbook = new XLWorkbook(filePath))
+        // Fields and Properties
+        private ObservableCollection<ExcelData> _data;
+        private ObservableCollection<ExcelData> _filteredData;
+        private string _filePath;
+        private string _selectedFilter;
+        private ObservableCollection<FilterItem> _filterValues;
+        private bool _isSelectAllChecked;
+
+        private readonly IRepo _repository;
+
+        public MainViewModel()
         {
-            var worksheet = workbook.Worksheet(1); // Read the first worksheet
-            var headerRow = worksheet.FirstRowUsed(); // Get the header row
-            foreach (var cell in headerRow.Cells())
+            _repository = new ExcelRepository();
+
+            // Commands
+            ShowDialogCommand = new RelayCommand(ShowDialog);
+            LoadCommand = new RelayCommand(LoadData);
+            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+            ApplyFilterCommand = new RelayCommand(ApplyFilter);
+            ResetFilterCommand = new RelayCommand(ResetFilter);
+
+            // Initialize Collections
+            ColumnNames = new ObservableCollection<string>();
+            FilteredData = new ObservableCollection<ExcelData>();
+            FilterValues = new ObservableCollection<FilterItem>();
+        }
+
+        public ObservableCollection<ExcelData> Data
+        {
+            get => _data;
+            set { _data = value; OnPropertyChanged(nameof(Data)); }
+        }
+
+        public ObservableCollection<ExcelData> FilteredData
+        {
+            get => _filteredData;
+            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+        }
+
+        public string FilePath
+        {
+            get => _filePath;
+            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
+        }
+
+        public string SelectedFilter
+        {
+            get => _selectedFilter;
+            set
             {
-                columnNames.Add(cell.GetValue<string>());
+                _selectedFilter = value;
+                LoadFilterValues();
+                OnPropertyChanged(nameof(SelectedFilter));
             }
         }
+
+        public ObservableCollection<string> ColumnNames { get; set; }
+
+        public ObservableCollection<FilterItem> FilterValues
+        {
+            get => _filterValues;
+            set
+            {
+                _filterValues = value;
+                OnPropertyChanged(nameof(FilterValues));
+            }
+        }
+
+        public bool IsSelectAllChecked
+        {
+            get => _isSelectAllChecked;
+            set
+            {
+                _isSelectAllChecked = value;
+                SelectAllFilters(_isSelectAllChecked);
+                OnPropertyChanged(nameof(IsSelectAllChecked));
+            }
+        }
+
+        public ICommand LoadCommand { get; }
+        public ICommand ShowDialogCommand { get; }
+        public ICommand CloseCommand { get; }
+        public ICommand ApplyFilterCommand { get; }
+        public ICommand ResetFilterCommand { get; }
+
+        // Methods
+        private void ShowDialog()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Excel Files (*.xlsx)|*.xlsx"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                FilePath = dialog.FileName;
+            }
+        }
+
+        private void LoadData()
+        {
+            if (!string.IsNullOrEmpty(FilePath))
+            {
+                // Read data from Excel
+                var data = _repository.ReadExcelFile(FilePath);
+                Data = new ObservableCollection<ExcelData>(data);
+                FilteredData = new ObservableCollection<ExcelData>(data); // Initially, no filter is applied
+
+                // Read column names dynamically
+                var columnNames = _repository.GetColumnNames(FilePath);
+                ColumnNames = new ObservableCollection<string>(columnNames);
+
+                LoadFilterValues();
+            }
+        }
+
+        private void LoadFilterValues()
+        {
+            if (string.IsNullOrEmpty(SelectedFilter)) return;
+
+            // Get column data as strings
+            var columnData = Data
+                .Select(item =>
+                {
+                    var property = item.GetType().GetProperty(SelectedFilter);
+                    return property?.GetValue(item)?.ToString();
+                })
+                .Where(value => !string.IsNullOrEmpty(value))
+                .Distinct()
+                .OrderBy(value => value)
+                .ToList();
+
+            // Convert to FilterItem objects
+            FilterValues = new ObservableCollection<FilterItem>(
+                columnData.Select(value => new FilterItem { Value = value, IsSelected = false })
+            );
+
+            // Reset the Select All checkbox when loading filter values
+            IsSelectAllChecked = false;
+        }
+
+        private void ApplyFilter()
+        {
+            if (string.IsNullOrEmpty(SelectedFilter)) return;
+
+            var selectedValues = FilterValues
+                .Where(filter => filter.IsSelected)
+                .Select(filter => filter.Value)
+                .ToList();
+
+            if (selectedValues.Count > 0)
+            {
+                FilteredData = new ObservableCollection<ExcelData>(
+                    Data.Where(dataItem =>
+                    {
+                        var propertyValue = dataItem.GetType().GetProperty(SelectedFilter)?.GetValue(dataItem)?.ToString();
+                        return selectedValues.Contains(propertyValue);
+                    })
+                );
+            }
+            else
+            {
+                // If no filter values are selected, reset to original data
+                FilteredData = new ObservableCollection<ExcelData>(Data);
+            }
+        }
+
+        private void ResetFilter()
+        {
+            foreach (var filter in FilterValues)
+            {
+                filter.IsSelected = false;
+            }
+
+            FilteredData = new ObservableCollection<ExcelData>(Data);
+            IsSelectAllChecked = false;
+        }
+
+        private void SelectAllFilters(bool selectAll)
+        {
+            foreach (var filter in FilterValues)
+            {
+                filter.IsSelected = selectAll;
+            }
+
+            OnPropertyChanged(nameof(FilterValues));
+        }
+
+        // INotifyPropertyChanged Implementation
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
-
-    return columnNames;
 }
-
-
-
-private void LoadData()
-{
-    if (!string.IsNullOrEmpty(FilePath))
-    {
-        var data = _repository.ReadExcelFile(FilePath);
-        Data = new ObservableCollection<ExcelData>(data);
-        FilteredData = new ObservableCollection<ExcelData>(data);
-
-        // Load column names dynamically
-        var columnNames = _repository.GetColumnNames(FilePath);
-        ColumnNames = new ObservableCollection<string>(columnNames);
-
-        LoadFilterValues();
-    }
-}
-
-
-public MainViewModel()
-{
-    _repository = new ExcelRepository();
-
-    // Commands
-    ShowDialogCommand = new RelayCommand(ShowDialog);
-    LoadCommand = new RelayCommand(LoadData);
-    CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
-    ApplyFilterCommand = new RelayCommand(ApplyFilter);
-    ResetFilterCommand = new RelayCommand(ResetFilter);
-
-    // Initialize Collections
-    ColumnNames = new ObservableCollection<string>();
-    FilteredData = new ObservableCollection<ExcelData>();
-    filterValues = new ObservableCollection<FilterItem>();
-}
-
-
