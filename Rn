@@ -333,3 +333,47 @@ gggggggggggggggggggghhhhhbbbbbhhhkkkllllll
         </Grid>
     </Grid>
 </Window>
+
+<GroupBox Header="Filter Conditions" Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Margin="10">
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*" /> <!-- For the column filters -->
+            <ColumnDefinition Width="3*" /> <!-- For the filter values -->
+            <ColumnDefinition Width="2*" /> <!-- For the buttons -->
+        </Grid.ColumnDefinitions>
+
+        <!-- Column Filters -->
+        <ListBox Grid.Column="0" ItemsSource="{Binding ColumnFilters}" Height="150" SelectedItem="{Binding SelectedFilter}" Margin="5">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Filter Values with Checkboxes -->
+        <StackPanel Grid.Column="1" Orientation="Vertical" Margin="5">
+            <!-- Select All Checkbox -->
+            <CheckBox Content="Select All" IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" Margin="0,0,0,5" />
+            
+            <!-- Dynamic Filter Values -->
+            <ListBox ItemsSource="{Binding FilterValues}" Height="120">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <CheckBox Content="{Binding Value}" IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </StackPanel>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Center" Margin="5">
+            <Button Content="Apply Filter" Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ApplyFilterCommand}" />
+            <Button Content="Reset Filter" Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ResetFilterCommand}" />
+            <Button Content="Import Filter..." Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ImportFilterCommand}" />
+            <Button Content="Export Filter..." Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ExportFilterCommand}" />
+        </StackPanel>
+    </Grid>
+</GroupBox>
+
+
