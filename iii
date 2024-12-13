@@ -211,5 +211,78 @@ namespace ExcelProject
 Severity	Code	Description	Project	File	Line	Suppression State
 Error (active)	CS0116	A namespace cannot directly contain members such as fields, methods or statements	ExcelProject	C:\Users\2021508\source\repos\ExcelProject\ExcelProject\ExcelRepo\ExcelRepository.cs	95	
 
+
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using OfficeOpenXml;
+
+namespace ExcelProject
+{
+    /// <summary>
+    /// Repository for reading data from Excel files.
+    /// </summary>
+    public class ExcelRepository : IRepo
+    {
+        public ObservableCollection<ExcelData> ReadExcelFile(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+                throw new FileNotFoundException("The specified file was not found.");
+
+            var data = new ObservableCollection<ExcelData>();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Required for EPPlus
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            {
+                var worksheet = package.Workbook.Worksheets[0]; // First worksheet
+                int rowCount = worksheet.Dimension.Rows;
+
+                // Assuming the first row contains headers, start reading data from the second row
+                for (int row = 2; row <= rowCount; row++)
+                {
+                    var excelData = new ExcelData
+                    {
+                        Project = worksheet.Cells[row, 1].Text,
+                        Reporter = worksheet.Cells[row, 2].Text,
+                        Status = worksheet.Cells[row, 3].Text,
+                        Summary = worksheet.Cells[row, 4].Text,
+                        Resolution = worksheet.Cells[row, 5].Text,
+                        Responsibility = worksheet.Cells[row, 6].Text
+                    };
+
+                    data.Add(excelData);
+                }
+            }
+
+            return data;
+        }
+
+        public ObservableCollection<string> GetColumnNames(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+                throw new FileNotFoundException("The specified file was not found.");
+
+            var columnNames = new ObservableCollection<string>();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Required for EPPlus
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            {
+                var worksheet = package.Workbook.Worksheets[0]; // First worksheet
+                int columnCount = worksheet.Dimension.Columns;
+
+                for (int col = 1; col <= columnCount; col++)
+                {
+                    var header = worksheet.Cells[1, col].Text; // Assuming first row contains headers
+                    if (!string.IsNullOrEmpty(header))
+                        columnNames.Add(header);
+                }
+            }
+
+            return columnNames;
+        }
+    }
+}
+
+MB
 Severity	Code	Description	Project	File	Line	Suppression State
 Error (active)	CS1061	'IRepo' does not contain a definition for 'GetColumnNames' and no accessible extension method 'GetColumnNames' accepting a first argument of type 'IRepo' could be found (are you missing a using directive or an assembly reference?)	ExcelProject	C:\Users\2021508\source\repos\ExcelProject\ExcelProject\ViewModel\MainViewModel.cs	138	
