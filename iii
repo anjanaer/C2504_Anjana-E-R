@@ -208,3 +208,8 @@ namespace ExcelProject
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0116	A namespace cannot directly contain members such as fields, methods or statements	ExcelProject	C:\Users\2021508\source\repos\ExcelProject\ExcelProject\ExcelRepo\ExcelRepository.cs	95	
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS1061	'IRepo' does not contain a definition for 'GetColumnNames' and no accessible extension method 'GetColumnNames' accepting a first argument of type 'IRepo' could be found (are you missing a using directive or an assembly reference?)	ExcelProject	C:\Users\2021508\source\repos\ExcelProject\ExcelProject\ViewModel\MainViewModel.cs	138	
