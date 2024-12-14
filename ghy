@@ -551,6 +551,30 @@ public class MainViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
 
+private void ShowDialog()
+{
+    var dialog = new OpenFileDialog
+    {
+        Filter = "Excel Files (*.xlsx, *.xls)|*.xlsx;*.xls"
+    };
+
+    if (dialog.ShowDialog() == true)
+    {
+        FilePath = dialog.FileName;
+
+        // Check if the file has a valid Excel extension (.xlsx or .xls)
+        if (FilePath.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase) || FilePath.EndsWith(".xls", StringComparison.OrdinalIgnoreCase))
+        {
+            IsFileValid = true;
+            FileNameErrorMessage = string.Empty; // Clear any previous error message
+        }
+        else
+        {
+            IsFileValid = false;
+            FileNameErrorMessage = "The selected file is not a valid Excel file. Please select a .xlsx or .xls file.";
+        }
+    }
+}
 
 
 
