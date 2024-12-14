@@ -1,44 +1,204 @@
+<Window x:Class="ExcelProject.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ExcelProject"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" WindowState="Maximized">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Title Bar -->
+        <Border Background="Teal" Grid.Row="0" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" CornerRadius="5">
+            <TextBlock Text="Bug Tracker" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Margin="10,0,0,0" />
+        </Border>
+
+        <!-- Upload Section -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
+            <TextBlock Text="FileName: " VerticalAlignment="Center" Width="60" />
+            <TextBox Width="400" Height="30" Margin="10 0 0 0" Padding="4 4 4 4" IsEnabled="False" Text="{Binding FilePath}" />
+            <Button Content="..." Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding ShowDialogCommand}" />
+            <Button Content="Show Details" Width="100" Margin="10,0,0,0" Background="Teal" Command="{Binding LoadCommand}" />
+        </StackPanel>
+
+        <!-- Filter Conditions Section -->
+        <GroupBox Header="Filter Conditions" Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,10">
+            <Grid Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="Auto" />
+
+
+                </Grid.ColumnDefinitions>
+
+                <!-- Column Filters ListBox -->
+                <ListBox ItemsSource="{Binding ColumnFilters}" Height="230"  SelectedItem="{Binding SelectedColumnFilter}" Grid.Column="0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <StackPanel Grid.Column="1" Orientation="Vertical" >
+                    <!-- Select All Checkbox -->
+                    <CheckBox Content="Select All" 
+          IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
+          Command="{Binding SelectAllCommand}" Margin="0,0,0,10"  />
+                    <!-- Filter Values ListBox -->
+                    <ListBox ItemsSource="{Binding FilterValues}" Height="230" Grid.Column="1">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+
+
+                                <!-- Individual Filter Checkbox -->
+                                <CheckBox Content="{Binding Value}" 
+                          IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                </StackPanel>
+
+                <!-- Buttons -->
+                <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10" >
+                    <Button Content="Apply Filter" Width="150" Height="33" Margin="5" Background="Teal"  Command="{Binding ApplyFilterCommand}" />
+                    <Button Content="Reset Filter" Width="150" Height="22" Margin="5" Background="Teal" Command="{Binding ResetFilterCommand}" />
+                    <Button Content="Import Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ImportFilterCommand}" />
+                    <Button Content="Export Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ExportFilterCommand}" />
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <!-- DataGrid Section -->
+        <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True" RowHeight="30" >
+            <!-- Define Column Header Style -->
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="Teal" />
+                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                    <Setter Property="VerticalContentAlignment" Value="Center" />
+                    <Setter Property="Height" Value="20" />
+                    <Setter Property="MinWidth" Value="100" />
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+        </DataGrid>
+
+        <!-- Close Button -->
+        <Button Content="Close" Grid.Row="4" Background="Teal" Width="100" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
+    </Grid>
+</Window> 
+
 using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Input;
-using Microsoft.Win32;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using ExcelProject;
+using ExcelProject.ExcelRepo;
+using ExcelProject.Repo;
+using ExcelProject.ViewModel;
 
 namespace ExcelProject
 {
     /// <summary>
-    /// ViewModel for the main application logic.
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            DataContext = new MainViewModel(new ExcelRepository());
+
+        }
+   
+    }
+
+    
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+using ExcelProject.ExcelRepo;
+using Microsoft.Win32;
+using System.IO;
+using DocumentFormat.OpenXml.Office2021.Excel.NamedSheetViews;
+using System.Runtime.InteropServices;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using System.Reflection;
+using System.Xml.Serialization;
+using System.Data.Common;
+
+namespace ExcelProject.ViewModel
+{
+    /// <summary>
+    /// Main ViewModel class that implements the MVVM pattern.
     /// </summary>
     public class MainViewModel : INotifyPropertyChanged
     {
-        // Fields and Properties
+
         private ObservableCollection<ExcelData> _data;
         private ObservableCollection<ExcelData> _filteredData;
         private string _filePath;
-        private string _selectedFilter;
+        private string _selectedColumnFilter;
+        private ObservableCollection<string> _columnFilters;
         private ObservableCollection<FilterItem> _filterValues;
         private bool _isSelectAllChecked;
+        private bool _isFilterApplied;
 
-        private readonly IRepo _repository;
+        private readonly IRepo _repo;
 
-        public MainViewModel()
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public MainViewModel(IRepo repo)
         {
-            _repository = new ExcelRepository();
+            _repo = repo;
 
-            // Commands
-            ShowDialogCommand = new RelayCommand(ShowDialog);
+            // Initialize commands
             LoadCommand = new RelayCommand(LoadData);
-            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+            ShowDialogCommand = new RelayCommand(ShowDialog);
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
             ResetFilterCommand = new RelayCommand(ResetFilter);
+            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
 
-            // Initialize Collections
-            ColumnNames = new ObservableCollection<string>();
-            FilteredData = new ObservableCollection<ExcelData>();
+            // Initialize properties
+            ColumnFilters = new ObservableCollection<string>();
             FilterValues = new ObservableCollection<FilterItem>();
+            FilteredData = new ObservableCollection<ExcelData>();
+            _data = new ObservableCollection<ExcelData>();
         }
 
         public ObservableCollection<ExcelData> Data
@@ -59,27 +219,22 @@ namespace ExcelProject
             set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
         }
 
-        public string SelectedFilter
+        public string SelectedColumnFilter
         {
-            get => _selectedFilter;
-            set
-            {
-                _selectedFilter = value;
-                LoadFilterValues();
-                OnPropertyChanged(nameof(SelectedFilter));
-            }
+            get => _selectedColumnFilter;
+            set { _selectedColumnFilter = value; OnPropertyChanged(nameof(SelectedColumnFilter)); LoadFilterValues(); }
         }
 
-        public ObservableCollection<string> ColumnNames { get; set; }
+        public ObservableCollection<string> ColumnFilters
+        {
+            get => _columnFilters;
+            set { _columnFilters = value; OnPropertyChanged(nameof(ColumnFilters)); }
+        }
 
         public ObservableCollection<FilterItem> FilterValues
         {
             get => _filterValues;
-            set
-            {
-                _filterValues = value;
-                OnPropertyChanged(nameof(FilterValues));
-            }
+            set { _filterValues = value; OnPropertyChanged(nameof(FilterValues)); }
         }
 
         public bool IsSelectAllChecked
@@ -88,18 +243,23 @@ namespace ExcelProject
             set
             {
                 _isSelectAllChecked = value;
-                SelectAllFilters(_isSelectAllChecked);
                 OnPropertyChanged(nameof(IsSelectAllChecked));
+                SelectAllFilters(value);
             }
+        }
+
+        public bool IsFilterApplied
+        {
+            get => _isFilterApplied;
+            set { _isFilterApplied = value; OnPropertyChanged(nameof(IsFilterApplied)); }
         }
 
         public ICommand LoadCommand { get; }
         public ICommand ShowDialogCommand { get; }
-        public ICommand CloseCommand { get; }
         public ICommand ApplyFilterCommand { get; }
         public ICommand ResetFilterCommand { get; }
+        public ICommand CloseCommand { get; }
 
-        // Methods
         private void ShowDialog()
         {
             var dialog = new OpenFileDialog
@@ -117,67 +277,46 @@ namespace ExcelProject
         {
             if (!string.IsNullOrEmpty(FilePath))
             {
-                // Read data from Excel
-                var data = _repository.ReadExcelFile(FilePath);
-                Data = new ObservableCollection<ExcelData>(data);
-                FilteredData = new ObservableCollection<ExcelData>(data); // Initially, no filter is applied
+                var excelData = _repo.GetData(FilePath);
+                Data = new ObservableCollection<ExcelData>(excelData);
+                FilteredData = new ObservableCollection<ExcelData>(excelData);
 
-                // Read column names dynamically
-                var columnNames = _repository.GetColumnNames(FilePath);
-                ColumnNames = new ObservableCollection<string>(columnNames);
-
-                LoadFilterValues();
+                // Dynamically generate the column names from the first row
+                ColumnFilters = new ObservableCollection<string>(excelData.FirstOrDefault()?.GetType().GetProperties().Select(p => p.Name));
             }
         }
 
         private void LoadFilterValues()
         {
-            if (string.IsNullOrEmpty(SelectedFilter)) return;
+            if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
 
-            // Get column data as strings
-            var columnData = Data
-                .Select(item =>
-                {
-                    var property = item.GetType().GetProperty(SelectedFilter);
-                    return property?.GetValue(item)?.ToString();
-                })
-                .Where(value => !string.IsNullOrEmpty(value))
-                .Distinct()
-                .OrderBy(value => value)
-                .ToList();
-
-            // Convert to FilterItem objects
+            // Get distinct values from the selected column for the filter
             FilterValues = new ObservableCollection<FilterItem>(
-                columnData.Select(value => new FilterItem { Value = value, IsSelected = false })
+                Data.Select(row => row.GetType().GetProperty(SelectedColumnFilter).GetValue(row)?.ToString())
+                    .Distinct()
+                    .OrderBy(value => value)
+                    .Select(value => new FilterItem { Value = value, IsSelected = false })
             );
 
-            // Reset the Select All checkbox when loading filter values
             IsSelectAllChecked = false;
         }
 
         private void ApplyFilter()
         {
-            if (string.IsNullOrEmpty(SelectedFilter)) return;
+            if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
 
-            var selectedValues = FilterValues
-                .Where(filter => filter.IsSelected)
-                .Select(filter => filter.Value)
-                .ToList();
+            var selectedValues = FilterValues.Where(f => f.IsSelected).Select(f => f.Value).ToList();
 
-            if (selectedValues.Count > 0)
+            if (selectedValues.Any())
             {
-                FilteredData = new ObservableCollection<ExcelData>(
-                    Data.Where(dataItem =>
-                    {
-                        var propertyValue = dataItem.GetType().GetProperty(SelectedFilter)?.GetValue(dataItem)?.ToString();
-                        return selectedValues.Contains(propertyValue);
-                    })
-                );
+                var filteredData = _repo.ApplyFilter(Data.ToList(), SelectedColumnFilter, selectedValues);
+                FilteredData = new ObservableCollection<ExcelData>(filteredData);
+                IsFilterApplied = true;
             }
             else
             {
-                // If no filter values are selected, reset to original data
                 FilteredData = new ObservableCollection<ExcelData>(Data);
+                IsFilterApplied = false;
             }
         }
 
@@ -202,159 +341,358 @@ namespace ExcelProject
             OnPropertyChanged(nameof(FilterValues));
         }
 
-        // INotifyPropertyChanged Implementation
-        public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
 }
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0116	A namespace cannot directly contain members such as fields, methods or statements	ExcelProject	C:\Users\2021508\source\repos\ExcelProject\ExcelProject\ExcelRepo\ExcelRepository.cs	95	
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ExcelProject.Model;
+
+namespace ExcelProject.Repo
+{
+    public interface IRepo
+    {
+        List<ExcelData> GetData(string filePath);  // Get data from the Excel file
+        List<ExcelData> ApplyFilter(List<ExcelData> data, string column, List<string> selectedValues);  // Apply a filter to the data
+    }
+}
 
 
 using System;
-using System.Collections.ObjectModel;
-using System.IO;
-using OfficeOpenXml;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace ExcelProject
+namespace ExcelProject.Model
 {
-    /// <summary>
-    /// Repository for reading data from Excel files.
-    /// </summary>
-    public class ExcelRepository : IRepo
+    public class FilterItem : INotifyPropertyChanged
     {
-        public ObservableCollection<ExcelData> ReadExcelFile(string filePath)
+
+        private bool _isSelected;
+        public string Value { get; set; }
+
+        public bool IsSelected
         {
-            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
-                throw new FileNotFoundException("The specified file was not found.");
-
-            var data = new ObservableCollection<ExcelData>();
-
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Required for EPPlus
-            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            get => _isSelected;
+            set
             {
-                var worksheet = package.Workbook.Worksheets[0]; // First worksheet
-                int rowCount = worksheet.Dimension.Rows;
-
-                // Assuming the first row contains headers, start reading data from the second row
-                for (int row = 2; row <= rowCount; row++)
-                {
-                    var excelData = new ExcelData
-                    {
-                        Project = worksheet.Cells[row, 1].Text,
-                        Reporter = worksheet.Cells[row, 2].Text,
-                        Status = worksheet.Cells[row, 3].Text,
-                        Summary = worksheet.Cells[row, 4].Text,
-                        Resolution = worksheet.Cells[row, 5].Text,
-                        Responsibility = worksheet.Cells[row, 6].Text
-                    };
-
-                    data.Add(excelData);
-                }
+                _isSelected = value;
+                OnPropertyChanged(nameof(IsSelected));
             }
-
-            return data;
         }
 
-        public ObservableCollection<string> GetColumnNames(string filePath)
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
         {
-            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
-                throw new FileNotFoundException("The specified file was not found.");
-
-            var columnNames = new ObservableCollection<string>();
-
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Required for EPPlus
-            using (var package = new ExcelPackage(new FileInfo(filePath)))
-            {
-                var worksheet = package.Workbook.Worksheets[0]; // First worksheet
-                int columnCount = worksheet.Dimension.Columns;
-
-                for (int col = 1; col <= columnCount; col++)
-                {
-                    var header = worksheet.Cells[1, col].Text; // Assuming first row contains headers
-                    if (!string.IsNullOrEmpty(header))
-                        columnNames.Add(header);
-                }
-            }
-
-            return columnNames;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
 
-MB
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS1061	'IRepo' does not contain a definition for 'GetColumnNames' and no accessible extension method 'GetColumnNames' accepting a first argument of type 'IRepo' could be found (are you missing a using directive or an assembly reference?)	ExcelProject	C:\Users\2021508\source\repos\ExcelProject\ExcelProject\ViewModel\MainViewModel.cs	138	
 
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using DocumentFormat.OpenXml.Math;
 using System.IO;
-using OfficeOpenXml;
 
-namespace ExcelProject
+namespace ExcelProject.Model
+{
+    public class ExcelData
+    {
+        [ExcelColumn("Id")]
+        public string Id {  get; set; }
+
+        [ExcelColumn("Project")]
+        public string Project { get; set; }
+
+        [ExcelColumn("Reporter")]
+        public string Reporter { get; set; }
+
+        [ExcelColumn("Assigned To")]
+        public string AssignedTo { get; set; }
+
+        [ExcelColumn("Priority")]
+        public string Priority { get; set; }
+
+        [ExcelColumn("Severity")]
+        public string Severity { get; set; }
+
+        [ExcelColumn("Reproducibility")]
+        public string Reproducibility { get; set; }
+
+        [ExcelColumn("Product Version")]
+        public string ProductVersion { get; set; }
+
+        [ExcelColumn("Category")]
+        public string Category { get; set; }
+
+        [ExcelColumn("Date Submitted")]
+
+        public string DateSubmitted { get; set; }
+
+        [ExcelColumn("OS")]
+        public string OS { get; set; }
+
+        [ExcelColumn("OS Version")]
+        public string OSVersion { get; set; }
+
+        [ExcelColumn("Platform")]
+
+        public string Platform { get; set; }
+
+        [ExcelColumn("View Status")]
+        public string ViewStatus { get; set; }
+
+        [ExcelColumn("Updated")]
+        public string Updated { get; set; }
+
+        [ExcelColumn("Summary")]
+        public string Summary { get; set; }
+
+        [ExcelColumn("Status")]
+        public string Status { get; set; }
+
+        [ExcelColumn("Resolution")]
+        public string Resolution { get; set; }
+
+        [ExcelColumn("Fixed in Version")]
+        public string FixedInVersion { get; set; }
+
+        [ExcelColumn("Description")]
+        public string Description { get; set; }
+
+        [ExcelColumn("Steps To Reproduce")]
+        public string StepsToReproduce { get; set; }
+
+        [ExcelColumn("Code Owner")]
+
+        public string CodeOwner { get; set; }
+
+        [ExcelColumn("Date Resolved")]
+        public string DateResolved { get; set; }
+
+        [ExcelColumn("Defect Impact to User")]
+
+        public string DefectImpactToUser { get; set; }
+
+        [ExcelColumn("Defect Type")]
+        public string DefectType { get; set; }
+
+        [ExcelColumn("Iteration")]
+
+        public string Iteration { get; set; }
+
+        [ExcelColumn("Iteration (Data Manager)")]
+        public string IterationDataManager { get; set; }
+
+        [ExcelColumn("Iteration (XRD Measurement)")]
+        public string IterationXRDMeasurement { get; set; }
+
+        [ExcelColumn("Module")]
+        public string Module { get; set; }
+
+        [ExcelColumn("Module(Common Plugins)")]
+
+        public string ModuleCommonPlugins { get; set; }
+
+        [ExcelColumn("ODC Period")]
+
+        public string ODCPeriod { get; set; }
+
+        [ExcelColumn("Phase of Origin")]
+        public string PhaseOfOrigin { get; set; }
+
+        [ExcelColumn("Responsibility")]
+        public string Responsibility { get; set; }
+
+        [ExcelColumn("Test Case Id")]
+        public string TestCaseId { get; set; }
+
+        [ExcelColumn("Tested By")]
+        public string TestedBy { get; set; }
+
+        [ExcelColumn("Testing Level")]
+        public string TestingLevel { get; set; }
+
+        [ExcelColumn("Version")]
+        public string Version { get; set; }
+
+        [ExcelColumn("Iteration (Powder XRD)")]
+        public string IterationPowderXRD{ get; set; }
+
+        [ExcelColumn("Iteration (SmartFlex)")]
+        public string IterationSmartFlex { get; set; }
+
+        [ExcelColumn("")]
+
+        public string IterationDBBrowser { get; set; }
+
+        [ExcelColumn("Iteration(MDA)")]
+        public string IterationMDA { get; set; }
+
+        [ExcelColumn("Iteration(XRD DSC Analysis)")]
+
+        public string IterationXRDDSCAnalysis { get; set; }
+
+        [ExcelColumn("Scope")]
+
+        public string Scope { get; set; }
+
+        [ExcelColumn("Bug Analysis Status")]
+
+        public string BugAnalysisStatus { get; set; }
+ 
+
+
+    }
+
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ExcelProject.Model
 {
     /// <summary>
-    /// Repository for reading data from Excel files.
+    /// Custom attribute to map Excel column names to C# properties.
     /// </summary>
-    public class ExcelRepository : IRepo
+    [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+    public sealed class ExcelColumnAttribute : Attribute
     {
-        public ObservableCollection<ExcelData> ReadExcelFile(string filePath)
+        /// <summary>
+        /// Gets the name of the Excel column that this property corresponds to.
+        /// </summary>
+        public string ColumnName { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExcelColumnAttribute"/> class with the specified Excel column name.
+        /// </summary>
+        /// <param name="columnName">The name of the Excel column to map to the property.</param>
+        public ExcelColumnAttribute(string columnName)
         {
-            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
-                throw new FileNotFoundException("The specified file was not found.");
-
-            var data = new ObservableCollection<ExcelData>();
-
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Required for EPPlus
-            using (var package = new ExcelPackage(new FileInfo(filePath)))
-            {
-                var worksheet = package.Workbook.Worksheets[0]; // First worksheet
-                int rowCount = worksheet.Dimension.Rows;
-
-                // Assuming the first row contains headers, start reading data from the second row
-                for (int row = 2; row <= rowCount; row++)
-                {
-                    var excelData = new ExcelData
-                    {
-                        Project = worksheet.Cells[row, 1].Text,
-                        Reporter = worksheet.Cells[row, 2].Text,
-                        Status = worksheet.Cells[row, 3].Text,
-                        Summary = worksheet.Cells[row, 4].Text,
-                        Resolution = worksheet.Cells[row, 5].Text,
-                        Responsibility = worksheet.Cells[row, 6].Text
-                    };
-
-                    data.Add(excelData);
-                }
-            }
-
-            return data;
-        }
-
-        public ObservableCollection<string> GetColumnNames(string filePath)
-        {
-            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
-                throw new FileNotFoundException("The specified file was not found.");
-
-            var columnNames = new ObservableCollection<string>();
-
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Required for EPPlus
-            using (var package = new ExcelPackage(new FileInfo(filePath)))
-            {
-                var worksheet = package.Workbook.Worksheets[0]; // First worksheet
-                int columnCount = worksheet.Dimension.Columns;
-
-                for (int col = 1; col <= columnCount; col++)
-                {
-                    var header = worksheet.Cells[1, col].Text; // Assuming first row contains headers
-                    if (!string.IsNullOrEmpty(header))
-                        columnNames.Add(header);
-                }
-            }
-
-            return columnNames;
+            ColumnName = columnName;
         }
     }
 }
+
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+using ClosedXML.Excel;
+using OfficeOpenXml;
+using System.Reflection;
+
+
+namespace ExcelProject.ExcelRepo
+{
+    /// <summary>
+    /// Repository for handling Excel file operations.
+    /// </summary>
+    public class ExcelRepository : IRepo
+    {
+        public List<ExcelData> GetData(string filePath)
+        {
+            var result = new List<ExcelData>();
+
+            // Open the Excel file using EPPlus
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            {
+                var worksheet = package.Workbook.Worksheets[0];  // Get the first worksheet
+
+                // Read the header row (column names)
+                var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.End.Column]
+                    .Select(cell => cell.Text).ToList();
+
+                // Read each row of data starting from the second row
+                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                {
+                    var rowData = new ExcelData();
+
+                    // Map columns from Excel to the ExcelData object
+                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
+                    {
+                        var columnName = headerRow[col - 1];  // Get the column name from header row
+
+                        // Find the property in the ExcelData class that matches the Excel column name
+                        var property = rowData.GetType().GetProperties()
+                            .FirstOrDefault(p => p.GetCustomAttribute<ExcelColumnAttribute>()?.ColumnName == columnName);
+
+                        if (property != null)
+                        {
+                            // Set the value of the property using reflection
+                            property.SetValue(rowData, worksheet.Cells[row, col].Text);
+                        }
+                    }
+
+                    result.Add(rowData);
+                }
+            }
+
+            return result;
+        }
+
+        public List<ExcelData> ApplyFilter(List<ExcelData> data, string column, List<string> selectedValues)
+        {
+            if (selectedValues == null || !selectedValues.Any())
+                return data;
+
+            return data.Where(row =>
+            {
+                var property = row.GetType().GetProperty(column);
+                if (property != null)
+                {
+                    var value = property.GetValue(row)?.ToString();
+                    return selectedValues.Contains(value);
+                }
+                return false;
+            }).ToList();
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
