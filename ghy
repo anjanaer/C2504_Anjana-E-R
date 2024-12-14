@@ -487,6 +487,18 @@ namespace ExcelProject.ViewModel
 </Grid>
 
 
+internal void SetItemsSource(IEnumerable value, Func<object, object> GetSourceItem = null)
+{
+	if (!IsUsingItemsSource && _internalView != null && _internalView.RawCount > 0)
+	{
+		throw new InvalidOperationException(SR.Get("CannotUseItemsSource"));
+	}
+	_itemsSource = value;
+	_isUsingItemsSource = true;
+	SetCollectionView(CollectionViewSource.GetDefaultCollectionView(_itemsSource, ModelParent, GetSourceItem));
+}
+
+
 
 
 
