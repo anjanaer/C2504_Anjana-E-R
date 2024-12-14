@@ -20,3 +20,22 @@ When [Export Filter] button is clicked, save filter conditions in the XML format
  
 Requirement 3
 Show trend chart dialog. <TODO>
+ var dialog = new OpenFileDialog
+        {
+            Filter = "Excel Files (*.xlsx, *.xls)|*.xlsx;*.xls"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            FilePath = dialog.FileName;
+            // Check if the file is an Excel file by its extension
+            IsFileValid = FilePath.EndsWith(".xlsx") || FilePath.EndsWith(".xls");
+            if (!IsFileValid)
+            {
+                FileNameErrorMessage = "Please select a valid Excel file.";
+            }
+            else
+            {
+                FileNameErrorMessage = string.Empty;
+            }
+        }
