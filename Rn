@@ -3,8 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ExcelProject"
         mc:Ignorable="d"
-        Title="Bug Tracker" Height="450" Width="800" WindowState="Maximized">
+        Title="MainWindow" Height="450" Width="800" WindowState="Maximized">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -32,12 +33,15 @@
         <GroupBox Header="Filter Conditions" Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Margin="10">
             <Grid Margin="10">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" /> <!-- Column for buttons -->
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                    
+                    
                 </Grid.ColumnDefinitions>
 
                 <!-- Column Filters ListBox -->
-                <ListBox ItemsSource="{Binding ColumnFilters}" Height="200" SelectedItem="{Binding SelectedColumnFilter}" Grid.Column="0">
+                <ListBox ItemsSource="{Binding ColumnFilters}" Height="200"  SelectedItem="{Binding SelectedColumnFilter}" Grid.Column="0">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding}" />
@@ -46,7 +50,7 @@
                 </ListBox>
 
                 <!-- Filter Values ListBox -->
-                <ListBox ItemsSource="{Binding FilterValues}" Height="200" Grid.Column="0">
+                <ListBox ItemsSource="{Binding FilterValues}" Height="200" Grid.Column="1">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel>
@@ -54,8 +58,8 @@
                                 <CheckBox Content="Select All" 
                                           IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
                                           Command="{Binding SelectAllCommand}" />
-                                <Separator />
-                                <!-- Individual Filter Checkboxes -->
+
+                                <!-- Individual Filter Checkbox -->
                                 <CheckBox Content="{Binding Value}" 
                                           IsChecked="{Binding IsSelected, Mode=TwoWay}" />
                             </StackPanel>
@@ -63,9 +67,9 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
 
-                <!-- Buttons (next to FilterValues ListBox) -->
-                <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Left" Margin="5">
-                    <Button Content="Apply Filter" Width="100" Height="33" Margin="5" Background="Teal" Command="{Binding ApplyFilterCommand}" />
+                <!-- Buttons -->
+                <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Right" >
+                    <Button Content="Apply Filter" Width="100" Height="33" Margin="5" Background="Teal"  Command="{Binding ApplyFilterCommand}" />
                     <Button Content="Reset Filter" Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ResetFilterCommand}" />
                     <Button Content="Import Filter..." Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ImportFilterCommand}" />
                     <Button Content="Export Filter..." Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ExportFilterCommand}" />
@@ -74,7 +78,8 @@
         </GroupBox>
 
         <!-- DataGrid Section -->
-        <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True">
+            <!-- Define Column Header Style -->
             <DataGrid.ColumnHeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
                     <Setter Property="Background" Value="Teal" />
@@ -82,8 +87,8 @@
                     <Setter Property="FontWeight" Value="Bold" />
                     <Setter Property="HorizontalContentAlignment" Value="Center" />
                     <Setter Property="VerticalContentAlignment" Value="Center" />
-                    <Setter Property="Height" Value="35" /> <!-- Set a specific height for column headers -->
-                    <Setter Property="MinWidth" Value="100" /> <!-- Set a specific minimum width for column headers -->
+                    <Setter Property="Height" Value="20" />
+                    <Setter Property="MinWidth" Value="100" />
                 </Style>
             </DataGrid.ColumnHeaderStyle>
         </DataGrid>
@@ -91,4 +96,7 @@
         <!-- Close Button -->
         <Button Content="Close" Grid.Row="4" Background="Teal" Width="100" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
     </Grid>
-</Window>
+</Window>    
+
+
+
