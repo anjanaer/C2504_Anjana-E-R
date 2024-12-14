@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" WindowState="Maximized">
 
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -25,7 +26,7 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
             <TextBlock Text="FileName: " VerticalAlignment="Center" Width="60" />
             <TextBox Width="400" Height="30" Margin="10 0 0 0" Padding="4 4 4 4" IsEnabled="False" Text="{Binding FilePath}" />
-            <Button Content="..." Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding ShowDialogCommand}" />
+            <Button Content="..." Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding ShowDialogCommand}" IsEnabled="{Binding IsFileValid}" />
             <Button Content="Show Details" Width="100" Margin="10,0,0,0" Background="Teal" Command="{Binding LoadCommand}" />
         </StackPanel>
 
@@ -36,12 +37,10 @@
                     <ColumnDefinition Width="300" />
                     <ColumnDefinition Width="300" />
                     <ColumnDefinition Width="Auto" />
-
-
                 </Grid.ColumnDefinitions>
 
                 <!-- Column Filters ListBox -->
-                <ListBox ItemsSource="{Binding ColumnFilters}" Height="230"  SelectedItem="{Binding SelectedColumnFilter}" Grid.Column="0">
+                <ListBox ItemsSource="{Binding ColumnFilters}" Height="230" SelectedItem="{Binding SelectedColumnFilter}" Grid.Column="0">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding}" />
@@ -49,30 +48,29 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
 
-                <StackPanel Grid.Column="1" Orientation="Vertical" >
-                    <!-- Select All Checkbox -->
-                    <CheckBox Content="Select All" 
-          IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
-          Command="{Binding SelectAllCommand}" Margin="0,0,0,10"  />
-                    <!-- Filter Values ListBox -->
+                <StackPanel Grid.Column="1" Orientation="Vertical">
+                    <!-- Filter Values ListBox with Select All checkbox included -->
                     <ListBox ItemsSource="{Binding FilterValues}" Height="230" Grid.Column="1">
+                        <!-- Select All Checkbox as first item inside ListBox -->
+                        <ListBox.Items>
+                            <CheckBox Content="Select All" 
+                                  IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
+                                  Command="{Binding SelectAllCommand}" Margin="0,0,0,10" />
+                        </ListBox.Items>
+
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-
-
                                 <!-- Individual Filter Checkbox -->
                                 <CheckBox Content="{Binding Value}" 
-                          IsChecked="{Binding IsSelected, Mode=TwoWay}" />
-
+                                      IsChecked="{Binding IsSelected, Mode=TwoWay}" />
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-
                 </StackPanel>
 
                 <!-- Buttons -->
-                <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10" >
-                    <Button Content="Apply Filter" Width="150" Height="33" Margin="5" Background="Teal"  Command="{Binding ApplyFilterCommand}" />
+                <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10">
+                    <Button Content="Apply Filter" Width="150" Height="33" Margin="5" Background="Teal" Command="{Binding ApplyFilterCommand}" />
                     <Button Content="Reset Filter" Width="150" Height="22" Margin="5" Background="Teal" Command="{Binding ResetFilterCommand}" />
                     <Button Content="Import Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ImportFilterCommand}" />
                     <Button Content="Export Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ExportFilterCommand}" />
@@ -81,8 +79,7 @@
         </GroupBox>
 
         <!-- DataGrid Section -->
-        <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True">
-            <!-- Define Column Header Style -->
+        <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True" RowHeight="30">
             <DataGrid.ColumnHeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
                     <Setter Property="Background" Value="Teal" />
@@ -102,200 +99,284 @@
 </Window>    
 
 
+
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
 using ExcelProject.Model;
 using ExcelProject.Repo;
-using ClosedXML.Excel;
-using OfficeOpenXml;
-
-
-namespace ExcelProject.ExcelRepo
-{
-    /// <summary>
-    /// Repository for handling Excel file operations.
-    /// </summary>
-    public class ExcelRepository : IRepo
-    {
-        public List<ExcelData> GetData(string filePath)
-        {
-            var result = new List<ExcelData>();
-
-            // Open the Excel file using EPPlus
-            using (var package = new ExcelPackage(new FileInfo(filePath)))
-            {
-                var worksheet = package.Workbook.Worksheets[0];  // Get the first worksheet
-
-                // Read the header row (column names)
-                var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.End.Column]
-                    .Select(cell => cell.Text).ToList();
-
-                // Read each row of data
-                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
-                {
-                    var rowData = new ExcelData();
-
-                    // Map columns from Excel to the ExcelData object
-                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
-                    {
-                        var columnName = headerRow[col - 1];
-
-                        // Use reflection to set the property corresponding to the column name
-                        var property = rowData.GetType().GetProperty(columnName);
-                        if (property != null)
-                        {
-                            property.SetValue(rowData, worksheet.Cells[row, col].Text);
-                        }
-                    }
-
-                    result.Add(rowData);
-                }
-            }
-
-            return result;
-        }
-
-        public List<ExcelData> ApplyFilter(List<ExcelData> data, string column, List<string> selectedValues)
-        {
-            if (selectedValues == null || !selectedValues.Any())
-                return data;
-
-            return data.Where(row =>
-            {
-                var property = row.GetType().GetProperty(column);
-                if (property != null)
-                {
-                    var value = property.GetValue(row)?.ToString();
-                    return selectedValues.Contains(value);
-                }
-                return false;
-            }).ToList();
-        }
-    }
-
-
-
-mmmmmmm
-
-}
-using System;
-
-namespace ExcelProject.Model
-{
-    /// <summary>
-    /// Custom attribute to map Excel column names to C# properties.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
-    public sealed class ExcelColumnAttribute : Attribute
-    {
-        /// <summary>
-        /// Gets the name of the Excel column that this property corresponds to.
-        /// </summary>
-        public string ColumnName { get; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ExcelColumnAttribute"/> class with the specified Excel column name.
-        /// </summary>
-        /// <param name="columnName">The name of the Excel column to map to the property.</param>
-        public ExcelColumnAttribute(string columnName)
-        {
-            ColumnName = columnName;
-        }
-    }
-}
-
-
-
-public class ExcelData
-{
-    [ExcelColumn("Assigned To")]
-    public string AssignedTo { get; set; }
-
-    [ExcelColumn("Iiternation (DataManager)")]
-    public string IterationDataManager { get; set; }
-
-    [ExcelColumn("Project")]
-    public string Project { get; set; }
-}
-
-using System;
-using System.Collections.Generic;
+using ExcelProject.ExcelRepo;
+using Microsoft.Win32;
 using System.IO;
-using System.Linq;
+using DocumentFormat.OpenXml.Office2021.Excel.NamedSheetViews;
+using System.Runtime.InteropServices;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using System.Reflection;
-using ExcelProject.Model;
-using OfficeOpenXml;
+using System.Xml.Serialization;
+using System.Data.Common;
 
-namespace ExcelProject.ExcelRepo
+namespace ExcelProject.ViewModel
 {
     /// <summary>
-    /// Repository for handling Excel file operations.
+    /// Main ViewModel class that implements the MVVM pattern.
     /// </summary>
-    public class ExcelRepository : IRepo
+    public class MainViewModel : INotifyPropertyChanged
     {
-        public List<ExcelData> GetData(string filePath)
+
+        private ObservableCollection<ExcelData> data;
+        private ObservableCollection<ExcelData> filteredData;
+        private string filePath;
+        private string selectedColumnFilter;
+        private ObservableCollection<string> columnFilters;
+        private ObservableCollection<FilterItem> filterValues;
+        private bool isSelectAllChecked;
+        private bool isFilterApplied;
+        private bool isFileValid;
+        private string fileNameErrorMessage;
+
+        private readonly IRepo repo;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public MainViewModel(IRepo  exlrepo)
         {
-            var result = new List<ExcelData>();
+            repo = exlrepo;
 
-            // Open the Excel file using EPPlus
-            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            // Initialize commands
+            LoadCommand = new RelayCommand(LoadData, CanShowDetails);
+            ShowDialogCommand = new RelayCommand(ShowDialog);
+            ApplyFilterCommand = new RelayCommand(ApplyFilter);
+            ResetFilterCommand = new RelayCommand(ResetFilter);
+            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+
+            // Initialize properties
+            ColumnFilters = new ObservableCollection<string>();
+            FilterValues = new ObservableCollection<FilterItem>();
+            FilteredData = new ObservableCollection<ExcelData>();
+            data = new ObservableCollection<ExcelData>();
+            isFileValid = true;
+        }
+
+        public ObservableCollection<ExcelData> Data
+        {
+            get => data;
+            set { data = value; OnPropertyChanged(nameof(Data)); }
+        }
+
+        public ObservableCollection<ExcelData> FilteredData
+        {
+            get => filteredData;
+            set { filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+        }
+
+        public string FilePath
+        {
+            get => filePath;
+            set { filePath = value; OnPropertyChanged(nameof(FilePath)); }
+        }
+        
+        public bool IsFileValid
+        {
+            get => isFileValid;
+            set { isFileValid = value; OnPropertyChanged(nameof(IsFileValid)); }
+        }
+        public string FileNameErrorMessage
+        {
+            get => fileNameErrorMessage;
+            set { fileNameErrorMessage = value; OnPropertyChanged(nameof(FileNameErrorMessage)); }
+        }
+        public string SelectedColumnFilter
+        {
+            get => selectedColumnFilter;
+            set { selectedColumnFilter = value; OnPropertyChanged(nameof(SelectedColumnFilter)); LoadFilterValues(); }
+        }
+
+        public ObservableCollection<string> ColumnFilters
+        {
+            get => columnFilters;
+            set { columnFilters = value; OnPropertyChanged(nameof(ColumnFilters)); }
+        }
+
+        public ObservableCollection<FilterItem> FilterValues
+        {
+            get => filterValues;
+            set { filterValues = value; OnPropertyChanged(nameof(FilterValues)); }
+        }
+
+        public bool IsSelectAllChecked
+        {
+            get => isSelectAllChecked;
+            set
             {
-                var worksheet = package.Workbook.Worksheets[0];  // Get the first worksheet
+                isSelectAllChecked = value;
+                OnPropertyChanged(nameof(IsSelectAllChecked));
+                SelectAllFilters(value);
+            }
+        }
 
-                // Read the header row (column names)
-                var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.End.Column]
-                    .Select(cell => cell.Text).ToList();
+        public bool IsFilterApplied
+        {
+            get => isFilterApplied;
+            set { isFilterApplied = value; OnPropertyChanged(nameof(IsFilterApplied)); }
+        }
 
-                // Read each row of data starting from the second row
-                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+        public ICommand LoadCommand { get; }
+        public ICommand ShowDialogCommand { get; }
+        public ICommand ApplyFilterCommand { get; }
+        public ICommand ResetFilterCommand { get; }
+        public ICommand CloseCommand { get; }
+
+        private void ShowDialog()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Excel Files (*.xlsx, *.xls)|*.xlsx;*.xls"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                FilePath = dialog.FileName;
+                // Check if the file is an Excel file by its extension
+                IsFileValid = FilePath.EndsWith(".xlsx") || FilePath.EndsWith(".xls");
+                if (!IsFileValid)
                 {
-                    var rowData = new ExcelData();
+                    FileNameErrorMessage = "Please select a valid Excel file.";
+                }
+                else
+                {
+                    FileNameErrorMessage = string.Empty;
+                }
+            }
+        }
 
-                    // Map columns from Excel to the ExcelData object
-                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
-                    {
-                        var columnName = headerRow[col - 1];  // Get the column name from header row
+        private void LoadData()
+        {
+            if (!string.IsNullOrEmpty(FilePath))
+            {
+                var excelData = repo.GetData(FilePath);
+                Data = new ObservableCollection<ExcelData>(excelData);
+                FilteredData = new ObservableCollection<ExcelData>(excelData);
 
-                        // Find the property in the ExcelData class that matches the Excel column name
-                        var property = rowData.GetType().GetProperties()
-                            .FirstOrDefault(p => p.GetCustomAttribute<ExcelColumnAttribute>()?.ColumnName == columnName);
+                // Dynamically generate the column names from the first row
+                ColumnFilters = new ObservableCollection<string>(excelData.FirstOrDefault()?.GetType().GetProperties().Select(p => p.Name));
+            }
+        }
 
-                        if (property != null)
-                        {
-                            // Set the value of the property using reflection
-                            property.SetValue(rowData, worksheet.Cells[row, col].Text);
-                        }
-                    }
+        private void LoadFilterValues()
+        {
+            if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
 
-                    result.Add(rowData);
+            // Get distinct values from the selected column for the filter
+            FilterValues = new ObservableCollection<FilterItem>(
+                Data.Select(row => row.GetType().GetProperty(SelectedColumnFilter).GetValue(row)?.ToString())
+                    .Distinct()
+                    .OrderBy(value => value)
+                    .Select(value => new FilterItem { Value = value, IsSelected = true })
+            );
+
+            IsSelectAllChecked = true;
+        }
+        // New method to display data in Bug Details table
+        private void ShowDetails()
+        {
+            if (!string.IsNullOrEmpty(FilePath))
+            {
+                LoadData();
+            }
+        }
+
+        // CanExecute logic for ShowDetailsCommand
+        private bool CanShowDetails()
+        {
+            return !string.IsNullOrEmpty(FilePath);
+        }
+        private void ApplyFilter()
+        {
+            // Check if a filter is selected
+            if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
+
+            // Get selected filter values
+            List<string> selectedValues = new List<string>();
+            foreach (var filter in FilterValues)
+            {
+                if (filter.IsSelected)
+                {
+                    selectedValues.Add(filter.Value);
                 }
             }
 
-            return result;
-        }
-
-        public List<ExcelData> ApplyFilter(List<ExcelData> data, string column, List<string> selectedValues)
-        {
-            if (selectedValues == null || !selectedValues.Any())
-                return data;
-
-            return data.Where(row =>
+            // Check if there are any selected values
+            if (selectedValues.Count > 0)
             {
-                var property = row.GetType().GetProperty(column);
-                if (property != null)
+                // Create a new ObservableCollection for filtered data
+                ObservableCollection<ExcelData> filteredData = new ObservableCollection<ExcelData>();
+
+                // Filter the data based on the selected values
+                foreach (var dataItem in Data)
                 {
-                    var value = property.GetValue(row)?.ToString();
-                    return selectedValues.Contains(value);
+                    // Get the value of the property specified by SelectedFilter
+                    var propertyValue = dataItem.GetType().GetProperty(SelectedColumnFilter)?.GetValue(dataItem)?.ToString();
+
+                    // Check if the property value is in the selected values
+                    if (selectedValues.Contains(propertyValue))
+                    {
+                        filteredData.Add(dataItem);
+                    }
                 }
-                return false;
-            }).ToList();
+
+                // Assign the filtered data to FilteredData
+                FilteredData = filteredData;
+                IsFilterApplied = true;
+            }
+            else
+            {
+                // If no filter values are selected, reset to original data
+                FilteredData = new ObservableCollection<ExcelData>(Data);
+                IsFilterApplied = false;
+            }
         }
+
+        private void ResetFilter()
+        {
+            foreach (var filter in FilterValues)
+            {
+                filter.IsSelected = false;
+            }
+
+            FilteredData = new ObservableCollection<ExcelData>(Data);
+            IsSelectAllChecked = false;
+        }
+
+        private void SelectAllFilters(bool selectAll)
+        {
+            foreach (var filter in FilterValues)
+            {
+                filter.IsSelected = selectAll;
+            }
+
+            OnPropertyChanged(nameof(FilterValues));
+        }
+
+        protected virtual void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
 }
+
+
+
+
+
+
+
+
+
 
 
 
