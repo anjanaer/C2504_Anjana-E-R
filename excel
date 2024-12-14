@@ -1,170 +1,413 @@
+using System.Collections.Generic;
+
+namespace ExcelProject.Repo
+{
+    public interface IRepo
+    {
+        List<ExcelDataRow> GetData(string filePath);  // Get data from the Excel file
+        List<ExcelDataRow> ApplyFilter(List<ExcelDataRow> data, string column, List<string> selectedValues);  // Apply a filter to the data
+    }
+}
+
+
+using OfficeOpenXml;
+using ExcelProject.Model;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
+namespace ExcelProject.Repo
+{
+    public class ExcelRepo : IRepo
+    {
+        public List<ExcelDataRow> GetData(string filePath)
+        {
+            var result = new List<ExcelDataRow>();
+
+            // Open the Excel file using EPPlus
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            {
+                var worksheet = package.Workbook.Worksheets[0];  // Get the first worksheet
+
+                // Read the header row (column names)
+                var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.End.Column]
+                    .Select(cell => cell.Text).ToList();
+
+                // Read each row of data
+                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                {
+                    var rowData = new ExcelDataRow();
+
+                    // Map columns from Excel to the ExcelDataRow object
+                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
+                    {
+                        var columnName = headerRow[col - 1];
+
+                        // Use reflection to set the property corresponding to the column name
+                        var property = rowData.GetType().GetProperty(columnName);
+                        if (property != null)
+                        {
+                            property.SetValue(rowData, worksheet.Cells[row, col].Text);
+                        }
+                    }
+
+                    result.Add(rowData);
+                }
+            }
+
+            return result;
+        }
+
+        public List<ExcelDataRow> ApplyFilter(List<ExcelDataRow> data, string column, List<string> selectedValues)
+        {
+            if (selectedValues == null || !selectedValues.Any())
+                return data;
+
+            return data.Where(row =>
+            {
+                var property = row.GetType().GetProperty(column);
+                if (property != null)
+                {
+                    var value = property.GetValue(row)?.ToString();
+                    return selectedValues.Contains(value);
+                }
+                return false;
+            }).ToList();
+        }
+    }
+}
+
+
+namespace ExcelProject
+{
+    public class FilterItem
+    {
+        public string Value { get; set; }
+        public bool IsSelected { get; set; }
+    }
+}
+
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Data;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using ExcelProject.Repo;
+using ExcelProject.Model;
 
-namespace BugTracker
+namespace ExcelProject.ViewModel
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+        private ObservableCollection<ExcelDataRow> _data;
+        private ObservableCollection<ExcelDataRow> _filteredData;
         private string _filePath;
-        private string _errorMessage;
-        private bool _isShowDetailsEnabled;
-        private ObservableCollection<DataRow> _bugDetails;
-        private DataTable _dataTable;
+        private string _selectedColumnFilter;
+        private ObservableCollection<string> _columnFilters;
+        private ObservableCollection<FilterItem> _filterValues;
+        private bool _isSelectAllChecked;
+        private bool _isFilterApplied;
+
+        private readonly IRepo _repo;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public MainViewModel(IRepo repo)
+        {
+            _repo = repo;
+
+            // Initialize commands
+            LoadCommand = new RelayCommand(LoadData);
+            ShowDialogCommand = new RelayCommand(ShowDialog);
+            ApplyFilterCommand = new RelayCommand(ApplyFilter);
+            ResetFilterCommand = new RelayCommand(ResetFilter);
+            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+
+            // Initialize properties
+            ColumnFilters = new ObservableCollection<string>();
+            FilterValues = new ObservableCollection<FilterItem>();
+            FilteredData = new ObservableCollection<ExcelDataRow>();
+            _data = new ObservableCollection<ExcelDataRow>();
+        }
+
+        public ObservableCollection<ExcelDataRow> Data
+        {
+            get => _data;
+            set { _data = value; OnPropertyChanged(nameof(Data)); }
+        }
+
+        public ObservableCollection<ExcelDataRow> FilteredData
+        {
+            get => _filteredData;
+            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+        }
 
         public string FilePath
         {
             get => _filePath;
-            set
-            {
-                _filePath = value;
-                OnPropertyChanged(nameof(FilePath));
-                IsShowDetailsEnabled = !string.IsNullOrEmpty(value);
-            }
+            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
         }
 
-        public string ErrorMessage
+        public string SelectedColumnFilter
         {
-            get => _errorMessage;
-            set
-            {
-                _errorMessage = value;
-                OnPropertyChanged(nameof(ErrorMessage));
-            }
+            get => _selectedColumnFilter;
+            set { _selectedColumnFilter = value; OnPropertyChanged(nameof(SelectedColumnFilter)); LoadFilterValues(); }
         }
 
-        public bool IsShowDetailsEnabled
+        public ObservableCollection<string> ColumnFilters
         {
-            get => _isShowDetailsEnabled;
-            set
-            {
-                _isShowDetailsEnabled = value;
-                OnPropertyChanged(nameof(IsShowDetailsEnabled));
-            }
+            get => _columnFilters;
+            set { _columnFilters = value; OnPropertyChanged(nameof(ColumnFilters)); }
         }
 
-        public ObservableCollection<DataRow> BugDetails
+        public ObservableCollection<FilterItem> FilterValues
         {
-            get => _bugDetails;
+            get => _filterValues;
+            set { _filterValues = value; OnPropertyChanged(nameof(FilterValues)); }
+        }
+
+        public bool IsSelectAllChecked
+        {
+            get => _isSelectAllChecked;
             set
             {
-                _bugDetails = value;
-                OnPropertyChanged(nameof(BugDetails));
+                _isSelectAllChecked = value;
+                OnPropertyChanged(nameof(IsSelectAllChecked));
+                SelectAllFilters(value);
             }
         }
 
-        public ICommand BrowseFileCommand { get; }
-        public ICommand ShowDetailsCommand { get; }
+        public bool IsFilterApplied
+        {
+            get => _isFilterApplied;
+            set { _isFilterApplied = value; OnPropertyChanged(nameof(IsFilterApplied)); }
+        }
+
+        public ICommand LoadCommand { get; }
+        public ICommand ShowDialogCommand { get; }
+        public ICommand ApplyFilterCommand { get; }
+        public ICommand ResetFilterCommand { get; }
         public ICommand CloseCommand { get; }
 
-        public MainViewModel()
+        private void ShowDialog()
         {
-            BrowseFileCommand = new RelayCommand(BrowseFile);
-            ShowDetailsCommand = new RelayCommand(ShowDetails, () => IsShowDetailsEnabled);
-            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
-            BugDetails = new ObservableCollection<DataRow>();
-        }
-
-        private void BrowseFile()
-        {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            var dialog = new OpenFileDialog
             {
-                Filter = "CSV Files (*.csv)|*.csv",
-                Title = "Select CSV File"
+                Filter = "Excel Files (*.xlsx)|*.xlsx"
             };
 
-            if (openFileDialog.ShowDialog() == true)
+            if (dialog.ShowDialog() == true)
             {
-                FilePath = openFileDialog.FileName;
-                ErrorMessage = string.Empty;
+                FilePath = dialog.FileName;
             }
         }
 
-        private void ShowDetails()
+        private void LoadData()
         {
-            if (!File.Exists(FilePath))
+            if (!string.IsNullOrEmpty(FilePath))
             {
-                ErrorMessage = "File not found.";
-                return;
-            }
+                var excelData = _repo.GetData(FilePath);
+                Data = new ObservableCollection<ExcelDataRow>(excelData);
+                FilteredData = new ObservableCollection<ExcelDataRow>(excelData);
 
-            if (Path.GetExtension(FilePath).ToLower() != ".csv")
-            {
-                ErrorMessage = "Invalid file type. Please select a CSV file.";
-                return;
-            }
-
-            try
-            {
-                var lines = File.ReadAllLines(FilePath);
-                if (lines.Length == 0)
-                {
-                    ErrorMessage = "The file is empty.";
-                    return;
-                }
-
-                ErrorMessage = string.Empty;
-
-                // Process CSV
-                var headers = lines[0].Split(',');
-                _dataTable = new DataTable();
-
-                foreach (var header in headers)
-                    _dataTable.Columns.Add(header);
-
-                for (int i = 1; i < lines.Length; i++)
-                {
-                    var rowValues = lines[i].Split(',');
-                    _dataTable.Rows.Add(rowValues);
-                }
-
-                BugDetails = new ObservableCollection<DataRow>(_dataTable.AsEnumerable().ToList());
-            }
-            catch
-            {
-                ErrorMessage = "An error occurred while reading the CSV file.";
+                // Dynamically generate the column names from the first row
+                ColumnFilters = new ObservableCollection<string>(excelData.FirstOrDefault()?.GetType().GetProperties().Select(p => p.Name));
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged(string propertyName)
+        private void LoadFilterValues()
         {
+            if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
+
+            // Get distinct values from the selected column for the filter
+            FilterValues = new ObservableCollection<FilterItem>(
+                Data.Select(row => row.GetType().GetProperty(SelectedColumnFilter).GetValue(row)?.ToString())
+                    .Distinct()
+                    .OrderBy(value => value)
+                    .Select(value => new FilterItem { Value = value, IsSelected = false })
+            );
+
+            IsSelectAllChecked = false;
+        }
+
+        private void ApplyFilter()
+        {
+            if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
+
+            var selectedValues = FilterValues.Where(f => f.IsSelected).Select(f => f.Value).ToList();
+
+            if (selectedValues.Any())
+            {
+                var filteredData = _repo.ApplyFilter(Data.ToList(), SelectedColumnFilter, selectedValues);
+                FilteredData = new ObservableCollection<ExcelDataRow>(filteredData);
+                IsFilterApplied = true;
+            }
+            else
+            {
+                FilteredData = new ObservableCollection<ExcelDataRow>(Data);
+                IsFilterApplied = false;
+            }
+        }
+
+        private void ResetFilter()
+        {
+            foreach (var filter in FilterValues)
+            {
+                filter.IsSelected = false;
+            }
+
+            FilteredData = new ObservableCollection<ExcelDataRow>(Data);
+            IsSelectAllChecked = false;
+        }
+
+        private void SelectAllFilters(bool selectAll)
+        {
+            foreach (var filter in FilterValues)
+            {
+                filter.IsSelected = selectAll;
+            }
+
+            OnPropertyChanged(nameof(FilterValues));
+        }
+
+        protected virtual void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+
+
+using System;
+using System.Windows.Input;
+
+namespace ExcelProject
+{
+    public class RelayCommand : ICommand
+    {
+        private readonly Action _execute;
+        private readonly Func<bool> _canExecute;
+
+        public RelayCommand(Action execute)
+            : this(execute, null)
+        {
+        }
+
+        public RelayCommand(Action execute, Func<bool> canExecute)
+        {
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _canExecute = canExecute;
+        }
+
+        public bool CanExecute(object parameter)
+        {
+            return _canExecute == null || _canExecute();
+        }
+
+        public void Execute(object parameter)
+        {
+            _execute();
+        }
+
+        public event EventHandler CanExecuteChanged
+        {
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
         }
     }
 }
-<Window x:Class="BugTracker.MainWindow"
+
+
+<Window x:Class="ExcelProject.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Bug Tracker" Height="450" Width="800">
-    <Grid Margin="10">
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ExcelProject"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
         <!-- Title Bar -->
-        <Border Background="#007acc" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" CornerRadius="5">
-            <TextBlock Text="Bug Tracker" Foreground="White" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Margin="10,0,0,0" />
+        <Border Background="Teal" Grid.Row="0" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" CornerRadius="5">
+            <TextBlock Text="Bug Tracker" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Margin="10,0,0,0" />
         </Border>
 
-        <!-- File Selection Section -->
-        <StackPanel Orientation="Horizontal" Margin="10,50,10,0">
-            <TextBlock Text="File name:" VerticalAlignment="Center" Margin="0,0,5,0" />
-            <TextBox Text="{Binding FilePath}" Width="400" IsReadOnly="True" />
-            <Button Content="..." Width="30" Command="{Binding BrowseFileCommand}" />
-            <Button Content="Show Details" Width="100" Margin="5,0,0,0"
-                    Command="{Binding ShowDetailsCommand}" 
-                    IsEnabled="{Binding IsShowDetailsEnabled}" />
+        <!-- Upload Section -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
+            <TextBlock Text="FileName: " VerticalAlignment="Center" Width="60" />
+            <TextBox Width="400" Height="30" Margin="10 0 0 0" Padding="4 4 4 4" IsEnabled="False" Text="{Binding FilePath}" />
+            <Button Content="..." Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding ShowDialogCommand}" />
+            <Button Content="Show Details" Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding LoadCommand}" />
         </StackPanel>
 
-        <!-- Bug Details Table -->
-        <DataGrid ItemsSource="{Binding BugDetails}" AutoGenerateColumns="True" Margin="10,100,10,50" />
+        <!-- Filter Conditions Section -->
+        <GroupBox Header="Filter Conditions" Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Margin="10">
+            <StackPanel Orientation="Horizontal" Margin="10">
+                <!-- Dynamic Filter Rows -->
+                <ListBox ItemsSource="{Binding ColumnFilters}" Height="100" SelectedItem="{Binding SelectedColumnFilter}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <StackPanel Orientation="Vertical" Margin="10">
+                    <!-- Select All Checkbox -->
+                    <CheckBox Content="Select All" 
+                              IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
+                              Command="{Binding SelectAllCommand}" />
+
+                    <!-- Dynamic Checkbox Filters -->
+                    <ListBox ItemsSource="{Binding FilterValues}" Height="100">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox Content="{Binding Value}" IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+
+                <!-- Buttons -->
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Right" Margin="0,10,0,0">
+                    <Button Content="Apply Filter" Width="100" Height="33" Margin="5" Background="Teal" Command="{Binding ApplyFilterCommand}" />
+                    <Button Content="Reset Filter" Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ResetFilterCommand}" />
+                    <Button Content="Import Filter..." Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ImportFilterCommand}" />
+                    <Button Content="Export Filter..." Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ExportFilterCommand}" />
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- DataGrid Section -->
+        <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True">
+            <!-- Define Column Header Style -->
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="Teal" />
+                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                    <Setter Property="VerticalContentAlignment" Value="Center" />
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+        </DataGrid>
 
         <!-- Close Button -->
-        <Button Content="Close" Width="100" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
-
-        <!-- Error Message -->
-        <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" Margin="10,400,10,0" />
+        <Button Content="Close" Grid.Row="4" Background="Teal" Width="100" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
     </Grid>
 </Window>
+
+
+public MainWindow()
+{
+    InitializeComponent();
+    DataContext = new MainViewModel(new ExcelRepo());
+}
