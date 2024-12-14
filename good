@@ -1,166 +1,154 @@
-using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
-using System.Windows;
-using System.Windows.Input;
-using ExcelProject.Model;
-using ExcelProject.Repo;
-using ExcelProject.ExcelRepo;
-using Microsoft.Win32;
+<GroupBox Header="Filter Conditions" Grid.Row="2" Margin="10">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-namespace ExcelProject.ViewModel
+        <!-- Column Names List -->
+        <ListBox ItemsSource="{Binding ColumnFilters}" 
+                 SelectedItem="{Binding SelectedColumnFilter}" 
+                 Grid.Column="0" Height="150">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Filter Options List -->
+        <ListBox ItemsSource="{Binding FilterValues}" 
+                 Grid.Column="1" Margin="10,0,0,0">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <!-- "Select All" Checkbox -->
+                        <CheckBox Content="Select All" 
+                                  IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
+                                  Command="{Binding SelectAllCommand}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="Apply Filter" Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ApplyFilterCommand}" />
+            <Button Content="Reset Filter" Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ResetFilterCommand}" />
+        </StackPanel>
+    </Grid>
+</GroupBox>
+
+public class MainViewModel : INotifyPropertyChanged
 {
-    public class MainViewModel : INotifyPropertyChanged
+    private ObservableCollection<string> _columnFilters;
+    private ObservableCollection<FilterValueModel> _filterValues;
+    private string _selectedColumnFilter;
+    private bool _isSelectAllChecked;
+
+    public MainViewModel()
     {
-        private IRepo _repository;
-        private ObservableCollection<ExcelData> _data;
-        private ObservableCollection<ExcelData> _filteredData;
-        private string _filterCategory;
-        private string _filePath;
-        private string selectedFilter;
-        private ObservableCollection<FilterItem> filterValues;
-
-        public ObservableCollection<string> ColumnNames { get; set; }
-        public ObservableCollection<ExcelData> OriginalData { get; set; }
-
-        public MainViewModel()
-        {
-            _repository = new ExcelRepository();
-            ShowDialogCommand = new RelayCommand(ShowDialog);
-            LoadCommand = new RelayCommand(LoadData);
-            ApplyFilterCommand = new RelayCommand(ApplyFilter);
-            SelectAllCommand = new RelayCommand(SelectAllFilters);
-            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
-
-            ColumnFilters = new ObservableCollection<string>();
-            ColumnNames = new ObservableCollection<string>();
-            FilteredData = new ObservableCollection<ExcelData>();
-            selectedFilter = string.Empty;
-            filterValues = new ObservableCollection<FilterItem>();
-        }
-
-        public ObservableCollection<ExcelData> Data
-        {
-            get => _data;
-            set { _data = value; OnPropertyChanged(nameof(Data)); }
-        }
-
-        public ObservableCollection<ExcelData> FilteredData
-        {
-            get => _filteredData;
-            set { _filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
-        }
-
-        public string SelectedFilter
-        {
-            get => selectedFilter;
-            set
-            {
-                selectedFilter = value;
-                LoadFilterValues();
-                OnPropertyChanged(nameof(SelectedFilter));
-            }
-        }
-
-        public ObservableCollection<FilterItem> FilterValues
-        {
-            get => filterValues;
-            set
-            {
-                filterValues = value;
-                OnPropertyChanged(nameof(FilterValues));
-            }
-        }
-
-        public ICommand LoadCommand { get; }
-        public ICommand ShowDialogCommand { get; }
-        public ICommand ApplyFilterCommand { get; }
-        public ICommand SelectAllCommand { get; }
-        public ICommand CloseCommand { get; }
-
-        private void LoadData()
-        {
-            if (!string.IsNullOrEmpty(FilePath))
-            {
-                var data = _repository.ReadExcelFile(FilePath);
-                Data = new ObservableCollection<ExcelData>(data);
-                FilteredData = new ObservableCollection<ExcelData>(data); // No filter initially
-                OriginalData = new ObservableCollection<ExcelData>(data);
-
-                // Initialize filters
-                LoadFilterValues();
-            }
-        }
-
-        private void LoadFilterValues()
-        {
-            if (!string.IsNullOrEmpty(SelectedFilter) && Data != null)
-            {
-                var columnValues = BugTrackerDatas.GetColumnData(SelectedFilter, Data); // Unique column values
-                FilterValues = new ObservableCollection<FilterItem>(
-                    columnValues.Select(value => new FilterItem { Value = value, IsSelected = false }));
-            }
-        }
-
-        private void ApplyFilter()
-        {
-            if (FilterValues.Any(f => f.IsSelected))
-            {
-                var selectedValues = FilterValues.Where(f => f.IsSelected).Select(f => f.Value).ToList();
-
-                FilteredData = new ObservableCollection<ExcelData>(
-                    Data.Where(d => selectedValues.Contains(d.GetPropertyValue(SelectedFilter)?.ToString())));
-
-                MessageBox.Show("Filters applied successfully!");
-            }
-            else
-            {
-                FilteredData = new ObservableCollection<ExcelData>(Data); // Reset to original data if no filter is selected
-                MessageBox.Show("No filters selected. Showing all data.");
-            }
-        }
-
-        private void SelectAllFilters()
-        {
-            foreach (var filter in FilterValues)
-            {
-                filter.IsSelected = true;
-            }
-
-            OnPropertyChanged(nameof(FilterValues));
-        }
-
-        public void ShowDialog()
-        {
-            var dialog = new OpenFileDialog
-            {
-                Filter = "Excel Files (*.xlsx)|*.xlsx"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                FilePath = dialog.FileName;
-            }
-        }
-
-        public string FilePath
-        {
-            get => _filePath;
-            set { _filePath = value; OnPropertyChanged(nameof(FilePath)); }
-        }
-
-        public ObservableCollection<string> ColumnFilters { get; set; }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        ColumnFilters = new ObservableCollection<string> { "Project", "Reporter", "Priority", "Severity" };
+        FilterValues = new ObservableCollection<FilterValueModel>();
+        SelectAllCommand = new RelayCommand(ExecuteSelectAllCommand);
     }
 
-    public class FilterItem
+    public ObservableCollection<string> ColumnFilters
     {
-        public string Value { get; set; }
-        public bool IsSelected { get; set; }
+        get => _columnFilters;
+        set { _columnFilters = value; OnPropertyChanged(nameof(ColumnFilters)); }
+    }
+
+    public ObservableCollection<FilterValueModel> FilterValues
+    {
+        get => _filterValues;
+        set { _filterValues = value; OnPropertyChanged(nameof(FilterValues)); }
+    }
+
+    public string SelectedColumnFilter
+    {
+        get => _selectedColumnFilter;
+        set
+        {
+            _selectedColumnFilter = value;
+            OnPropertyChanged(nameof(SelectedColumnFilter));
+            UpdateFilterValues(); // Dynamically populate FilterValues
+        }
+    }
+
+    public bool IsSelectAllChecked
+    {
+        get => _isSelectAllChecked;
+        set
+        {
+            _isSelectAllChecked = value;
+            OnPropertyChanged(nameof(IsSelectAllChecked));
+            UpdateSelectAllState(); // Automatically select all filters
+        }
+    }
+
+    public ICommand SelectAllCommand { get; }
+
+    private void ExecuteSelectAllCommand(object parameter)
+    {
+        foreach (var filterValue in FilterValues)
+        {
+            filterValue.IsSelected = IsSelectAllChecked;
+        }
+    }
+
+    private void UpdateFilterValues()
+    {
+        // Example logic to populate FilterValues based on SelectedColumnFilter
+        FilterValues.Clear();
+        if (SelectedColumnFilter == "Project")
+        {
+            FilterValues.Add(new FilterValueModel { Value = "XRD Measurement", IsSelected = true });
+            FilterValues.Add(new FilterValueModel { Value = "Powder XRD", IsSelected = true });
+        }
+        else if (SelectedColumnFilter == "Reporter")
+        {
+            FilterValues.Add(new FilterValueModel { Value = "Anza.An", IsSelected = true });
+            FilterValues.Add(new FilterValueModel { Value = "Swetha.Ashok", IsSelected = true });
+        }
+
+        // Automatically check "Select All"
+        IsSelectAllChecked = true;
+    }
+
+    private void UpdateSelectAllState()
+    {
+        foreach (var filterValue in FilterValues)
+        {
+            filterValue.IsSelected = IsSelectAllChecked;
+        }
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
+
+public class FilterValueModel : INotifyPropertyChanged
+{
+    private bool _isSelected;
+
+    public string Value { get; set; }
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set { _isSelected = value; OnPropertyChanged(nameof(IsSelected)); }
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+
 
