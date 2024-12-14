@@ -177,7 +177,51 @@ namespace ExcelProject.ExcelRepo
         }
     }
 
+
+
+mmmmmmm
+
 }
+using System;
+
+namespace ExcelProject.Model
+{
+    /// <summary>
+    /// Custom attribute to map Excel column names to C# properties.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+    public sealed class ExcelColumnAttribute : Attribute
+    {
+        /// <summary>
+        /// Gets the name of the Excel column that this property corresponds to.
+        /// </summary>
+        public string ColumnName { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExcelColumnAttribute"/> class with the specified Excel column name.
+        /// </summary>
+        /// <param name="columnName">The name of the Excel column to map to the property.</param>
+        public ExcelColumnAttribute(string columnName)
+        {
+            ColumnName = columnName;
+        }
+    }
+}
+
+
+
+public class ExcelData
+{
+    [ExcelColumn("Assigned To")]
+    public string AssignedTo { get; set; }
+
+    [ExcelColumn("Iiternation (DataManager)")]
+    public string IterationDataManager { get; set; }
+
+    [ExcelColumn("Project")]
+    public string Project { get; set; }
+}
+
 
 
 
