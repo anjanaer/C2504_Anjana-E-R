@@ -20,6 +20,105 @@ When [Export Filter] button is clicked, save filter conditions in the XML format
  
 Requirement 3
 Show trend chart dialog. <TODO>
+<Window x:Class="ExcelProject.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ExcelProject"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" WindowState="Maximized">
+
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Title Bar -->
+        <Border Background="Teal" Grid.Row="0" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" CornerRadius="5">
+            <TextBlock Text="Bug Tracker" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Margin="10,0,0,0" />
+        </Border>
+
+        <!-- Upload Section -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
+            <TextBlock Text="FileName: " VerticalAlignment="Center" Width="60" />
+            <TextBox Width="400" Height="30" Margin="10 0 0 0" Padding="4 4 4 4" IsEnabled="False" Text="{Binding FilePath}" />
+            <Button Content="..." Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding ShowDialogCommand}" IsEnabled="{Binding IsFileValid}" />
+            <Button Content="Show Details" Width="100" Margin="10,0,0,0" Background="Teal" Command="{Binding LoadCommand}" />
+        </StackPanel>
+
+        <!-- Filter Conditions Section -->
+        <GroupBox Header="Filter Conditions" Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,10">
+            <Grid Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Column Filters ListBox -->
+                <ListBox ItemsSource="{Binding ColumnFilters}" Height="230" SelectedItem="{Binding SelectedColumnFilter}"  Grid.Column="0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <StackPanel Grid.Column="1" Orientation="Vertical">
+                    <CheckBox Content="Select All" 
+                               IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
+                               Command="{Binding SelectAllCommand}" Margin="0,0,0,10" />
+                    <!-- Filter Values ListBox with Select All checkbox included -->
+                    <ListBox ItemsSource="{Binding FilterValues}" Height="230" Grid.Column="1">
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <!-- Individual Filter Checkbox -->
+                                <CheckBox Content="{Binding Value}" 
+                                      IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+
+                <!-- Buttons -->
+                <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10">
+                    <Button Content="Apply Filter" Width="150" Height="33" Margin="5" Background="Teal" Command="{Binding ApplyFilterCommand}" />
+                    <Button Content="Reset Filter" Width="150" Height="22" Margin="5" Background="Teal" Command="{Binding ResetFilterCommand}" />
+                    <Button Content="Import Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ImportFilterCommand}" />
+                    <Button Content="Export Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ExportFilterCommand}" />
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <!-- DataGrid Section -->
+        <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True" RowHeight="30">
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="Teal" />
+                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                    <Setter Property="VerticalContentAlignment" Value="Center" />
+                    <Setter Property="Height" Value="20" />
+                    <Setter Property="MinWidth" Value="100" />
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+        </DataGrid>
+
+        <!-- Close Button -->
+        <Button Content="Close" Grid.Row="4" Background="Teal" Width="100" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
+    </Grid>
+</Window>    
+
+
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -64,7 +163,7 @@ namespace ExcelProject.ViewModel
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public MainViewModel(IRepo  exlrepo)
+        public MainViewModel(IRepo exlrepo)
         {
             repo = exlrepo;
 
@@ -100,17 +199,19 @@ namespace ExcelProject.ViewModel
             get => filePath;
             set { filePath = value; OnPropertyChanged(nameof(FilePath)); }
         }
-        
+
         public bool IsFileValid
         {
             get => isFileValid;
             set { isFileValid = value; OnPropertyChanged(nameof(IsFileValid)); }
         }
+
         public string FileNameErrorMessage
         {
             get => fileNameErrorMessage;
             set { fileNameErrorMessage = value; OnPropertyChanged(nameof(FileNameErrorMessage)); }
         }
+
         public string SelectedColumnFilter
         {
             get => selectedColumnFilter;
@@ -121,6 +222,11 @@ namespace ExcelProject.ViewModel
         {
             get => columnFilters;
             set { columnFilters = value; OnPropertyChanged(nameof(ColumnFilters)); }
+        }
+        public bool IsFilterApplied
+        {
+            get => isFilterApplied;
+            set { isFilterApplied = value; OnPropertyChanged(nameof(IsFilterApplied)); }
         }
 
         public ObservableCollection<FilterItem> FilterValues
@@ -138,12 +244,6 @@ namespace ExcelProject.ViewModel
                 OnPropertyChanged(nameof(IsSelectAllChecked));
                 SelectAllFilters(value);
             }
-        }
-
-        public bool IsFilterApplied
-        {
-            get => isFilterApplied;
-            set { isFilterApplied = value; OnPropertyChanged(nameof(IsFilterApplied)); }
         }
 
         public ICommand LoadCommand { get; }
@@ -164,14 +264,6 @@ namespace ExcelProject.ViewModel
                 FilePath = dialog.FileName;
                 // Check if the file is an Excel file by its extension
                 IsFileValid = FilePath.EndsWith(".xlsx") || FilePath.EndsWith(".xls");
-                if (!IsFileValid)
-                {
-                    FileNameErrorMessage = "Please select a valid Excel file.";
-                }
-                else
-                {
-                    FileNameErrorMessage = string.Empty;
-                }
             }
         }
 
@@ -193,14 +285,14 @@ namespace ExcelProject.ViewModel
             if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
 
             // Get distinct values from the selected column for the filter
-            FilterValues = new ObservableCollection<FilterItem>(
-                Data.Select(row => row.GetType().GetProperty(SelectedColumnFilter).GetValue(row)?.ToString())
-                    .Distinct()
-                    .OrderBy(value => value)
-                    .Select(value => new FilterItem { Value = value, IsSelected = true })
+            FilterValues = new ObservableCollection<FilterItem>(Data
+                .Select(row => row.GetType().GetProperty(SelectedColumnFilter)?.GetValue(row)?.ToString())
+                .Distinct()
+                .OrderBy(value => value)
+                .Select(value => new FilterItem { Value = value, IsSelected = true })
             );
 
-            IsSelectAllChecked = false;
+            IsSelectAllChecked = true;
         }
         // New method to display data in Bug Details table
         private void ShowDetails()
@@ -261,7 +353,7 @@ namespace ExcelProject.ViewModel
                 IsFilterApplied = false;
             }
         }
-
+       
         private void ResetFilter()
         {
             foreach (var filter in FilterValues)
@@ -288,220 +380,6 @@ namespace ExcelProject.ViewModel
     }
 
 }
-
-
-
-<Window x:Class="ExcelProject.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ExcelProject"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" WindowState="Maximized">
-
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <!-- Title Bar -->
-        <Border Background="Teal" Grid.Row="0" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" CornerRadius="5">
-            <TextBlock Text="Bug Tracker" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Margin="10,0,0,0" />
-        </Border>
-
-        <!-- Upload Section -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
-            <TextBlock Text="FileName: " VerticalAlignment="Center" Width="60" />
-            <TextBox Width="400" Height="30" Margin="10 0 0 0" Padding="4 4 4 4" IsEnabled="False" Text="{Binding FilePath}" />
-            <Button Content="..." Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding ShowDialogCommand}" IsEnabled="{Binding IsFileValid}" />
-            <Button Content="Show Details" Width="100" Margin="10,0,0,0" Background="Teal" Command="{Binding LoadCommand}" />
-        </StackPanel>
-
-        <!-- Filter Conditions Section -->
-        <GroupBox Header="Filter Conditions" Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,10">
-            <Grid Margin="10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="300" />
-                    <ColumnDefinition Width="300" />
-                    <ColumnDefinition Width="Auto" />
-
-
-                </Grid.ColumnDefinitions>
-
-                <!-- Column Filters ListBox -->
-                <ListBox ItemsSource="{Binding ColumnFilters}" Height="230"  SelectedItem="{Binding SelectedColumnFilter}" Grid.Column="0">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding}" />
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-
-                <StackPanel Grid.Column="1" Orientation="Vertical" >
-                    
-                    <ListBox ItemsSource="{Binding FilterValues}" Height="230" Grid.Column="1">
-                        <!-- Select All Checkbox -->
-                        <CheckBox Content="Select All" 
-          IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
-          Command="{Binding SelectAllCommand}" Margin="0,0,0,10"  />
-                        <!-- Filter Values ListBox -->
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-
-
-                                <!-- Individual Filter Checkbox -->
-                                <CheckBox Content="{Binding Value}" 
-                          IsChecked="{Binding IsSelected, Mode=TwoWay}" />
-
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-
-                </StackPanel>
-
-                <!-- Buttons -->
-                <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10" >
-                    <Button Content="Apply Filter" Width="150" Height="33" Margin="5" Background="Teal"  Command="{Binding ApplyFilterCommand}" />
-                    <Button Content="Reset Filter" Width="150" Height="22" Margin="5" Background="Teal" Command="{Binding ResetFilterCommand}" />
-                    <Button Content="Import Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ImportFilterCommand}" />
-                    <Button Content="Export Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ExportFilterCommand}" />
-                </StackPanel>
-            </Grid>
-        </GroupBox>
-
-        <!-- DataGrid Section -->
-        <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True" RowHeight="30" >
-            <!-- Define Column Header Style -->
-            <DataGrid.ColumnHeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background" Value="Teal" />
-                    <Setter Property="Foreground" Value="White" />
-                    <Setter Property="FontWeight" Value="Bold" />
-                    <Setter Property="HorizontalContentAlignment" Value="Center" />
-                    <Setter Property="VerticalContentAlignment" Value="Center" />
-                    <Setter Property="Height" Value="20" />
-                    <Setter Property="MinWidth" Value="100" />
-                </Style>
-            </DataGrid.ColumnHeaderStyle>
-        </DataGrid>
-
-        <!-- Close Button -->
-        <Button Content="Close" Grid.Row="4" Background="Teal" Width="100" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
-    </Grid>
-</Window>    Is it possible to arrange the selectall inside the listbox
-
-
-
-<Grid>
-    <Grid.RowDefinitions>
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="*" />
-        <RowDefinition Height="*" />
-        <RowDefinition Height="Auto" />
-    </Grid.RowDefinitions>
-
-    <!-- Title Bar -->
-    <Border Background="Teal" Grid.Row="0" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" CornerRadius="5">
-        <TextBlock Text="Bug Tracker" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Margin="10,0,0,0" />
-    </Border>
-
-    <!-- Upload Section -->
-    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
-        <TextBlock Text="FileName: " VerticalAlignment="Center" Width="60" />
-        <TextBox Width="400" Height="30" Margin="10 0 0 0" Padding="4 4 4 4" IsEnabled="False" Text="{Binding FilePath}" />
-        <Button Content="..." Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding ShowDialogCommand}" IsEnabled="{Binding IsFileValid}" />
-        <Button Content="Show Details" Width="100" Margin="10,0,0,0" Background="Teal" Command="{Binding LoadCommand}" />
-    </StackPanel>
-
-    <!-- Filter Conditions Section -->
-    <GroupBox Header="Filter Conditions" Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,10">
-        <Grid Margin="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300" />
-                <ColumnDefinition Width="300" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-
-            <!-- Column Filters ListBox -->
-            <ListBox ItemsSource="{Binding ColumnFilters}" Height="230" SelectedItem="{Binding SelectedColumnFilter}" Grid.Column="0">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding}" />
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-
-            <StackPanel Grid.Column="1" Orientation="Vertical">
-                <!-- Filter Values ListBox with Select All checkbox included -->
-                <ListBox ItemsSource="{Binding FilterValues}" Height="230" Grid.Column="1">
-                    <!-- Select All Checkbox as first item inside ListBox -->
-                    <ListBox.Items>
-                        <CheckBox Content="Select All" 
-                                  IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
-                                  Command="{Binding SelectAllCommand}" Margin="0,0,0,10" />
-                    </ListBox.Items>
-
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <!-- Individual Filter Checkbox -->
-                            <CheckBox Content="{Binding Value}" 
-                                      IsChecked="{Binding IsSelected, Mode=TwoWay}" />
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </StackPanel>
-
-            <!-- Buttons -->
-            <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10">
-                <Button Content="Apply Filter" Width="150" Height="33" Margin="5" Background="Teal" Command="{Binding ApplyFilterCommand}" />
-                <Button Content="Reset Filter" Width="150" Height="22" Margin="5" Background="Teal" Command="{Binding ResetFilterCommand}" />
-                <Button Content="Import Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ImportFilterCommand}" />
-                <Button Content="Export Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ExportFilterCommand}" />
-            </StackPanel>
-        </Grid>
-    </GroupBox>
-
-    <!-- DataGrid Section -->
-    <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True" RowHeight="30">
-        <DataGrid.ColumnHeaderStyle>
-            <Style TargetType="DataGridColumnHeader">
-                <Setter Property="Background" Value="Teal" />
-                <Setter Property="Foreground" Value="White" />
-                <Setter Property="FontWeight" Value="Bold" />
-                <Setter Property="HorizontalContentAlignment" Value="Center" />
-                <Setter Property="VerticalContentAlignment" Value="Center" />
-                <Setter Property="Height" Value="20" />
-                <Setter Property="MinWidth" Value="100" />
-            </Style>
-        </DataGrid.ColumnHeaderStyle>
-    </DataGrid>
-
-    <!-- Close Button -->
-    <Button Content="Close" Grid.Row="4" Background="Teal" Width="100" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
-</Grid>
-
-
-internal void SetItemsSource(IEnumerable value, Func<object, object> GetSourceItem = null)
-{
-	if (!IsUsingItemsSource && _internalView != null && _internalView.RawCount > 0)
-	{
-		throw new InvalidOperationException(SR.Get("CannotUseItemsSource"));
-	}
-	_itemsSource = value;
-	_isUsingItemsSource = true;
-	SetCollectionView(CollectionViewSource.GetDefaultCollectionView(_itemsSource, ModelParent, GetSourceItem));
-}
-
-
-
-
-
 
 
 
