@@ -385,6 +385,175 @@ namespace ExcelProject.ViewModel
 
 
 
+public class MainViewModel : INotifyPropertyChanged
+{
+    private ObservableCollection<ExcelData> data;
+    private ObservableCollection<ExcelData> filteredData;
+    private ObservableCollection<string> columnFilters;
+    private ObservableCollection<FilterItem> filterValues;
+    private ObservableCollection<string> selectedColumnFilters;  // Holds multiple selected columns
+    private bool isSelectAllChecked;
+    private bool isFilterApplied;
+    private bool isFileValid;
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    public MainViewModel(IRepo exlrepo)
+    {
+        repo = exlrepo;
+
+        // Initialize commands
+        LoadCommand = new RelayCommand(LoadData, CanShowDetails);
+        ShowDialogCommand = new RelayCommand(ShowDialog);
+        ApplyFilterCommand = new RelayCommand(ApplyFilter);
+        ResetFilterCommand = new RelayCommand(ResetFilter);
+        CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+
+        // Initialize properties
+        ColumnFilters = new ObservableCollection<string>();
+        FilterValues = new ObservableCollection<FilterItem>();
+        FilteredData = new ObservableCollection<ExcelData>();
+        data = new ObservableCollection<ExcelData>();
+        selectedColumnFilters = new ObservableCollection<string>();  // For storing selected columns
+        isFileValid = true;
+    }
+
+    public ObservableCollection<ExcelData> Data
+    {
+        get => data;
+        set { data = value; OnPropertyChanged(nameof(Data)); }
+    }
+
+    public ObservableCollection<ExcelData> FilteredData
+    {
+        get => filteredData;
+        set { filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+    }
+
+    public ObservableCollection<string> ColumnFilters
+    {
+        get => columnFilters;
+        set { columnFilters = value; OnPropertyChanged(nameof(ColumnFilters)); }
+    }
+
+    public ObservableCollection<string> SelectedColumnFilters
+    {
+        get => selectedColumnFilters;
+        set { selectedColumnFilters = value; OnPropertyChanged(nameof(SelectedColumnFilters)); LoadFilterValues(); }
+    }
+
+    public ObservableCollection<FilterItem> FilterValues
+    {
+        get => filterValues;
+        set { filterValues = value; OnPropertyChanged(nameof(FilterValues)); }
+    }
+
+    public bool IsSelectAllChecked
+    {
+        get => isSelectAllChecked;
+        set
+        {
+            isSelectAllChecked = value;
+            OnPropertyChanged(nameof(IsSelectAllChecked));
+            SelectAllFilters(value);
+        }
+    }
+
+    public ICommand LoadCommand { get; }
+    public ICommand ShowDialogCommand { get; }
+    public ICommand ApplyFilterCommand { get; }
+    public ICommand ResetFilterCommand { get; }
+    public ICommand CloseCommand { get; }
+
+    private void LoadData()
+    {
+        if (!string.IsNullOrEmpty(FilePath))
+        {
+            var excelData = repo.GetData(FilePath);
+            Data = new ObservableCollection<ExcelData>(excelData);
+            FilteredData = new ObservableCollection<ExcelData>(excelData);
+
+            ColumnFilters = new ObservableCollection<string>(excelData.FirstOrDefault()?.GetType().GetProperties().Select(p => p.Name));
+        }
+    }
+
+    private void LoadFilterValues()
+    {
+        // Clear previous filter values
+        FilterValues.Clear();
+
+        // For each selected column, load distinct values
+        foreach (var selectedColumn in SelectedColumnFilters)
+        {
+            var columnValues = Data.Select(row => row.GetType().GetProperty(selectedColumn)?.GetValue(row)?.ToString())
+                                   .Distinct()
+                                   .OrderBy(value => value)
+                                   .Select(value => new FilterItem { Value = value, IsSelected = true });
+
+            // Add values for each selected column to FilterValues
+            foreach (var item in columnValues)
+            {
+                FilterValues.Add(item);
+            }
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        if (SelectedColumnFilters.Count == 0) return;
+
+        var selectedValues = FilterValues.Where(f => f.IsSelected).Select(f => f.Value).ToList();
+        if (selectedValues.Count == 0)
+        {
+            FilteredData = new ObservableCollection<ExcelData>(Data);
+            return;
+        }
+
+        var filtered = Data.Where(row =>
+        {
+            var matchesFilter = false;
+
+            foreach (var selectedColumn in SelectedColumnFilters)
+            {
+                var propertyValue = row.GetType().GetProperty(selectedColumn)?.GetValue(row)?.ToString();
+                if (selectedValues.Contains(propertyValue))
+                {
+                    matchesFilter = true;
+                    break;
+                }
+            }
+            return matchesFilter;
+        }).ToList();
+
+        FilteredData = new ObservableCollection<ExcelData>(filtered);
+    }
+
+    private void ResetFilter()
+    {
+        foreach (var filter in FilterValues)
+        {
+            filter.IsSelected = false;
+        }
+        FilteredData = new ObservableCollection<ExcelData>(Data);
+        IsSelectAllChecked = false;
+    }
+
+    private void SelectAllFilters(bool selectAll)
+    {
+        foreach (var filter in FilterValues)
+        {
+            filter.IsSelected = selectAll;
+        }
+        OnPropertyChanged(nameof(FilterValues));
+    }
+
+    protected virtual void OnPropertyChanged(string propertyName) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}
+
+
+
+
 
 
 
