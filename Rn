@@ -371,6 +371,93 @@ namespace ExcelProject.ViewModel
 
 
 
+private void ApplyFilter()
+{
+    if (SelectedColumnsFilter.Count == 0) return;
+
+    List<string> selectedValues = new List<string>();
+    foreach (var filter in FilterValues)
+    {
+        if (filter.IsSelected)
+        {
+            selectedValues.Add(filter.Value);
+        }
+    }
+
+    if (selectedValues.Count > 0)
+    {
+        ObservableCollection<ExcelData> filteredData = new ObservableCollection<ExcelData>();
+
+        // Filter data based on the selected columns and values
+        foreach (var dataItem in Data)
+        {
+            bool isMatch = true;
+
+            foreach (var column in SelectedColumnsFilter)
+            {
+                var propertyValue = dataItem.GetType().GetProperty(column)?.GetValue(dataItem)?.ToString();
+                if (!selectedValues.Contains(propertyValue))
+                {
+                    isMatch = false;
+                    break;
+                }
+            }
+
+            if (isMatch)
+            {
+                filteredData.Add(dataItem);
+            }
+        }
+
+        FilteredData = filteredData;
+        IsFilterApplied = true;
+    }
+    else
+    {
+        FilteredData = new ObservableCollection<ExcelData>(Data);
+        IsFilterApplied = false;
+    }
+}
+
+
+private void LoadFilterValues()
+{
+    FilterValues.Clear();  // Clear existing filter values.
+
+    foreach (var column in SelectedColumnsFilter)
+    {
+        var columnFilterValues = Data.Select(row => row.GetType().GetProperty(column).GetValue(row)?.ToString())
+            .Distinct()
+            .OrderBy(value => value)
+            .Select(value => new FilterItem { Value = value, IsSelected = true });
+
+        // Add new filter values for the selected columns
+        foreach (var filterItem in columnFilterValues)
+        {
+            FilterValues.Add(filterItem);
+        }
+    }
+
+    IsSelectAllChecked = true;
+}
+private void ResetFilter()
+{
+    // Reset all filter values
+    foreach (var filter in FilterValues)
+    {
+        filter.IsSelected = false;
+    }
+
+    // Reset selected columns filter
+    SelectedColumnsFilter.Clear();
+
+    FilteredData = new ObservableCollection<ExcelData>(Data);
+    IsSelectAllChecked = false;
+}
+
+
+
+
 
 
 
