@@ -803,6 +803,43 @@ namespace ExcelProject.ExcelRepo
 
 
 
+private ObservableCollection<DataGridColumn> dataGridColumns; 
+   public ObservableCollection<DataGridColumn> DataGridColumns // Property to bind columns dynamically
+    {
+        get => dataGridColumns;
+        set { dataGridColumns = value; OnPropertyChanged(nameof(DataGridColumns)); }
+    }
+
+  private void LoadData()
+    {
+        if (!string.IsNullOrEmpty(FilePath))
+        {
+            var excelData = repo.GetData(FilePath);
+            Data = new ObservableCollection<ExcelData>(excelData);
+            FilteredData = new ObservableCollection<ExcelData>(excelData);
+
+            // Dynamically generate columns for the DataGrid based on the first row of data
+            DataGridColumns.Clear(); // Clear any existing columns
+            var firstRow = excelData.FirstOrDefault();
+
+            if (firstRow != null)
+            {
+                foreach (var property in firstRow.GetType().GetProperties())
+                {
+                    var column = new DataGridTextColumn
+                    {
+                        Header = property.Name,
+                        Binding = new Binding(property.Name)
+                    };
+                    DataGridColumns.Add(column);
+                }
+            }
+
+            // Dynamically set the ColumnFilters (for filter dropdowns)
+            ColumnFilters = new ObservableCollection<string>(excelData.FirstOrDefault()?.GetType().GetProperties().Select(p => p.Name));
+        }
+    }
+
 
 
 
