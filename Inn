@@ -791,3 +791,442 @@ namespace ExcelProject.Repo
 }
 
 
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using ExcelProject.Model;
+using ExcelProject.Repo;
+using OfficeOpenXml;
+using System.Reflection;
+
+namespace ExcelProject.ExcelRepo
+{
+    /// <summary>
+    /// Repository for handling Excel file operations.
+    /// Provides methods to extract data from Excel files and apply filters to the data.
+    /// </summary>
+    public class ExcelRepository : IRepo
+    {
+        /// <summary>
+        /// Reads data from an Excel file and returns a list of ExcelData objects.
+        /// Maps columns from the Excel sheet to properties of ExcelData using the ExcelColumn attribute.
+        /// </summary>
+        /// <param name="filePath">The file path of the Excel file.</param>
+        /// <returns>A list of ExcelData objects.</returns>
+        public List<ExcelData> GetData(string filePath)
+        {
+            var result = new List<ExcelData>();
+
+            // Open the Excel file using EPPlus
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            {
+                var worksheet = package.Workbook.Worksheets[0]; // Get the first worksheet
+                if (worksheet == null)
+                    throw new Exception("Worksheet is empty or not found.");
+
+                // Read the header row (column names) once
+                var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.End.Column]
+                    .Select(cell => cell.Text.Trim()) // Trim spaces to avoid mismatches
+                    .ToList();
+
+                // Get properties with ExcelColumnAttribute once to improve performance
+                var propertyMappings = typeof(ExcelData).GetProperties()
+                    .Select(prop => new
+                    {
+                        Property = prop,
+                        Attribute = prop.GetCustomAttribute<ExcelColumnAttribute>()
+                    })
+                    .Where(mapping => mapping.Attribute != null)
+                    .ToDictionary(mapping => mapping.Attribute.ColumnName, mapping => mapping.Property);
+
+                // Read data rows
+                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                {
+                    var rowData = new ExcelData();
+
+                    // Map each cell to the corresponding property
+                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
+                    {
+                        var columnName = headerRow[col - 1]; // Get column name
+                        if (propertyMappings.TryGetValue(columnName, out var property))
+                        {
+                            var cellValue = worksheet.Cells[row, col].Text?.Trim(); // Trim to avoid extra spaces
+                            property.SetValue(rowData, cellValue);
+                        }
+                    }
+
+                    result.Add(rowData);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Filters the given list of ExcelData objects based on a specified column and selected values.
+        /// </summary>
+        /// <param name="data">The list of ExcelData to be filtered.</param>
+        /// <param name="column">The name of the column to filter by.</param>
+        /// <param name="selectedValues">The list of selected values to filter the column by.</param>
+        /// <returns>A filtered list of ExcelData objects.</returns>
+        public List<ExcelData> ApplyFilter(List<ExcelData> data, string column, List<string> selectedValues)
+        {
+            // Check for invalid inputs (empty column name or null/empty selected values)
+            if (string.IsNullOrWhiteSpace(column) || selectedValues == null || !selectedValues.Any())
+                return data;
+
+            // Filter the data by matching the selected values in the specified column
+            return data.Where(row =>
+            {
+                var property = row.GetType().GetProperty(column); // Get the property for the given column
+                if (property != null)
+                {
+                    var value = property.GetValue(row)?.ToString(); // Get the value of the property for this row
+                    return selectedValues.Contains(value); // Check if the value is in the selected values list
+                }
+                return false; // Return false if the column doesn't exist
+            }).ToList();
+        }
+    }
+}
+
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using DocumentFormat.OpenXml.Math;
+using System.IO;
+
+namespace ExcelProject.Model
+{
+    /// <summary>
+    /// Represents a row of data from an Excel sheet that is mapped to various properties using the ExcelColumn attribute.
+    /// Each property corresponds to a column in the Excel sheet and contains the necessary data to represent a bug report or project issue.
+    /// </summary>
+    public class ExcelData
+    {
+        /// <summary>
+        /// Gets or sets the unique identifier for the bug or project issue.
+        /// </summary>
+        [ExcelColumn("Id")]
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the project associated with the issue or bug.
+        /// </summary>
+        [ExcelColumn("Project")]
+        public string Project { get; set; }
+
+        /// <summary>
+        /// Gets or sets the reporter of the bug or issue.
+        /// </summary>
+        [ExcelColumn("Reporter")]
+        public string Reporter { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the person to whom the bug or issue is assigned.
+        /// </summary>
+        [ExcelColumn("Assigned To")]
+        public string AssignedTo { get; set; }
+
+        /// <summary>
+        /// Gets or sets the priority of the bug or issue (e.g., High, Medium, Low).
+        /// </summary>
+        [ExcelColumn("Priority")]
+        public string Priority { get; set; }
+
+        /// <summary>
+        /// Gets or sets the severity of the bug or issue (e.g., Critical, Minor, Major).
+        /// </summary>
+        [ExcelColumn("Severity")]
+        public string Severity { get; set; }
+
+        /// <summary>
+        /// Gets or sets the reproducibility status of the bug or issue (e.g., Always, Sometimes).
+        /// </summary>
+        [ExcelColumn("Reproducibility")]
+        public string Reproducibility { get; set; }
+
+        /// <summary>
+        /// Gets or sets the version of the product associated with the bug or issue.
+        /// </summary>
+        [ExcelColumn("Product Version")]
+        public string ProductVersion { get; set; }
+
+        /// <summary>
+        /// Gets or sets the category of the bug or issue (e.g., UI, Backend).
+        /// </summary>
+        [ExcelColumn("Category")]
+        public string Category { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date when the bug or issue was submitted.
+        /// </summary>
+        [ExcelColumn("Date Submitted")]
+        public string DateSubmitted { get; set; }
+
+        /// <summary>
+        /// Gets or sets the operating system where the bug or issue was observed.
+        /// </summary>
+        [ExcelColumn("OS")]
+        public string OS { get; set; }
+
+        /// <summary>
+        /// Gets or sets the version of the operating system.
+        /// </summary>
+        [ExcelColumn("OS Version")]
+        public string OSVersion { get; set; }
+
+        /// <summary>
+        /// Gets or sets the platform on which the bug or issue was observed (e.g., Web, Mobile).
+        /// </summary>
+        [ExcelColumn("Platform")]
+        public string Platform { get; set; }
+
+        /// <summary>
+        /// Gets or sets the status of the view or visibility of the bug or issue (e.g., Open, Closed).
+        /// </summary>
+        [ExcelColumn("View Status")]
+        public string ViewStatus { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date when the bug or issue was last updated.
+        /// </summary>
+        [ExcelColumn("Updated")]
+        public string Updated { get; set; }
+
+        /// <summary>
+        /// Gets or sets the summary or brief description of the bug or issue.
+        /// </summary>
+        [ExcelColumn("Summary")]
+        public string Summary { get; set; }
+
+        /// <summary>
+        /// Gets or sets the current status of the bug or issue (e.g., New, In Progress, Resolved).
+        /// </summary>
+        [ExcelColumn("Status")]
+        public string Status { get; set; }
+
+        /// <summary>
+        /// Gets or sets the resolution or outcome for the bug or issue (e.g., Fixed, Won't Fix).
+        /// </summary>
+        [ExcelColumn("Resolution")]
+        public string Resolution { get; set; }
+
+        /// <summary>
+        /// Gets or sets the version in which the bug or issue was fixed, if applicable.
+        /// </summary>
+        [ExcelColumn("Fixed in Version")]
+        public string FixedInVersion { get; set; }
+
+        /// <summary>
+        /// Gets or sets the detailed description of the bug or issue.
+        /// </summary>
+        [ExcelColumn("Description")]
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Gets or sets the steps to reproduce the bug or issue.
+        /// </summary>
+        [ExcelColumn("Steps To Reproduce")]
+        public string StepsToReproduce { get; set; }
+
+        /// <summary>
+        /// Gets or sets the code owner for the bug or issue.
+        /// </summary>
+        [ExcelColumn("Code Owner")]
+        public string CodeOwner { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date when the bug or issue was resolved.
+        /// </summary>
+        [ExcelColumn("Date Resolved")]
+        public string DateResolved { get; set; }
+
+        /// <summary>
+        /// Gets or sets the impact of the defect to the user.
+        /// </summary>
+        [ExcelColumn("Defect Impact to User")]
+        public string DefectImpactToUser { get; set; }
+
+        /// <summary>
+        /// Gets or sets the type of the defect (e.g., Functional, Performance).
+        /// </summary>
+        [ExcelColumn("Defect Type")]
+        public string DefectType { get; set; }
+
+        /// <summary>
+        /// Gets or sets the iteration of the defect or bug, which may refer to the sprint or release cycle.
+        /// </summary>
+        [ExcelColumn("Iteration")]
+        public string Iteration { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data manager iteration for the defect or issue.
+        /// </summary>
+        [ExcelColumn("Iteration (Data Manager)")]
+        public string IterationDataManager { get; set; }
+
+        /// <summary>
+        /// Gets or sets the iteration for the XRD measurement related to the defect or issue.
+        /// </summary>
+        [ExcelColumn("Iteration (XRD Measurement)")]
+        public string IterationXRDMeasurement { get; set; }
+
+        /// <summary>
+        /// Gets or sets the module associated with the bug or issue.
+        /// </summary>
+        [ExcelColumn("Module")]
+        public string Module { get; set; }
+
+        /// <summary>
+        /// Gets or sets the module for common plugins associated with the bug or issue.
+        /// </summary>
+        [ExcelColumn("Module(Common Plugins)")]
+        public string ModuleCommonPlugins { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ODC period for the bug or issue.
+        /// </summary>
+        [ExcelColumn("ODC Period")]
+        public string ODCPeriod { get; set; }
+
+        /// <summary>
+        /// Gets or sets the phase of origin for the bug or issue.
+        /// </summary>
+        [ExcelColumn("Phase of Origin")]
+        public string PhaseOfOrigin { get; set; }
+
+        /// <summary>
+        /// Gets or sets the responsibility for the bug or issue (e.g., Developer, QA).
+        /// </summary>
+        [ExcelColumn("Responsibility")]
+        public string Responsibility { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ID of the test case associated with the bug or issue.
+        /// </summary>
+        [ExcelColumn("Test Case Id")]
+        public string TestCaseId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the person who tested the bug or issue.
+        /// </summary>
+        [ExcelColumn("Tested By")]
+        public string TestedBy { get; set; }
+
+        /// <summary>
+        /// Gets or sets the level of testing applied to the bug or issue (e.g., Unit Testing, Integration Testing).
+        /// </summary>
+        [ExcelColumn("Testing Level")]
+        public string TestingLevel { get; set; }
+
+        /// <summary>
+        /// Gets or sets the version associated with the bug or issue.
+        /// </summary>
+        [ExcelColumn("Version")]
+        public string Version { get; set; }
+
+        /// <summary>
+        /// Gets or sets the iteration for the Powder XRD test related to the defect or issue.
+        /// </summary>
+        [ExcelColumn("Iteration (Powder XRD)")]
+        public string IterationPowderXRD { get; set; }
+
+        /// <summary>
+        /// Gets or sets the iteration for SmartFlex related to the defect or issue.
+        /// </summary>
+        [ExcelColumn("Iteration (SmartFlex)")]
+        public string IterationSmartFlex { get; set; }
+
+        /// <summary>
+        /// Gets or sets the iteration for the DB Browser related to the defect or issue.
+        /// </summary>
+        [ExcelColumn("Iteration(DB Browser)")]
+        public string IterationDBBrowser { get; set; }
+
+        /// <summary>
+        /// Gets or sets the iteration for MDA related to the defect or issue.
+        /// </summary>
+        [ExcelColumn("Iteration(MDA)")]
+        public string IterationMDA { get; set; }
+
+        /// <summary>
+        /// Gets or sets the iteration for XRD DSC Analysis related to the defect or issue.
+        /// </summary>
+        [ExcelColumn("Iteration(XRD DSC Analysis)")]
+        public string IterationXRDDSCAnalysis { get; set; }
+
+        /// <summary>
+        /// Gets or sets the scope of the defect or issue.
+        /// </summary>
+        [ExcelColumn("Scope")]
+        public string Scope { get; set; }
+
+        /// <summary>
+        /// Gets or sets the status of the bug analysis (e.g., Pending, Completed).
+        /// </summary>
+        [ExcelColumn("Bug Analysis Status")]
+        public string BugAnalysisStatus { get; set; }
+    }
+}
+
+
+
+
+
+
+/// <summary>
+/// Represents an item used for filtering data. It contains a value and a flag indicating whether the item is selected for filtering.
+/// Implements INotifyPropertyChanged to notify UI or other listeners when the selected state changes.
+/// </summary>
+public class FilterItem : INotifyPropertyChanged
+{
+    // Private field to store the selection state
+    private bool _isSelected;
+
+    /// <summary>
+    /// Gets or sets the value of the filter item.
+    /// This value represents the actual data that the filter item is associated with.
+    /// </summary>
+    public string Value { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the filter item is selected for filtering.
+    /// When set to true, this item will be included in the filtering criteria.
+    /// </summary>
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            // Update the selection state and notify listeners of the change
+            _isSelected = value;
+            OnPropertyChanged(nameof(IsSelected)); // Notify the UI of the change in IsSelected
+        }
+    }
+
+    /// <summary>
+    /// Event triggered when a property of this object changes, allowing data binding systems to update the UI.
+    /// </summary>
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    /// <summary>
+    /// Notifies listeners (e.g., UI) that a property has changed.
+    /// This method is called automatically when the IsSelected property changes.
+    /// </summary>
+    /// <param name="propertyName">The name of the property that changed.</param>
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        // Trigger the PropertyChanged event if there are any listeners
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+
+
