@@ -452,7 +452,19 @@ namespace ExcelProject.ViewModel
 
 
 
- // Check if distinct values are found for the selected column
+private void LoadFilterValues()
+{
+    if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
+
+    // Ensure that the column exists and has valid data
+    var distinctValues = Data
+        .Select(row => row.GetType().GetProperty(SelectedColumnFilter)?.GetValue(row)?.ToString())
+        .Where(value => value != null)  // Ensure no null values are included
+        .Distinct()
+        .OrderBy(value => value)
+        .ToList();
+
+    // Check if distinct values are found for the selected column
     if (distinctValues.Any())
     {
         // Populate FilterValues
@@ -465,6 +477,8 @@ namespace ExcelProject.ViewModel
         FilterValues.Clear();
         IsSelectAllChecked = false;
     }
+}
+
 
 
 
