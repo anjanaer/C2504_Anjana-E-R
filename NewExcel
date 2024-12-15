@@ -304,6 +304,25 @@ namespace ExcelProject.ViewModel
 
                 // Dynamically generate the column names from the first row
                 ColumnFilters = new ObservableCollection<string>(excelData.FirstOrDefault()?.GetType().GetProperties().Select(p => p.Name));
+              //// Initialize the ColumnFilters collection
+ColumnFilters = new ObservableCollection<string>();
+
+// Check if excelData is not empty
+if (excelData.Any())
+{
+    // Get the first row data
+    var firstRow = excelData.FirstOrDefault();
+
+    // Get the properties of the first row object (ExcelData)
+    var properties = firstRow.GetType().GetProperties();
+
+    // Loop through each property and add the property name to the ColumnFilters
+    foreach (var property in properties)
+    {
+        ColumnFilters.Add(property.Name);
+    }
+}
+
             }
         }
 
@@ -841,7 +860,72 @@ private ObservableCollection<DataGridColumn> dataGridColumns;
     }
 
 
+------------------------
+namespace ExcelProject.ExcelRepo
+{
+    /// <summary>
+    /// Repository for handling Excel file operations.
+    /// </summary>
+    public class ExcelRepository : IRepo
+    {
+        public List<ExcelData> GetData(string filePath)
+        {
+            var result = new List<ExcelData>();
 
+            // Open the Excel file using EPPlus
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            {
+                var worksheet = package.Workbook.Worksheets[0]; // Get the first worksheet
+                if (worksheet == null)
+                    throw new Exception("Worksheet is empty or not found.");
+
+                // Read the header row (column names)
+                List<string> headerRow = new List<string>();
+                int columnCount = worksheet.Dimension.End.Column;
+                for (int col = 1; col <= columnCount; col++)
+                {
+                    headerRow.Add(worksheet.Cells[1, col].Text.Trim());
+                }
+
+                // Get properties with ExcelColumnAttribute
+                Dictionary<string, PropertyInfo> propertyMappings = new Dictionary<string, PropertyInfo>();
+                var properties = typeof(ExcelData).GetProperties();
+                foreach (var prop in properties)
+                {
+                    var attribute = prop.GetCustomAttribute<ExcelColumnAttribute>();
+                    if (attribute != null)
+                    {
+                        propertyMappings.Add(attribute.ColumnName, prop);
+                    }
+                }
+
+                // Read data rows (starting from the second row)
+                int rowCount = worksheet.Dimension.End.Row;
+                for (int row = 2; row <= rowCount; row++)
+                {
+                    var rowData = new ExcelData();
+
+                    // Map each cell to the corresponding property
+                    for (int col = 1; col <= columnCount; col++)
+                    {
+                        string columnName = headerRow[col - 1]; // Get column name from header row
+                        if (propertyMappings.ContainsKey(columnName))
+                        {
+                            var property = propertyMappings[columnName];
+                            string cellValue = worksheet.Cells[row, col].Text?.Trim();
+                            property.SetValue(rowData, cellValue); // Set the property value
+                        }
+                    }
+
+                    result.Add(rowData); // Add the row data to the result list
+                }
+            }
+
+            return result; // Return the list of Excel data
+        }
+    }
+}
+--------------------------------
 
 
 
