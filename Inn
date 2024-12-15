@@ -421,3 +421,111 @@ public ICommand ImportFilterCommand { get; }
 public ICommand ExportFilterCommand { get; }
 
 
+
+
+/// <summary>
+/// Gets or sets the collection of Excel data.
+/// This collection holds all the data loaded from the Excel file.
+/// </summary>
+public ObservableCollection<ExcelData> Data
+{
+    get => data;
+    set { data = value; OnPropertyChanged(nameof(Data)); }
+}
+
+/// <summary>
+/// Gets or sets the collection of filtered Excel data.
+/// This collection holds the data after applying any filters.
+/// </summary>
+public ObservableCollection<ExcelData> FilteredData
+{
+    get => filteredData;
+    set { filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+}
+
+/// <summary>
+/// Gets or sets the file path of the selected Excel file.
+/// This property holds the path to the file selected by the user.
+/// </summary>
+public string FilePath
+{
+    get => filePath;
+    set { filePath = value; OnPropertyChanged(nameof(FilePath)); }
+}
+
+/// <summary>
+/// Gets or sets a value indicating whether the selected file is valid.
+/// This property indicates whether the Excel file has a valid format.
+/// </summary>
+public bool IsFileValid
+{
+    get => isFileValid;
+    set { isFileValid = value; OnPropertyChanged(nameof(IsFileValid)); }
+}
+
+/// <summary>
+/// Gets or sets the error message when the selected file is invalid.
+/// This property holds an error message if the file is not a valid Excel file.
+/// </summary>
+public string FileNameErrorMessage
+{
+    get => fileNameErrorMessage;
+    set { fileNameErrorMessage = value; OnPropertyChanged(nameof(FileNameErrorMessage)); }
+}
+
+/// <summary>
+/// Gets or sets the selected column for filtering.
+/// This property holds the name of the column chosen for filtering the data.
+/// </summary>
+public string SelectedColumnFilter
+{
+    get => selectedColumnFilter;
+    set { selectedColumnFilter = value; OnPropertyChanged(nameof(SelectedColumnFilter)); LoadFilterValues(); }
+}
+
+/// <summary>
+/// Gets or sets the collection of available column filters.
+/// This collection holds the list of column names available for filtering the data.
+/// </summary>
+public ObservableCollection<string> ColumnFilters
+{
+    get => columnFilters;
+    set { columnFilters = value; OnPropertyChanged(nameof(ColumnFilters)); }
+}
+
+/// <summary>
+/// Gets or sets a value indicating whether a filter has been applied to the data.
+/// This property indicates if any filter has been applied to the data set.
+/// </summary>
+public bool IsFilterApplied
+{
+    get => isFilterApplied;
+    set { isFilterApplied = value; OnPropertyChanged(nameof(IsFilterApplied)); }
+}
+
+/// <summary>
+/// Gets or sets the collection of filter values for the selected column.
+/// This collection holds the filter options available for the selected column.
+/// </summary>
+public ObservableCollection<FilterItem> FilterValues
+{
+    get => filterValues;
+    set { filterValues = value; OnPropertyChanged(nameof(FilterValues)); }
+}
+
+/// <summary>
+/// Gets or sets a value indicating whether the "Select All" checkbox is checked.
+/// This property controls whether all filter options are selected or not.
+/// </summary>
+public bool IsSelectAllChecked
+{
+    get => isSelectAllChecked;
+    set
+    {
+        isSelectAllChecked = value;
+        OnPropertyChanged(nameof(IsSelectAllChecked));
+        SelectAllFilters(value);
+    }
+}
+
+
