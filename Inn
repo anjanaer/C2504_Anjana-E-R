@@ -529,3 +529,234 @@ public bool IsSelectAllChecked
 }
 
 
+
+/// <summary>
+/// Opens a file dialog to select an Excel file and checks its validity.
+/// If a valid Excel file is selected, the file path is set and any previous error messages are cleared.
+/// If the file is invalid, an error message is displayed.
+/// </summary>
+private void ShowDialog()
+{
+    var dialog = new OpenFileDialog
+    {
+        Filter = "Excel Files (*.xlsx, *.xls)|*.xlsx;*.xls"
+    };
+
+    // Show the file dialog and check if the user selected a file
+    if (dialog.ShowDialog() == true)
+    {
+        FilePath = dialog.FileName;
+
+        // Check if the file has a valid Excel extension (.xlsx or .xls)
+        if (FilePath.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase) || FilePath.EndsWith(".xls", StringComparison.OrdinalIgnoreCase))
+        {
+            IsFileValid = true;
+            FileNameErrorMessage = string.Empty; // Clear any previous error message
+        }
+        else
+        {
+            IsFileValid = false;
+            FileNameErrorMessage = "The selected file is not a valid Excel file. Please select a .xlsx or .xls file.";
+        }
+    }
+}
+
+/// <summary>
+/// Loads data from the Excel file and populates the Data and FilteredData collections.
+/// It also dynamically generates the column filters based on the first row's property names.
+/// </summary>
+private void LoadData()
+{
+    if (!string.IsNullOrEmpty(FilePath))
+    {
+        // Retrieve data from the repository
+        var excelData = repo.GetData(FilePath);
+
+        // Populate the Data and FilteredData collections
+        Data = new ObservableCollection<ExcelData>(excelData);
+        FilteredData = new ObservableCollection<ExcelData>(excelData);
+
+        // Dynamically generate the column names from the first row's properties
+        ColumnFilters = new ObservableCollection<string>(excelData.FirstOrDefault()?.GetType().GetProperties().Select(p => p.Name));
+    }
+}
+
+/// <summary>
+/// Loads the distinct filter values from the selected column to be used in the filter options.
+/// It populates the FilterValues collection with the available distinct values and marks them as selected by default.
+/// </summary>
+private void LoadFilterValues()
+{
+    if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
+
+    // Get distinct values from the selected column for the filter
+    FilterValues = new ObservableCollection<FilterItem>(Data
+        .Select(row => row.GetType().GetProperty(SelectedColumnFilter)?.GetValue(row)?.ToString())
+        .Distinct()
+        .OrderBy(value => value)
+        .Select(value => new FilterItem { Value = value, IsSelected = true })
+    );
+
+    IsSelectAllChecked = true; // Check the "Select All" checkbox by default
+}
+
+/// <summary>
+/// Loads data and displays it in a Bug Details table, calling the LoadData method.
+/// </summary>
+private void ShowDetails()
+{
+    if (!string.IsNullOrEmpty(FilePath))
+    {
+        LoadData();
+    }
+}
+
+/// <summary>
+/// Determines if the "Show Details" command can execute. It returns true if a file is loaded, otherwise false.
+/// </summary>
+/// <returns>True if a file is loaded, otherwise false.</returns>
+private bool CanShowDetails()
+{
+    return !string.IsNullOrEmpty(FilePath);
+}
+
+/// <summary>
+/// Applies the selected filters to the data. It filters the Data collection based on the selected filter values
+/// and updates the FilteredData collection with the filtered results.
+/// </summary>
+private void ApplyFilter()
+{
+    // Check if a filter is selected
+    if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
+
+    // Get selected filter values
+    List<string> selectedValues = new List<string>();
+    foreach (var filter in FilterValues)
+    {
+        if (filter.IsSelected)
+        {
+            selectedValues.Add(filter.Value);
+        }
+    }
+
+    // Check if there are any selected values
+    if (selectedValues.Count > 0)
+    {
+        // Create a new ObservableCollection for filtered data
+        ObservableCollection<ExcelData> filteredData = new ObservableCollection<ExcelData>();
+
+        // Filter the data based on the selected values
+        foreach (var dataItem in Data)
+        {
+            // Get the value of the property specified by SelectedFilter
+            var propertyValue = dataItem.GetType().GetProperty(SelectedColumnFilter)?.GetValue(dataItem)?.ToString();
+
+            // Check if the property value is in the selected values
+            if (selectedValues.Contains(propertyValue))
+            {
+                filteredData.Add(dataItem);
+            }
+        }
+
+        // Assign the filtered data to FilteredData
+        FilteredData = filteredData;
+        IsFilterApplied = true;
+    }
+    else
+    {
+        // If no filter values are selected, reset to original data
+        FilteredData = new ObservableCollection<ExcelData>(Data);
+        IsFilterApplied = false;
+    }
+}
+
+/// <summary>
+/// Resets the filters to their default state, unselecting all filters and restoring the original data to FilteredData.
+/// It also unchecks the "Select All" checkbox.
+/// </summary>
+private void ResetFilter()
+{
+    foreach (var filter in FilterValues)
+    {
+        filter.IsSelected = false;
+    }
+
+    // Restore the original data to FilteredData
+    FilteredData = new ObservableCollection<ExcelData>(Data);
+    IsSelectAllChecked = false;
+}
+
+/// <summary>
+/// Selects or unselects all filters in the FilterValues collection based on the "Select All" checkbox state.
+/// </summary>
+/// <param name="selectAll">True to select all filters, false to unselect them.</param>
+private void SelectAllFilters(bool selectAll)
+{
+    foreach (var filter in FilterValues)
+    {
+        filter.IsSelected = selectAll;
+    }
+
+    OnPropertyChanged(nameof(FilterValues)); // Notify property change
+}
+
+/// <summary>
+/// Opens a file dialog to import filter conditions from an XML file.
+/// The filter conditions are deserialized from the XML file and applied to the FilterValues collection.
+/// It also updates the "Select All" checkbox based on the imported data.
+/// </summary>
+private void ImportFilter()
+{
+    var dialog = new OpenFileDialog
+    {
+        Filter = "XML Files (*.xml)|*.xml"
+    };
+
+    if (dialog.ShowDialog() == true)
+    {
+        var filePath = dialog.FileName;
+
+        // Deserialize XML to filter conditions
+        var serializer = new XmlSerializer(typeof(List<FilterItem>));
+        using (var reader = new StreamReader(filePath))
+        {
+            var importedFilters = (List<FilterItem>)serializer.Deserialize(reader);
+            FilterValues = new ObservableCollection<FilterItem>(importedFilters);
+        }
+
+        // Update the "Select All" checkbox based on imported data
+        IsSelectAllChecked = FilterValues.All(filter => filter.IsSelected);
+    }
+}
+
+/// <summary>
+/// Opens a file dialog to export the current filter conditions to an XML file.
+/// The filter conditions are serialized and saved to the selected XML file.
+/// </summary>
+private void ExportFilter()
+{
+    var dialog = new SaveFileDialog
+    {
+        Filter = "XML Files (*.xml)|*.xml"
+    };
+
+    if (dialog.ShowDialog() == true)
+    {
+        var filePath = dialog.FileName;
+
+        // Serialize filter conditions to XML
+        var serializer = new XmlSerializer(typeof(List<FilterItem>));
+        using (var writer = new StreamWriter(filePath))
+        {
+            serializer.Serialize(writer, FilterValues.ToList());
+        }
+    }
+}
+
+/// <summary>
+/// Raises the PropertyChanged event to notify the UI that a property value has changed.
+/// </summary>
+/// <param name="propertyName">The name of the property that has changed.</param>
+protected virtual void OnPropertyChanged(string propertyName) =>
+    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
