@@ -452,7 +452,19 @@ namespace ExcelProject.ViewModel
 
 
 
-
+ // Check if distinct values are found for the selected column
+    if (distinctValues.Any())
+    {
+        // Populate FilterValues
+        FilterValues = new ObservableCollection<FilterItem>(distinctValues.Select(value => new FilterItem { Value = value, IsSelected = true }));
+        IsSelectAllChecked = true; // Set "Select All" to checked if filter items are found
+    }
+    else
+    {
+        // If no values are found, reset the FilterValues
+        FilterValues.Clear();
+        IsSelectAllChecked = false;
+    }
 
 
 
