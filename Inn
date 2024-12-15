@@ -760,3 +760,34 @@ private void ExportFilter()
 protected virtual void OnPropertyChanged(string propertyName) =>
     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
+
+
+namespace ExcelProject.Repo
+{
+    /// <summary>
+    /// Defines the contract for a repository that interacts with Excel data.
+    /// Provides methods for retrieving data from an Excel file and applying filters to it.
+    /// </summary>
+    public interface IRepo
+    {
+        /// <summary>
+        /// Retrieves data from an Excel file at the specified file path.
+        /// The data is returned as a list of ExcelData objects.
+        /// </summary>
+        /// <param name="filePath">The file path to the Excel file to retrieve data from.</param>
+        /// <returns>A list of ExcelData objects representing the rows of data in the Excel file.</returns>
+        List<ExcelData> GetData(string filePath);
+
+        /// <summary>
+        /// Applies a filter to the given data based on the selected column and filter values.
+        /// Returns a new list of ExcelData objects that match the filter criteria.
+        /// </summary>
+        /// <param name="data">The list of ExcelData objects to filter.</param>
+        /// <param name="column">The column name to apply the filter on.</param>
+        /// <param name="selectedValues">The list of selected filter values to match against.</param>
+        /// <returns>A list of filtered ExcelData objects.</returns>
+        List<ExcelData> ApplyFilter(List<ExcelData> data, string column, List<string> selectedValues);
+    }
+}
+
+
