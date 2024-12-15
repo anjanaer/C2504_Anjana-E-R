@@ -279,3 +279,145 @@ namespace ExcelProject.ViewModel
     }
 
 
+
+
+// Constructor for initializing commands and properties
+public MainViewModel(IRepo excelRepo)
+{
+    // Initialize repository interface for interacting with Excel data
+    repo = excelRepo;
+
+    // Initialize commands with appropriate methods and conditions
+    LoadCommand = new RelayCommand(LoadData, CanShowDetails); // Command to load data from Excel file
+    ShowDialogCommand = new RelayCommand(ShowDialog); // Command to open file dialog for selecting Excel file
+    ApplyFilterCommand = new RelayCommand(ApplyFilter); // Command to apply selected filter on data
+    ResetFilterCommand = new RelayCommand(ResetFilter); // Command to reset all applied filters
+    ImportFilterCommand = new RelayCommand(ImportFilter); // Command to import filter settings from an XML file
+    ExportFilterCommand = new RelayCommand(ExportFilter); // Command to export filter settings to an XML file
+    CloseCommand = new RelayCommand(() => Application.Current.Shutdown()); // Command to close the application
+
+    // Initialize properties with default values
+    ColumnFilters = new ObservableCollection<string>(); // List of available columns for filtering
+    FilterValues = new ObservableCollection<FilterItem>(); // Filter options for the selected column
+    FilteredData = new ObservableCollection<ExcelData>(); // Data after filters have been applied
+    data = new ObservableCollection<ExcelData>(); // All loaded Excel data
+    IsFileValid = true; // Flag indicating whether the selected file is a valid Excel file
+}
+// Holds all the Excel data loaded from the file
+private ObservableCollection<ExcelData> data;
+
+// Holds the filtered data after applying filters
+private ObservableCollection<ExcelData> filteredData;
+
+// File path of the selected Excel file
+private string filePath;
+
+// The column currently selected for filtering
+private string selectedColumnFilter;
+
+// List of available columns for filtering, based on the Excel data
+private ObservableCollection<string> columnFilters;
+
+// List of filter options for the selected column
+private ObservableCollection<FilterItem> filterValues;
+
+// Indicates whether the "Select All" checkbox for filters is checked
+private bool isSelectAllChecked;
+
+// Indicates whether a filter has been applied to the data
+private bool isFilterApplied;
+
+// Indicates whether the selected file is a valid Excel file
+private bool isFileValid;
+
+// Error message to show if the selected file is invalid
+private string fileNameErrorMessage;
+
+// Repository interface to fetch and manage Excel data
+private readonly IRepo repo;
+// Holds all the Excel data loaded from the file
+private ObservableCollection<ExcelData> data;
+
+// Holds the filtered data after applying filters
+private ObservableCollection<ExcelData> filteredData;
+
+// File path of the selected Excel file
+private string filePath;
+
+// The column currently selected for filtering
+private string selectedColumnFilter;
+
+// List of available columns for filtering, based on the Excel data
+private ObservableCollection<string> columnFilters;
+
+// List of filter options for the selected column
+private ObservableCollection<FilterItem> filterValues;
+
+// Indicates whether the "Select All" checkbox for filters is checked
+private bool isSelectAllChecked;
+
+// Indicates whether a filter has been applied to the data
+private bool isFilterApplied;
+
+// Indicates whether the selected file is a valid Excel file
+private bool isFileValid;
+
+// Error message to show if the selected file is invalid
+private string fileNameErrorMessage;
+
+// Repository interface to fetch and manage Excel data
+private readonly IRepo repo;
+// Holds all the Excel data loaded from the file
+private ObservableCollection<ExcelData> data;
+
+// Holds the filtered data after applying filters
+private ObservableCollection<ExcelData> filteredData;
+
+// File path of the selected Excel file
+private string filePath;
+
+// The column currently selected for filtering
+private string selectedColumnFilter;
+
+// List of available columns for filtering, based on the Excel data
+private ObservableCollection<string> columnFilters;
+
+// List of filter options for the selected column
+private ObservableCollection<FilterItem> filterValues;
+
+// Indicates whether the "Select All" checkbox for filters is checked
+private bool isSelectAllChecked;
+
+// Indicates whether a filter has been applied to the data
+private bool isFilterApplied;
+
+// Indicates whether the selected file is a valid Excel file
+private bool isFileValid;
+
+// Error message to show if the selected file is invalid
+private string fileNameErrorMessage;
+
+// Repository interface to fetch and manage Excel data
+private readonly IRepo repo;
+// Command to load data from the Excel file
+public ICommand LoadCommand { get; }
+
+// Command to open a file dialog for selecting an Excel file
+public ICommand ShowDialogCommand { get; }
+
+// Command to close the application
+public ICommand CloseCommand { get; }
+
+// Command to apply the selected filter to the data
+public ICommand ApplyFilterCommand { get; }
+
+// Command to reset all applied filters and show unfiltered data
+public ICommand ResetFilterCommand { get; }
+
+// Command to import filter settings from an XML file
+public ICommand ImportFilterCommand { get; }
+
+// Command to export current filter settings to an XML file
+public ICommand ExportFilterCommand { get; }
+
+
