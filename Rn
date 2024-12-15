@@ -1,125 +1,18 @@
-<Window x:Class="ExcelProject.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ExcelProject"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" WindowState="Maximized">
-
-
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <!-- Title Bar -->
-        <Border Background="Teal" Grid.Row="0" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" CornerRadius="5">
-            <TextBlock Text="Bug Tracker" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Margin="10,0,0,0" />
-        </Border>
-
-        <!-- Upload Section -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
-            <TextBlock Text="FileName: " VerticalAlignment="Center" Width="60" />
-            <TextBox Width="400" Height="30" Margin="10 0 0 0" Padding="4 4 4 4" IsEnabled="False" Text="{Binding FilePath}" />
-            <Button Content="..." Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding ShowDialogCommand}" IsEnabled="{Binding IsFileValid}" />
-            <Button Content="Show Details" Width="100" Margin="10,0,0,0" Background="Teal" Command="{Binding LoadCommand}" />
-        </StackPanel>
-
-        <!-- Filter Conditions Section -->
-        <GroupBox Header="Filter Conditions" Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,10">
-            <Grid Margin="10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="300" />
-                    <ColumnDefinition Width="300" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <!-- Column Filters ListBox -->
-                <ListBox ItemsSource="{Binding ColumnFilters}" Height="230" SelectedItem="{Binding SelectedColumnFilter}" Grid.Column="0">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding}" />
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-
-                <StackPanel Grid.Column="1" Orientation="Vertical">
-                    <!-- Filter Values ListBox with Select All checkbox included -->
-                    <ListBox ItemsSource="{Binding FilterValues}" Height="230" Grid.Column="1">
-                        <!-- Select All Checkbox as first item inside ListBox -->
-                        <ListBox.Items>
-                            <CheckBox Content="Select All" 
-                                  IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
-                                  Command="{Binding SelectAllCommand}" Margin="0,0,0,10" />
-                        </ListBox.Items>
-
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <!-- Individual Filter Checkbox -->
-                                <CheckBox Content="{Binding Value}" 
-                                      IsChecked="{Binding IsSelected, Mode=TwoWay}" />
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </StackPanel>
-
-                <!-- Buttons -->
-                <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10">
-                    <Button Content="Apply Filter" Width="150" Height="33" Margin="5" Background="Teal" Command="{Binding ApplyFilterCommand}" />
-                    <Button Content="Reset Filter" Width="150" Height="22" Margin="5" Background="Teal" Command="{Binding ResetFilterCommand}" />
-                    <Button Content="Import Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ImportFilterCommand}" />
-                    <Button Content="Export Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ExportFilterCommand}" />
-                </StackPanel>
-            </Grid>
-        </GroupBox>
-
-        <!-- DataGrid Section -->
-        <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="True" RowHeight="30">
-            <DataGrid.ColumnHeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background" Value="Teal" />
-                    <Setter Property="Foreground" Value="White" />
-                    <Setter Property="FontWeight" Value="Bold" />
-                    <Setter Property="HorizontalContentAlignment" Value="Center" />
-                    <Setter Property="VerticalContentAlignment" Value="Center" />
-                    <Setter Property="Height" Value="20" />
-                    <Setter Property="MinWidth" Value="100" />
-                </Style>
-            </DataGrid.ColumnHeaderStyle>
-        </DataGrid>
-
-        <!-- Close Button -->
-        <Button Content="Close" Grid.Row="4" Background="Teal" Width="100" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
-    </Grid>
-</Window>    
-
-
-
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using ExcelProject.Model;
 using ExcelProject.Repo;
-using ExcelProject.ExcelRepo;
 using Microsoft.Win32;
 using System.IO;
-using DocumentFormat.OpenXml.Office2021.Excel.NamedSheetViews;
-using System.Runtime.InteropServices;
-using DocumentFormat.OpenXml.Office2010.Excel;
-using System.Reflection;
 using System.Xml.Serialization;
-using System.Data.Common;
+using System.Windows.Controls;
+using System.Windows.Data;
+
 
 namespace ExcelProject.ViewModel
 {
@@ -129,30 +22,35 @@ namespace ExcelProject.ViewModel
     public class MainViewModel : INotifyPropertyChanged
     {
 
-        private ObservableCollection<ExcelData> data;
-        private ObservableCollection<ExcelData> filteredData;
         private string filePath;
         private string selectedColumnFilter;
-        private ObservableCollection<string> columnFilters;
-        private ObservableCollection<FilterItem> filterValues;
         private bool isSelectAllChecked;
         private bool isFilterApplied;
         private bool isFileValid;
         private string fileNameErrorMessage;
 
-        private readonly IRepo repo;
+        private ObservableCollection<ExcelData> data;
+        private ObservableCollection<ExcelData> filteredData;
+        private ObservableCollection<string> columnFilters;
+        private ObservableCollection<FilterItem> filterValues;
+        private ObservableCollection<DataGridColumn> dataGridColumns;
+       
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        private  IRepo repo;
 
-        public MainViewModel(IRepo  exlrepo)
+       
+
+        public MainViewModel(IRepo excelrepo)
         {
-            repo = exlrepo;
+            repo = excelrepo;
 
             // Initialize commands
             LoadCommand = new RelayCommand(LoadData, CanShowDetails);
             ShowDialogCommand = new RelayCommand(ShowDialog);
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
             ResetFilterCommand = new RelayCommand(ResetFilter);
+            ImportFilterCommand = new RelayCommand(ImportFilter);
+            ExportFilterCommand = new RelayCommand(ExportFilter);
             CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
 
             // Initialize properties
@@ -180,17 +78,19 @@ namespace ExcelProject.ViewModel
             get => filePath;
             set { filePath = value; OnPropertyChanged(nameof(FilePath)); }
         }
-        
+
         public bool IsFileValid
         {
             get => isFileValid;
             set { isFileValid = value; OnPropertyChanged(nameof(IsFileValid)); }
         }
+
         public string FileNameErrorMessage
         {
             get => fileNameErrorMessage;
             set { fileNameErrorMessage = value; OnPropertyChanged(nameof(FileNameErrorMessage)); }
         }
+
         public string SelectedColumnFilter
         {
             get => selectedColumnFilter;
@@ -201,6 +101,11 @@ namespace ExcelProject.ViewModel
         {
             get => columnFilters;
             set { columnFilters = value; OnPropertyChanged(nameof(ColumnFilters)); }
+        }
+        public bool IsFilterApplied
+        {
+            get => isFilterApplied;
+            set { isFilterApplied = value; OnPropertyChanged(nameof(IsFilterApplied)); }
         }
 
         public ObservableCollection<FilterItem> FilterValues
@@ -219,21 +124,34 @@ namespace ExcelProject.ViewModel
                 SelectAllFilters(value);
             }
         }
-
-        public bool IsFilterApplied
+        public ObservableCollection<DataGridColumn> DataGridColumns // Property to bind columns dynamically
         {
-            get => isFilterApplied;
-            set { isFilterApplied = value; OnPropertyChanged(nameof(IsFilterApplied)); }
+            get => dataGridColumns;
+            set { dataGridColumns = value; OnPropertyChanged(nameof(DataGridColumns)); }
         }
 
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        // Command to load data from the selected Excel file.
         public ICommand LoadCommand { get; }
+
+        // Command to open a file dialog for selecting an Excel file.
         public ICommand ShowDialogCommand { get; }
-        public ICommand ApplyFilterCommand { get; }
-        public ICommand ResetFilterCommand { get; }
+
+        // Command to close the application or the current view.
         public ICommand CloseCommand { get; }
+
+        // Command to apply the selected filter conditions to the data.
+        public ICommand ApplyFilterCommand { get; }
+
+        // Command to reset all filter conditions and clear any applied filters.
+        public ICommand ResetFilterCommand { get; }
+        public ICommand ImportFilterCommand { get; }
+        public ICommand ExportFilterCommand { get; }
 
         private void ShowDialog()
         {
+
             var dialog = new OpenFileDialog
             {
                 Filter = "Excel Files (*.xlsx, *.xls)|*.xlsx;*.xls"
@@ -242,15 +160,17 @@ namespace ExcelProject.ViewModel
             if (dialog.ShowDialog() == true)
             {
                 FilePath = dialog.FileName;
-                // Check if the file is an Excel file by its extension
-                IsFileValid = FilePath.EndsWith(".xlsx") || FilePath.EndsWith(".xls");
-                if (!IsFileValid)
+
+                // Check if the file has a valid Excel extension (.xlsx or .xls)
+                if (FilePath.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase) || FilePath.EndsWith(".xls", StringComparison.OrdinalIgnoreCase))
                 {
-                    FileNameErrorMessage = "Please select a valid Excel file.";
+                    IsFileValid = true;
+                    FileNameErrorMessage = string.Empty; // Clear any previous error message
                 }
                 else
                 {
-                    FileNameErrorMessage = string.Empty;
+                    IsFileValid = false;
+                    FileNameErrorMessage = "The selected file is not a valid Excel file. Please select a .xlsx or .xls file.";
                 }
             }
         }
@@ -263,7 +183,24 @@ namespace ExcelProject.ViewModel
                 Data = new ObservableCollection<ExcelData>(excelData);
                 FilteredData = new ObservableCollection<ExcelData>(excelData);
 
-                // Dynamically generate the column names from the first row
+                // Dynamically generate columns for the DataGrid based on the first row of data
+                DataGridColumns.Clear(); // Clear any existing columns
+                var firstRow = excelData.FirstOrDefault();
+
+                if (firstRow != null)
+                {
+                    foreach (var property in firstRow.GetType().GetProperties())
+                    {
+                        var column = new DataGridTextColumn
+                        {
+                            Header = property.Name,
+                            Binding = new Binding(property.Name)
+                        };
+                        DataGridColumns.Add(column);
+                    }
+                }
+
+                // Dynamically set the ColumnFilters (for filter dropdowns)
                 ColumnFilters = new ObservableCollection<string>(excelData.FirstOrDefault()?.GetType().GetProperties().Select(p => p.Name));
             }
         }
@@ -273,15 +210,26 @@ namespace ExcelProject.ViewModel
             if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
 
             // Get distinct values from the selected column for the filter
-            FilterValues = new ObservableCollection<FilterItem>(
-                Data.Select(row => row.GetType().GetProperty(SelectedColumnFilter).GetValue(row)?.ToString())
-                    .Distinct()
-                    .OrderBy(value => value)
-                    .Select(value => new FilterItem { Value = value, IsSelected = true })
+            FilterValues = new ObservableCollection<FilterItem>(Data
+                .Select(row => row.GetType().GetProperty(SelectedColumnFilter)?.GetValue(row)?.ToString())
+                .Distinct()
+                .OrderBy(value => value)
+                .Select(value => new FilterItem { Value = value, IsSelected = true })
             );
 
             IsSelectAllChecked = true;
         }
+
+        private void SelectAllFilters(bool selectAll)
+        {
+            foreach (var filter in FilterValues)
+            {
+                filter.IsSelected = selectAll;
+            }
+
+            OnPropertyChanged(nameof(FilterValues));
+        }
+
         // New method to display data in Bug Details table
         private void ShowDetails()
         {
@@ -353,108 +301,153 @@ namespace ExcelProject.ViewModel
             IsSelectAllChecked = false;
         }
 
-        private void SelectAllFilters(bool selectAll)
+      
+        private void ImportFilter()
         {
-            foreach (var filter in FilterValues)
+            var dialog = new OpenFileDialog
             {
-                filter.IsSelected = selectAll;
-            }
+                Filter = "XML Files (*.xml)|*.xml"
+            };
 
-            OnPropertyChanged(nameof(FilterValues));
+            if (dialog.ShowDialog() == true)
+            {
+                var filePath = dialog.FileName;
+
+                // Deserialize XML to filter conditions
+                var serializer = new XmlSerializer(typeof(List<FilterItem>));
+                using (var reader = new StreamReader(filePath))
+                {
+                    var importedFilters = (List<FilterItem>)serializer.Deserialize(reader);
+                    FilterValues = new ObservableCollection<FilterItem>(importedFilters);
+                }
+
+                // Update the "Select All" checkbox based on imported data
+                IsSelectAllChecked = FilterValues.All(filter => filter.IsSelected);
+            }
+        }
+
+        private void ExportFilter()
+        {
+            var dialog = new SaveFileDialog
+            {
+                Filter = "XML Files (*.xml)|*.xml"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                var filePath = dialog.FileName;
+
+                // Serialize filter conditions to XML
+                var serializer = new XmlSerializer(typeof(List<FilterItem>));
+                using (var writer = new StreamWriter(filePath))
+                {
+                    serializer.Serialize(writer, FilterValues.ToList());
+                }
+            }
         }
 
         protected virtual void OnPropertyChanged(string propertyName) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-}
-
-
-
-private void ApplyFilter()
-{
-    if (SelectedColumnsFilter.Count == 0) return;
-
-    List<string> selectedValues = new List<string>();
-    foreach (var filter in FilterValues)
-    {
-        if (filter.IsSelected)
-        {
-            selectedValues.Add(filter.Value);
-        }
-    }
-
-    if (selectedValues.Count > 0)
-    {
-        ObservableCollection<ExcelData> filteredData = new ObservableCollection<ExcelData>();
-
-        // Filter data based on the selected columns and values
-        foreach (var dataItem in Data)
-        {
-            bool isMatch = true;
-
-            foreach (var column in SelectedColumnsFilter)
-            {
-                var propertyValue = dataItem.GetType().GetProperty(column)?.GetValue(dataItem)?.ToString();
-                if (!selectedValues.Contains(propertyValue))
-                {
-                    isMatch = false;
-                    break;
-                }
-            }
-
-            if (isMatch)
-            {
-                filteredData.Add(dataItem);
-            }
-        }
-
-        FilteredData = filteredData;
-        IsFilterApplied = true;
-    }
-    else
-    {
-        FilteredData = new ObservableCollection<ExcelData>(Data);
-        IsFilterApplied = false;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
 
 
-private void LoadFilterValues()
-{
-    FilterValues.Clear();  // Clear existing filter values.
 
-    foreach (var column in SelectedColumnsFilter)
-    {
-        var columnFilterValues = Data.Select(row => row.GetType().GetProperty(column).GetValue(row)?.ToString())
-            .Distinct()
-            .OrderBy(value => value)
-            .Select(value => new FilterItem { Value = value, IsSelected = true });
+<Window x:Class="ExcelProject.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ExcelProject"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" WindowState="Maximized">
 
-        // Add new filter values for the selected columns
-        foreach (var filterItem in columnFilterValues)
-        {
-            FilterValues.Add(filterItem);
-        }
-    }
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
-    IsSelectAllChecked = true;
-}
-private void ResetFilter()
-{
-    // Reset all filter values
-    foreach (var filter in FilterValues)
-    {
-        filter.IsSelected = false;
-    }
+        <!-- Title Bar -->
+        <Border Background="Teal" Grid.Row="0" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" CornerRadius="5">
+            <TextBlock Text="Bug Tracker" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Margin="10,0,0,0" />
+        </Border>
 
-    // Reset selected columns filter
-    SelectedColumnsFilter.Clear();
+        <!-- Upload Section -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
+            <TextBlock Text="FileName: " VerticalAlignment="Center" Width="60" />
+            <TextBox Width="400" Height="30" Margin="10 0 0 0" Padding="4 4 4 4" IsEnabled="False" Text="{Binding FilePath}" />
+            <Button Content="..." Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding ShowDialogCommand}" IsEnabled="{Binding IsFileValid}" />
+            <Button Content="Show Details" Width="100" Margin="10,0,0,0" Background="Teal" Command="{Binding LoadCommand}" />
+        </StackPanel>
 
-    FilteredData = new ObservableCollection<ExcelData>(Data);
-    IsSelectAllChecked = false;
-}
+        <!-- Filter Conditions Section -->
+        <GroupBox Header="Filter Conditions" Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,10">
+            <Grid Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
+                <!-- Column Filters ListBox -->
+                <ListBox ItemsSource="{Binding ColumnFilters}" Height="230" SelectedItem="{Binding SelectedColumnFilter}"  Grid.Column="0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <StackPanel Grid.Column="1" Orientation="Vertical">
+                    <CheckBox Content="Select All" 
+                               IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
+                               Command="{Binding SelectAllCommand}" Margin="0,0,0,10" />
+                    <!-- Filter Values ListBox with Select All checkbox included -->
+                    <ListBox ItemsSource="{Binding FilterValues}" Height="230" Grid.Column="1">
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <!-- Individual Filter Checkbox -->
+                                <CheckBox Content="{Binding Value}" 
+                                      IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+
+                <!-- Buttons -->
+                <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10">
+                    <Button Content="Apply Filter" Width="150" Height="33" Margin="5" Background="Teal" Command="{Binding ApplyFilterCommand}" />
+                    <Button Content="Reset Filter" Width="150" Height="22" Margin="5" Background="Teal" Command="{Binding ResetFilterCommand}" />
+                    <Button Content="Import Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ImportFilterCommand}" />
+                    <Button Content="Export Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ExportFilterCommand}" />
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <!-- DataGrid Section -->
+        <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" AutoGenerateColumns="False" RowHeight="30"  >
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="Teal" />
+                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                    <Setter Property="VerticalContentAlignment" Value="Center" />
+                    <Setter Property="Height" Value="20" />
+                    <Setter Property="MinWidth" Value="100" />
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+        </DataGrid>
+
+        <!-- Close Button -->
+        <Button Content="Close" Grid.Row="4" Background="Teal" Width="100" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
+    </Grid>
+</Window>    
 
 
 
