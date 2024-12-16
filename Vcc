@@ -1,470 +1,239 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
-using ExcelProject.Model;
-using ExcelProject.Repo;
-using ExcelProject.ExcelRepo;
-using Microsoft.Win32;
-using System.IO;
-using DocumentFormat.OpenXml.Office2021.Excel.NamedSheetViews;
-using System.Runtime.InteropServices;
-using DocumentFormat.OpenXml.Office2010.Excel;
-using System.Reflection;
-using System.Xml.Serialization;
-using System.Data.Common;
+Solution Overview
+Maintain a Dictionary for Filters:
+Use a Dictionary<string, List<FilterItem>> where the key is the column name, and the value is the list of FilterItem objects for that column.
 
-namespace ExcelProject.ViewModel
+Bind FilterValues Dynamically:
+Update the FilterValues property dynamically based on the selected column.
+
+Preserve Filters:
+When switching columns, save the current state of FilterValues back to the dictionary.
+
+Implementation
+1. Add a Dictionary for Column Filters
+Add a dictionary in your MainViewModel to store filter values for each column:
+
+csharp
+Copy code
+private Dictionary<string, List<FilterItem>> columnFilters = new Dictionary<string, List<FilterItem>>();
+
+public Dictionary<string, List<FilterItem>> ColumnFilters
 {
-    public class MainViewModel : INotifyPropertyChanged
+    get => columnFilters;
+    set
     {
-        private ObservableCollection<ExcelData> data;
-        private ObservableCollection<ExcelData> filteredData;
-        private string filePath;
-        private ObservableCollection<string> selectedColumnsFilter; // Now a collection for multiple columns
-        private ObservableCollection<string> columnFilters;
-        private ObservableCollection<FilterItem> filterValues;
-        private bool isSelectAllChecked;
-        private bool isFilterApplied;
-        private bool isFileValid;
-        private string fileNameErrorMessage;
+        columnFilters = value;
+        OnPropertyChanged(nameof(ColumnFilters));
+    }
+}
+2. Update FilterValues Dynamically
+Modify the FilterValues property to reflect the filters for the selected column:
 
-        private readonly IRepo repo;
+csharp
+Copy code
+private List<FilterItem> filterValues;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+public List<FilterItem> FilterValues
+{
+    get => filterValues;
+    set
+    {
+        filterValues = value;
+        OnPropertyChanged(nameof(FilterValues));
+    }
+}
 
-        public MainViewModel(IRepo exlrepo)
+private string selectedColumnFilter;
+
+public string SelectedColumnFilter
+{
+    get => selectedColumnFilter;
+    set
+    {
+        if (selectedColumnFilter != value)
         {
-            repo = exlrepo;
-
-            // Initialize commands
-            LoadCommand = new RelayCommand(LoadData, CanShowDetails);
-            ShowDialogCommand = new RelayCommand(ShowDialog);
-            ApplyFilterCommand = new RelayCommand(ApplyFilter);
-            ResetFilterCommand = new RelayCommand(ResetFilter);
-            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
-
-            // Initialize properties
-            ColumnFilters = new ObservableCollection<string>();
-            FilterValues = new ObservableCollection<FilterItem>();
-            FilteredData = new ObservableCollection<ExcelData>();
-            data = new ObservableCollection<ExcelData>();
-            selectedColumnsFilter = new ObservableCollection<string>(); // Initialize the selected columns
-            isFileValid = true;
-        }
-
-        public ObservableCollection<ExcelData> Data
-        {
-            get => data;
-            set { data = value; OnPropertyChanged(nameof(Data)); }
-        }
-
-        public ObservableCollection<ExcelData> FilteredData
-        {
-            get => filteredData;
-            set { filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
-        }
-
-        public string FilePath
-        {
-            get => filePath;
-            set { filePath = value; OnPropertyChanged(nameof(FilePath)); }
-        }
-
-        public bool IsFileValid
-        {
-            get => isFileValid;
-            set { isFileValid = value; OnPropertyChanged(nameof(IsFileValid)); }
-        }
-
-        public string FileNameErrorMessage
-        {
-            get => fileNameErrorMessage;
-            set { fileNameErrorMessage = value; OnPropertyChanged(nameof(FileNameErrorMessage)); }
-        }
-
-        public ObservableCollection<string> SelectedColumnsFilter
-        {
-            get => selectedColumnsFilter;
-            set { selectedColumnsFilter = value; OnPropertyChanged(nameof(SelectedColumnsFilter)); LoadFilterValues(); }
-        }
-
-        public ObservableCollection<string> ColumnFilters
-        {
-            get => columnFilters;
-            set { columnFilters = value; OnPropertyChanged(nameof(ColumnFilters)); }
-        }
-
-        public ObservableCollection<FilterItem> FilterValues
-        {
-            get => filterValues;
-            set { filterValues = value; OnPropertyChanged(nameof(FilterValues)); }
-        }
-
-        public bool IsSelectAllChecked
-        {
-            get => isSelectAllChecked;
-            set
+            // Save the current filter values before switching columns
+            if (!string.IsNullOrEmpty(selectedColumnFilter))
             {
-                isSelectAllChecked = value;
-                OnPropertyChanged(nameof(IsSelectAllChecked));
-                SelectAllFilters(value);
+                ColumnFilters[selectedColumnFilter] = new List<FilterItem>(FilterValues);
             }
-        }
 
-        public bool IsFilterApplied
-        {
-            get => isFilterApplied;
-            set { isFilterApplied = value; OnPropertyChanged(nameof(IsFilterApplied)); }
-        }
+            selectedColumnFilter = value;
 
-        public ICommand LoadCommand { get; }
-        public ICommand ShowDialogCommand { get; }
-        public ICommand ApplyFilterCommand { get; }
-        public ICommand ResetFilterCommand { get; }
-        public ICommand CloseCommand { get; }
-
-        private void ShowDialog()
-        {
-            var dialog = new OpenFileDialog
+            // Load the filter values for the newly selected column
+            if (ColumnFilters.ContainsKey(selectedColumnFilter))
             {
-                Filter = "Excel Files (*.xlsx, *.xls)|*.xlsx;*.xls"
-            };
-
-            if (dialog.ShowDialog() == true)
+                FilterValues = new List<FilterItem>(ColumnFilters[selectedColumnFilter]);
+            }
+            else
             {
-                FilePath = dialog.FileName;
-                // Check if the file is an Excel file by its extension
-                IsFileValid = FilePath.EndsWith(".xlsx") || FilePath.EndsWith(".xls");
-                if (!IsFileValid)
+                FilterValues = new List<FilterItem>(); // Initialize if no filter exists
+            }
+
+            OnPropertyChanged(nameof(SelectedColumnFilter));
+        }
+    }
+}
+3. Apply Filter Logic
+Update your ApplyFilter method to use ColumnFilters:
+
+csharp
+Copy code
+private void ApplyFilter()
+{
+    if (!ColumnFilters.Any()) return;
+
+    FilteredData = new ObservableCollection<ExcelData>(
+        Data.Where(dataItem =>
+        {
+            foreach (var columnFilter in ColumnFilters)
+            {
+                var propertyValue = dataItem.GetType().GetProperty(columnFilter.Key)?.GetValue(dataItem)?.ToString();
+                if (columnFilter.Value.Any(f => f.IsSelected) && 
+                    !columnFilter.Value.Any(f => f.IsSelected && f.Value == propertyValue))
                 {
-                    FileNameErrorMessage = "Please select a valid Excel file.";
-                }
-                else
-                {
-                    FileNameErrorMessage = string.Empty;
+                    return false;
                 }
             }
-        }
+            return true;
+        })
+    );
 
-        private void LoadData()
+    IsFilterApplied = ColumnFilters.Values.Any(f => f.Any(item => item.IsSelected));
+}
+4. Reset Specific Column Filter
+To reset filters for the currently selected column:
+
+csharp
+Copy code
+private void ResetColumnFilter()
+{
+    if (!string.IsNullOrEmpty(SelectedColumnFilter))
+    {
+        if (ColumnFilters.ContainsKey(SelectedColumnFilter))
         {
-            if (!string.IsNullOrEmpty(FilePath))
-            {
-                var excelData = repo.GetData(FilePath);
-                Data = new ObservableCollection<ExcelData>(excelData);
-                FilteredData = new ObservableCollection<ExcelData>(excelData);
-
-                // Dynamically generate the column names from the first row
-                ColumnFilters = new ObservableCollection<string>(excelData.FirstOrDefault()?.GetType().GetProperties().Select(p => p.Name));
-            }
-        }
-
-        private void LoadFilterValues()
-        {
-            if (SelectedColumnsFilter == null || !SelectedColumnsFilter.Any()) return;
-
+            ColumnFilters[SelectedColumnFilter].Clear();
             FilterValues.Clear();
-
-            foreach (var column in SelectedColumnsFilter)
-            {
-                // Get distinct values from each selected column for the filter
-                var distinctValues = Data.Select(row => row.GetType().GetProperty(column)?.GetValue(row)?.ToString())
-                                         .Distinct()
-                                         .OrderBy(value => value);
-
-                foreach (var value in distinctValues)
-                {
-                    if (!FilterValues.Any(f => f.Value == value)) // Ensure uniqueness
-                    {
-                        FilterValues.Add(new FilterItem { Value = value, IsSelected = true });
-                    }
-                }
-            }
-
-            IsSelectAllChecked = true;
         }
-
-        private void ShowDetails()
-        {
-            if (!string.IsNullOrEmpty(FilePath))
-            {
-                LoadData();
-            }
-        }
-
-        private bool CanShowDetails()
-        {
-            return !string.IsNullOrEmpty(FilePath);
-        }
-
-        private void ApplyFilter()
-        {
-            // Get selected filter values
-            List<string> selectedValues = FilterValues.Where(f => f.IsSelected).Select(f => f.Value).ToList();
-
-            // Check if any values are selected
-            if (selectedValues.Any())
-            {
-                ObservableCollection<ExcelData> filteredData = new ObservableCollection<ExcelData>();
-
-                // Filter the data based on selected columns and their respective filter values
-                foreach (var dataItem in Data)
-                {
-                    bool isMatch = SelectedColumnsFilter.All(column =>
-                    {
-                        var propertyValue = dataItem.GetType().GetProperty(column)?.GetValue(dataItem)?.ToString();
-                        return selectedValues.Contains(propertyValue);
-                    });
-
-                    if (isMatch)
-                    {
-                        filteredData.Add(dataItem);
-                    }
-                }
-
-                FilteredData = filteredData;
-                IsFilterApplied = true;
-            }
-            else
-            {
-                // If no filter values are selected, reset to original data
-                FilteredData = new ObservableCollection<ExcelData>(Data);
-                IsFilterApplied = false;
-            }
-        }
-
-        private void ResetFilter()
-        {
-            foreach (var filter in FilterValues)
-            {
-                filter.IsSelected = false;
-            }
-
-            FilteredData = new ObservableCollection<ExcelData>(Data);
-            IsSelectAllChecked = false;
-        }
-
-        private void SelectAllFilters(bool selectAll)
-        {
-            foreach (var filter in FilterValues)
-            {
-                filter.IsSelected = selectAll;
-            }
-
-            OnPropertyChanged(nameof(FilterValues));
-        }
-
-        protected virtual void OnPropertyChanged(string propertyName) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
+    ApplyFilter();
 }
+5. Initialize ColumnFilters
+Ensure ColumnFilters is initialized for all available columns:
 
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
-using ExcelProject.Model;
-using ExcelProject.Repo;
-using ExcelProject.ExcelRepo;
-using Microsoft.Win32;
-using System.IO;
-
-namespace ExcelProject.ViewModel
+csharp
+Copy code
+foreach (var columnName in Data.FirstOrDefault()?.GetType().GetProperties().Select(p => p.Name) ?? new List<string>())
 {
-    public class MainViewModel : INotifyPropertyChanged
+    ColumnFilters[columnName] = new List<FilterItem>();
+}
+How It Works
+Switching Columns:
+
+When switching columns (SelectedColumnFilter), save the current filter values into the ColumnFilters dictionary.
+Load the saved filter values for the newly selected column into FilterValues.
+Applying Filters:
+
+The ApplyFilter method processes all filters stored in the ColumnFilters dictionary, ensuring filters for all columns are applied simultaneously.
+Resetting Filters:
+
+Use ResetColumnFilter to clear the filters for a specific column or reset all filters by clearing the ColumnFilters dictionary.
+This approach ensures that:
+
+Filters for each column are saved independently.
+Switching columns does not affect the previously applied filters for other columns.
+The UI reflects the saved state of filters for the currently selected column.
+
+
+
+
+
+You said:
+foreach (var columnName in Data.FirstOrDefault()?.GetType().GetProperties().Select(p => p.Name) ?? new List<string>())
+{
+    ColumnFilters[columnName] = new List<FilterItem>();
+}Where does it initializw
+ChatGPT said:
+ChatGPT
+The code snippet you provided initializes the ColumnFilters dictionary by adding an entry for each column in your data source. This initialization should be done when your data (Data collection) is first loaded or whenever it changes (e.g., after fetching the data from a file or database).
+
+Here’s where and how you can initialize it:
+
+Initialization Location
+You can place the initialization logic in the following scenarios:
+
+In the ViewModel Constructor:
+If your data is already available when the ViewModel is created.
+
+After Data is Loaded:
+If your data is being loaded asynchronously or at runtime.
+
+Example 1: Initialization in the Constructor
+csharp
+Copy code
+public MainViewModel()
+{
+    // Assuming Data is already initialized
+    InitializeColumnFilters();
+}
+Example 2: Initialization After Data Load
+csharp
+Copy code
+private ObservableCollection<ExcelData> data;
+public ObservableCollection<ExcelData> Data
+{
+    get => data;
+    set
     {
-        private ObservableCollection<ExcelData> data;
-        private ObservableCollection<ExcelData> filteredData;
-        private string filePath;
-        private string selectedColumnFilter;
-        private ObservableCollection<string> columnFilters;
-        private ObservableCollection<FilterItem> filterValues;
-        private bool isSelectAllChecked;
-        private bool isFileValid;
-        private string fileNameErrorMessage;
-
-        private readonly IRepo repo;
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public MainViewModel(IRepo exlrepo)
-        {
-            repo = exlrepo;
-
-            // Initialize commands
-            LoadCommand = new RelayCommand(LoadData, CanShowDetails);
-            ShowDialogCommand = new RelayCommand(ShowDialog);
-            ApplyFilterCommand = new RelayCommand(ApplyFilter);
-            ResetFilterCommand = new RelayCommand(ResetFilter);
-            CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
-
-            // Initialize properties
-            ColumnFilters = new ObservableCollection<string>();
-            FilterValues = new ObservableCollection<FilterItem>();
-            FilteredData = new ObservableCollection<ExcelData>();
-            data = new ObservableCollection<ExcelData>();
-            isFileValid = true;
-        }
-
-        public ObservableCollection<ExcelData> Data
-        {
-            get => data;
-            set { data = value; OnPropertyChanged(nameof(Data)); }
-        }
-
-        public ObservableCollection<ExcelData> FilteredData
-        {
-            get => filteredData;
-            set { filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
-        }
-
-        public string FilePath
-        {
-            get => filePath;
-            set { filePath = value; OnPropertyChanged(nameof(FilePath)); }
-        }
-
-        public bool IsFileValid
-        {
-            get => isFileValid;
-            set { isFileValid = value; OnPropertyChanged(nameof(IsFileValid)); }
-        }
-
-        public string FileNameErrorMessage
-        {
-            get => fileNameErrorMessage;
-            set { fileNameErrorMessage = value; OnPropertyChanged(nameof(FileNameErrorMessage)); }
-        }
-
-        public string SelectedColumnFilter
-        {
-            get => selectedColumnFilter;
-            set { selectedColumnFilter = value; OnPropertyChanged(nameof(SelectedColumnFilter)); LoadFilterValues(); }
-        }
-
-        public ObservableCollection<string> ColumnFilters
-        {
-            get => columnFilters;
-            set { columnFilters = value; OnPropertyChanged(nameof(ColumnFilters)); }
-        }
-
-        public ObservableCollection<FilterItem> FilterValues
-        {
-            get => filterValues;
-            set { filterValues = value; OnPropertyChanged(nameof(FilterValues)); }
-        }
-
-        public bool IsSelectAllChecked
-        {
-            get => isSelectAllChecked;
-            set
-            {
-                isSelectAllChecked = value;
-                OnPropertyChanged(nameof(IsSelectAllChecked));
-                SelectAllFilters(value);
-            }
-        }
-
-        public ICommand LoadCommand { get; }
-        public ICommand ShowDialogCommand { get; }
-        public ICommand ApplyFilterCommand { get; }
-        public ICommand ResetFilterCommand { get; }
-        public ICommand CloseCommand { get; }
-
-        private void ShowDialog()
-        {
-            var dialog = new OpenFileDialog
-            {
-                Filter = "Excel Files (*.xlsx, *.xls)|*.xlsx;*.xls"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                FilePath = dialog.FileName;
-                // Check if the file is an Excel file by its extension
-                IsFileValid = FilePath.EndsWith(".xlsx") || FilePath.EndsWith(".xls");
-            }
-        }
-
-        private void LoadData()
-        {
-            if (!string.IsNullOrEmpty(FilePath))
-            {
-                var excelData = repo.GetData(FilePath);
-                Data = new ObservableCollection<ExcelData>(excelData);
-                FilteredData = new ObservableCollection<ExcelData>(excelData);
-
-                // Dynamically generate the column names from the first row
-                ColumnFilters = new ObservableCollection<string>(excelData.FirstOrDefault()?.GetType().GetProperties().Select(p => p.Name));
-            }
-        }
-
-        private void LoadFilterValues()
-        {
-            if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
-
-            // Get distinct values from the selected column for the filter
-            FilterValues = new ObservableCollection<FilterItem>(Data
-                .Select(row => row.GetType().GetProperty(SelectedColumnFilter)?.GetValue(row)?.ToString())
-                .Distinct()
-                .OrderBy(value => value)
-                .Select(value => new FilterItem { Value = value, IsSelected = true })
-            );
-
-            IsSelectAllChecked = true;
-        }
-
-        private void ApplyFilter()
-        {
-            if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
-
-            var selectedValues = FilterValues.Where(f => f.IsSelected).Select(f => f.Value).ToList();
-
-            if (selectedValues.Count > 0)
-            {
-                FilteredData = new ObservableCollection<ExcelData>(Data.Where(d =>
-                    selectedValues.Contains(d.GetType().GetProperty(SelectedColumnFilter)?.GetValue(d)?.ToString())
-                ));
-            }
-            else
-            {
-                FilteredData = new ObservableCollection<ExcelData>(Data);
-            }
-        }
-
-        private void ResetFilter()
-        {
-            foreach (var filter in FilterValues)
-            {
-                filter.IsSelected = false;
-            }
-
-            FilteredData = new ObservableCollection<ExcelData>(Data);
-            IsSelectAllChecked = false;
-        }
-
-        private void SelectAllFilters(bool selectAll)
-        {
-            foreach (var filter in FilterValues)
-            {
-                filter.IsSelected = selectAll;
-            }
-
-            OnPropertyChanged(nameof(FilterValues));
-        }
-
-        protected virtual void OnPropertyChanged(string propertyName) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        data = value;
+        OnPropertyChanged(nameof(Data));
+        InitializeColumnFilters(); // Reinitialize filters whenever data changes
     }
 }
+InitializeColumnFilters Method
+Here’s how you can define the InitializeColumnFilters method:
+
+csharp
+Copy code
+private void InitializeColumnFilters()
+{
+    ColumnFilters.Clear(); // Clear any existing filters
+
+    if (Data?.Any() == true)
+    {
+        // Create an empty list of filters for each column
+        foreach (var columnName in Data.FirstOrDefault()?.GetType().GetProperties().Select(p => p.Name) ?? new List<string>())
+        {
+            if (!ColumnFilters.ContainsKey(columnName))
+            {
+                ColumnFilters[columnName] = new List<FilterItem>();
+            }
+        }
+    }
+}
+Example Workflow
+Data is Loaded:
+The Data collection is populated, either at initialization or after being fetched.
+
+ColumnFilters Initialization:
+
+InitializeColumnFilters iterates through the properties of the Data objects.
+Each property name is treated as a column name, and an empty filter list is assigned to it.
+Filters Are Ready:
+You can now add FilterItem objects to the lists in ColumnFilters for each column.
+
+Why Initialize Here?
+It ensures that ColumnFilters always matches the structure of your Data collection.
+If your Data changes dynamically (e.g., file import), ColumnFilters is reinitialized accordingly.
+This setup maintains flexibility and synchronization between your data and filters.
+
+
+
+
+
+
+
+
+
+
+
