@@ -408,3 +408,5 @@ public partial class MainWindow : Window
         DataContext = new MainWindowViewModel();
     }
 }
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS7036	There is no argument given that corresponds to the required parameter 'repo' of 'MainWindowViewModel.MainWindowViewModel(IRepo)'	BugTracker	C:\Users\2021508\source\repos\BugTracker\BugTracker\MainWindow.xaml.cs	26	
