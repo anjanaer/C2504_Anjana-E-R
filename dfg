@@ -242,7 +242,7 @@ namespace ExcelProject.ViewModel
         public ICommand ApplyFilterCommand { get; }
 
 
-        private void LoadData()
+        private void LoadData(),
         {
             if (!string.IsNullOrEmpty(FilePath))
             {
