@@ -547,6 +547,215 @@ namespace ExcelProject.ViewModel
 
 
 
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Xml.Serialization;
+using Microsoft.Win32;
+
+public class MainViewModel : INotifyPropertyChanged
+{
+    private ObservableCollection<ExcelData> data;
+    private ObservableCollection<ExcelData> filteredData;
+    private ObservableCollection<FilterItem> filterValues;
+    private Dictionary<string, ObservableCollection<FilterItem>> columnFiltersDictionary;
+    private string selectedColumnFilter;
+    private bool isSelectAllChecked;
+    private bool isFilterApplied;
+    private ObservableCollection<string> columnFilters;
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    public MainViewModel()
+    {
+        columnFiltersDictionary = new Dictionary<string, ObservableCollection<FilterItem>>();
+        ColumnFilters = new ObservableCollection<string>();
+        Data = new ObservableCollection<ExcelData>();
+        FilteredData = new ObservableCollection<ExcelData>();
+        FilterValues = new ObservableCollection<FilterItem>();
+    }
+
+    public ObservableCollection<ExcelData> Data
+    {
+        get => data;
+        set
+        {
+            data = value;
+            OnPropertyChanged(nameof(Data));
+            LoadFilterValues();
+        }
+    }
+
+    public ObservableCollection<ExcelData> FilteredData
+    {
+        get => filteredData;
+        set
+        {
+            filteredData = value;
+            OnPropertyChanged(nameof(FilteredData));
+        }
+    }
+
+    public ObservableCollection<string> ColumnFilters
+    {
+        get => columnFilters;
+        set
+        {
+            columnFilters = value;
+            OnPropertyChanged(nameof(ColumnFilters));
+        }
+    }
+
+    public ObservableCollection<FilterItem> FilterValues
+    {
+        get => filterValues;
+        set
+        {
+            filterValues = value;
+            OnPropertyChanged(nameof(FilterValues));
+        }
+    }
+
+    public string SelectedColumnFilter
+    {
+        get => selectedColumnFilter;
+        set
+        {
+            selectedColumnFilter = value;
+            OnPropertyChanged(nameof(SelectedColumnFilter));
+            LoadFilterValues();
+        }
+    }
+
+    public bool IsSelectAllChecked
+    {
+        get => isSelectAllChecked;
+        set
+        {
+            isSelectAllChecked = value;
+            OnPropertyChanged(nameof(IsSelectAllChecked));
+            SetAllFilterSelections(isSelectAllChecked);
+        }
+    }
+
+    public bool IsFilterApplied
+    {
+        get => isFilterApplied;
+        set
+        {
+            isFilterApplied = value;
+            OnPropertyChanged(nameof(IsFilterApplied));
+        }
+    }
+
+    private void LoadFilterValues()
+    {
+        if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
+
+        // Check if the column has filter values already saved
+        if (columnFiltersDictionary.ContainsKey(SelectedColumnFilter))
+        {
+            // Load saved filter values
+            FilterValues = new ObservableCollection<FilterItem>(columnFiltersDictionary[SelectedColumnFilter]);
+            IsSelectAllChecked = FilterValues.All(f => f.IsSelected);
+        }
+        else
+        {
+            // Otherwise, load new filter values
+            FilterValues = new ObservableCollection<FilterItem>(
+                Data.Select(row => row.GetType().GetProperty(SelectedColumnFilter)?.GetValue(row)?.ToString())
+                    .Distinct()
+                    .OrderBy(value => value)
+                    .Select(value => new FilterItem { Value = value, IsSelected = false })
+            );
+            IsSelectAllChecked = false;
+        }
+    }
+
+    private void SetAllFilterSelections(bool isSelected)
+    {
+        foreach (var filter in FilterValues)
+        {
+            filter.IsSelected = isSelected;
+        }
+
+        // Apply the filter after selection change
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
+
+        var selectedValues = FilterValues.Where(f => f.IsSelected).Select(f => f.Value).ToList();
+
+        if (selectedValues.Any())
+        {
+            // Filter the data based on the selected values
+            var filteredData = _repo.ApplyFilter(Data.ToList(), SelectedColumnFilter, selectedValues);
+            FilteredData = new ObservableCollection<ExcelData>(filteredData);
+
+            // Save the current filter state
+            columnFiltersDictionary[SelectedColumnFilter] = new ObservableCollection<FilterItem>(FilterValues);
+
+            IsFilterApplied = true;
+        }
+        else
+        {
+            // If no filter values are selected, reset to original data
+            FilteredData = new ObservableCollection<ExcelData>(Data);
+            IsFilterApplied = false;
+        }
+    }
+
+    public void ExportFilter()
+    {
+        var dialog = new SaveFileDialog
+        {
+            Filter = "XML Files (*.xml)|*.xml"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            var filePath = dialog.FileName;
+
+            // Serialize the column filters dictionary to XML
+            var serializer = new XmlSerializer(typeof(Dictionary<string, ObservableCollection<FilterItem>>));
+            using (var writer = new StreamWriter(filePath))
+            {
+                serializer.Serialize(writer, columnFiltersDictionary);
+            }
+        }
+    }
+
+    public void ImportFilter()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = "XML Files (*.xml)|*.xml"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            var filePath = dialog.FileName;
+
+            // Deserialize the XML to restore the filter states
+            var serializer = new XmlSerializer(typeof(Dictionary<string, ObservableCollection<FilterItem>>));
+            using (var reader = new StreamReader(filePath))
+            {
+                columnFiltersDictionary = (Dictionary<string, ObservableCollection<FilterItem>>)serializer.Deserialize(reader);
+            }
+
+            // Optionally, you can reload the current selected column filter's filter values
+            LoadFilterValues();
+        }
+    }
+
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
 
 
 
