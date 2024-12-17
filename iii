@@ -908,6 +908,104 @@ namespace ExcelProject.ViewModel
 
 
 
+OfficeOpenXml.LicenseException: 'Please set the ExcelPackage.LicenseContext property. See https://epplussoftware.com/developers/licenseexception'
+// ----------------------------------------------------------------------------------------
+// Project Name  : ExcelProject
+// File Name     : ExcelDataRepository.cs
+// Description   : Represents a repository for handling Excel data operations.
+// Author        : Anjana E R
+// Date          : 16-12-2024
+// ----------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using ExcelProject.Repo;
+using ExcelProject.Model;
+using OfficeOpenXml;
+using System.IO;
+using System.Reflection;
+
+/// <summary>
+/// Repository for handling Excel file operations.
+/// </summary>
+public class ExcelRepository : IRepo
+{
+    /// <summary>
+    /// Reads data from an Excel file and returns a list of ExcelData objects.
+    /// Maps columns from the Excel sheet to properties of ExcelData using the ExcelColumn attribute.
+    /// </summary>
+    /// <param name="filePath">The file path of the Excel file.</param>
+    /// <returns>A list of ExcelData objects.</returns>
+    public List<ExcelData> GetData(string filePath)
+    {
+        var result = new List<ExcelData>();
+
+        // Open the Excel file using EPPlus
+        using (var package = new ExcelPackage(new FileInfo(filePath)))
+        {
+            var worksheet = package.Workbook.Worksheets[0]; // Get the first worksheet
+            if (worksheet == null)
+                throw new Exception("Worksheet is empty or not found.");
+
+            // Read the header row (column names) once
+            var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.End.Column]
+                .Select(cell => cell.Text.Trim()) // Trim spaces to avoid mismatches
+                .ToList();
+
+            // Get properties with ExcelColumnAttribute once to improve performance
+            var propertyMappings = typeof(ExcelData).GetProperties()
+                .Select(prop => new
+                {
+                    Property = prop,
+                    Attribute = prop.GetCustomAttribute<ExcelColumnAttribute>()
+                })
+                .Where(mapping => mapping.Attribute != null)
+                .ToDictionary(mapping => mapping.Attribute.ColumnName, mapping => mapping.Property);
+
+            // Read data rows
+            for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+            {
+                var rowData = new ExcelData();
+
+                // Map each cell to the corresponding property
+                for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
+                {
+                    var columnName = headerRow[col - 1]; // Get column name
+                    if (propertyMappings.TryGetValue(columnName, out var property))
+                    {
+                        var cellValue = worksheet.Cells[row, col].Text?.Trim(); // Trim to avoid extra spaces
+                        property.SetValue(rowData, cellValue);
+                    }
+                }
+
+                result.Add(rowData);
+            }
+        }
+
+        return result;
+    }
+    public List<ExcelData> ApplyFilter(List<ExcelData> data, string column, List<string> selectedValues)
+    {
+        if (selectedValues == null || !selectedValues.Any())
+            return data;
+
+        return data.Where(row =>
+        {
+            var property = row.GetType().GetProperty(column);
+            if (property != null)
+            {
+                var value = property.GetValue(row)?.ToString();
+                return selectedValues.Contains(value);
+            }
+            return false;
+        }).ToList();
+    }
+}
+
+
+
+
 
 
 
