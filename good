@@ -1,154 +1,185 @@
-<GroupBox Header="Filter Conditions" Grid.Row="2" Margin="10">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200" />
-            <ColumnDefinition Width="300" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+using ClosedXML.Excel;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-        <!-- Column Names List -->
-        <ListBox ItemsSource="{Binding ColumnFilters}" 
-                 SelectedItem="{Binding SelectedColumnFilter}" 
-                 Grid.Column="0" Height="150">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding}" />
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-
-        <!-- Filter Options List -->
-        <ListBox ItemsSource="{Binding FilterValues}" 
-                 Grid.Column="1" Margin="10,0,0,0">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <!-- "Select All" Checkbox -->
-                        <CheckBox Content="Select All" 
-                                  IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
-                                  Command="{Binding SelectAllCommand}" />
-                    </StackPanel>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-
-        <!-- Buttons -->
-        <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="Apply Filter" Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ApplyFilterCommand}" />
-            <Button Content="Reset Filter" Width="100" Height="30" Margin="5" Background="Teal" Command="{Binding ResetFilterCommand}" />
-        </StackPanel>
-    </Grid>
-</GroupBox>
-
-public class MainViewModel : INotifyPropertyChanged
+public class ExcelRepository
 {
-    private ObservableCollection<string> _columnFilters;
-    private ObservableCollection<FilterValueModel> _filterValues;
-    private string _selectedColumnFilter;
-    private bool _isSelectAllChecked;
-
-    public MainViewModel()
+    public List<Dictionary<string, string>> ReadExcel(string filePath)
     {
-        ColumnFilters = new ObservableCollection<string> { "Project", "Reporter", "Priority", "Severity" };
-        FilterValues = new ObservableCollection<FilterValueModel>();
-        SelectAllCommand = new RelayCommand(ExecuteSelectAllCommand);
-    }
+        var rowsData = new List<Dictionary<string, string>>();
 
-    public ObservableCollection<string> ColumnFilters
-    {
-        get => _columnFilters;
-        set { _columnFilters = value; OnPropertyChanged(nameof(ColumnFilters)); }
-    }
-
-    public ObservableCollection<FilterValueModel> FilterValues
-    {
-        get => _filterValues;
-        set { _filterValues = value; OnPropertyChanged(nameof(FilterValues)); }
-    }
-
-    public string SelectedColumnFilter
-    {
-        get => _selectedColumnFilter;
-        set
+        using (var workbook = new XLWorkbook(filePath))
         {
-            _selectedColumnFilter = value;
-            OnPropertyChanged(nameof(SelectedColumnFilter));
-            UpdateFilterValues(); // Dynamically populate FilterValues
+            var worksheet = workbook.Worksheet(1); // Get the first worksheet
+            var rows = worksheet.RowsUsed(); // Get all used rows
+
+            // Get the headers (first row)
+            var headerRow = rows.First();
+            var headers = headerRow.Cells().Select(cell => cell.Value.ToString().Trim()).ToList();
+
+            // Iterate through the rows (excluding the header row)
+            foreach (var row in rows.Skip(1))
+            {
+                var rowData = new Dictionary<string, string>();
+
+                // For each column, use the header value as the key
+                for (int i = 0; i < headers.Count; i++)
+                {
+                    var cellValue = row.Cell(i + 1).Value.ToString(); // Read the cell value
+                    rowData[headers[i]] = cellValue; // Map the column header to cell value
+                }
+
+                rowsData.Add(rowData); // Add row data to the list
+            }
+        }
+
+        return rowsData;
+    }
+}
+
+
+public class FilterItem
+{
+    public string ColumnName { get; set; }
+    public List<string> FilterValues { get; set; } = new List<string>();
+    public bool IsSelected { get; set; }
+}
+
+
+
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Windows.Input;
+using System.Xml.Serialization;
+
+public class ExcelViewModel : BaseViewModel
+{
+    private readonly ExcelRepository _excelRepository;
+    public ObservableCollection<FilterItem> ColumnFilters { get; set; } = new ObservableCollection<FilterItem>();
+    public ObservableCollection<string> FilteredData { get; set; } = new ObservableCollection<string>();
+    public ObservableCollection<string> FilterValues { get; set; } = new ObservableCollection<string>();
+    public FilterItem SelectedColumnFilter { get; set; }
+    public string FilePath { get; set; }
+    public bool IsSelectAllChecked { get; set; }
+    public ICommand ApplyFilterCommand { get; set; }
+    public ICommand ResetFilterCommand { get; set; }
+    public ICommand ImportFilterCommand { get; set; }
+    public ICommand ExportFilterCommand { get; set; }
+
+    public ExcelViewModel()
+    {
+        _excelRepository = new ExcelRepository();
+        ApplyFilterCommand = new RelayCommand(ApplyFilter);
+        ResetFilterCommand = new RelayCommand(ResetFilter);
+        ImportFilterCommand = new RelayCommand(ImportFilter);
+        ExportFilterCommand = new RelayCommand(ExportFilter);
+    }
+
+    public void LoadExcelData(string filePath)
+    {
+        FilePath = filePath;
+        var rowsData = _excelRepository.ReadExcel(filePath);
+
+        // Assuming the first row is headers
+        var headers = rowsData.First().Keys.ToList();
+
+        // Populate ColumnFilters with columns from Excel
+        foreach (var header in headers)
+        {
+            ColumnFilters.Add(new FilterItem { ColumnName = header });
+        }
+
+        // Filter values for the selected column (for example)
+        var firstColumn = headers.First();
+        var filterValues = rowsData.Select(row => row[firstColumn]).Distinct().ToList();
+
+        foreach (var value in filterValues)
+        {
+            FilterValues.Add(value);
         }
     }
 
-    public bool IsSelectAllChecked
+    public void ApplyFilter()
     {
-        get => _isSelectAllChecked;
-        set
+        if (SelectedColumnFilter != null && SelectedColumnFilter.FilterValues.Any())
         {
-            _isSelectAllChecked = value;
-            OnPropertyChanged(nameof(IsSelectAllChecked));
-            UpdateSelectAllState(); // Automatically select all filters
+            var rowsData = _excelRepository.ReadExcel(FilePath);
+
+            // Filter the data based on the selected column and its filter values
+            var filteredData = rowsData.Where(row =>
+                SelectedColumnFilter.FilterValues.Contains(row[SelectedColumnFilter.ColumnName]))
+                .Select(row => row[SelectedColumnFilter.ColumnName]);
+
+            FilteredData.Clear();
+            foreach (var data in filteredData)
+            {
+                FilteredData.Add(data);
+            }
         }
     }
 
-    public ICommand SelectAllCommand { get; }
-
-    private void ExecuteSelectAllCommand(object parameter)
+    public void ResetFilter()
     {
-        foreach (var filterValue in FilterValues)
-        {
-            filterValue.IsSelected = IsSelectAllChecked;
-        }
-    }
-
-    private void UpdateFilterValues()
-    {
-        // Example logic to populate FilterValues based on SelectedColumnFilter
+        SelectedColumnFilter = null;
         FilterValues.Clear();
-        if (SelectedColumnFilter == "Project")
-        {
-            FilterValues.Add(new FilterValueModel { Value = "XRD Measurement", IsSelected = true });
-            FilterValues.Add(new FilterValueModel { Value = "Powder XRD", IsSelected = true });
-        }
-        else if (SelectedColumnFilter == "Reporter")
-        {
-            FilterValues.Add(new FilterValueModel { Value = "Anza.An", IsSelected = true });
-            FilterValues.Add(new FilterValueModel { Value = "Swetha.Ashok", IsSelected = true });
-        }
-
-        // Automatically check "Select All"
-        IsSelectAllChecked = true;
+        FilteredData.Clear();
     }
 
-    private void UpdateSelectAllState()
+    public void ImportFilter()
     {
-        foreach (var filterValue in FilterValues)
+        var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            filterValue.IsSelected = IsSelectAllChecked;
+            Filter = "XML Files (*.xml)|*.xml"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            var filePath = dialog.FileName;
+
+            var serializer = new XmlSerializer(typeof(ObservableCollection<FilterItem>));
+            using (var reader = new StreamReader(filePath))
+            {
+                var importedFilters = (ObservableCollection<FilterItem>)serializer.Deserialize(reader);
+                ColumnFilters = importedFilters;
+
+                // If you want to update selected column filter
+                SelectedColumnFilter = ColumnFilters.FirstOrDefault();
+            }
         }
     }
 
-    public event PropertyChangedEventHandler PropertyChanged;
-    protected virtual void OnPropertyChanged(string propertyName)
+    public void ExportFilter()
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Filter = "XML Files (*.xml)|*.xml"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            var filePath = dialog.FileName;
+
+            var serializer = new XmlSerializer(typeof(ObservableCollection<FilterItem>));
+            using (var writer = new StreamWriter(filePath))
+            {
+                serializer.Serialize(writer, ColumnFilters);
+            }
+        }
     }
 }
 
-public class FilterValueModel : INotifyPropertyChanged
+
+
+using System.ComponentModel;
+
+public class BaseViewModel : INotifyPropertyChanged
 {
-    private bool _isSelected;
-
-    public string Value { get; set; }
-
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set { _isSelected = value; OnPropertyChanged(nameof(IsSelected)); }
-    }
-
     public event PropertyChangedEventHandler PropertyChanged;
-    protected virtual void OnPropertyChanged(string propertyName)
+
+    protected void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
-
-
