@@ -234,3 +234,185 @@ public class MainViewModel : INotifyPropertyChanged
     protected void OnPropertyChanged(string propertyName) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
+
+
+
+public class MainViewModel : INotifyPropertyChanged
+{
+    private readonly IRepository _repository;
+    private ObservableCollection<ExcelData> _data;
+    private ObservableCollection<ExcelData> _filteredData;
+    private string _selectedColumnFilter;
+    private Dictionary<string, ObservableCollection<FilterItem>> _columnFiltersDictionary = new();
+    private ObservableCollection<FilterItem> _filterValues;
+    private bool _isSelectAllChecked;
+
+    public ObservableCollection<ExcelData> Data
+    {
+        get => _data;
+        set
+        {
+            _data = value;
+            OnPropertyChanged(nameof(Data));
+        }
+    }
+
+    public ObservableCollection<ExcelData> FilteredData
+    {
+        get => _filteredData;
+        set
+        {
+            _filteredData = value;
+            OnPropertyChanged(nameof(FilteredData));
+        }
+    }
+
+    public ObservableCollection<FilterItem> FilterValues
+    {
+        get => _filterValues;
+        set
+        {
+            _filterValues = value;
+            OnPropertyChanged(nameof(FilterValues));
+        }
+    }
+
+    public string SelectedColumnFilter
+    {
+        get => _selectedColumnFilter;
+        set
+        {
+            if (_selectedColumnFilter != value)
+            {
+                _selectedColumnFilter = value;
+                LoadFilterValues();
+                OnPropertyChanged(nameof(SelectedColumnFilter));
+            }
+        }
+    }
+
+    public bool IsSelectAllChecked
+    {
+        get => _isSelectAllChecked;
+        set
+        {
+            if (_isSelectAllChecked != value)
+            {
+                _isSelectAllChecked = value;
+                foreach (var filter in FilterValues)
+                {
+                    filter.IsSelected = value;
+                }
+                OnPropertyChanged(nameof(IsSelectAllChecked));
+            }
+        }
+    }
+
+    public ICommand ApplyFilterCommand { get; }
+    public ICommand ResetFilterCommand { get; }
+    public ICommand ImportFilterCommand { get; }
+    public ICommand ExportFilterCommand { get; }
+    public ICommand ShowDialogCommand { get; }
+
+    public MainViewModel(IRepository repository)
+    {
+        _repository = repository;
+        ApplyFilterCommand = new RelayCommand(ApplyFilter);
+        ResetFilterCommand = new RelayCommand(ResetFilter);
+        ImportFilterCommand = new RelayCommand(ImportFilter);
+        ExportFilterCommand = new RelayCommand(ExportFilter);
+        ShowDialogCommand = new RelayCommand(ShowFileDialog);
+    }
+
+    private void LoadFilterValues()
+    {
+        if (!string.IsNullOrEmpty(SelectedColumnFilter))
+        {
+            if (!_columnFiltersDictionary.TryGetValue(SelectedColumnFilter, out var filterItems))
+            {
+                var uniqueValues = Data.Select(d => d.Columns[SelectedColumnFilter]).Distinct();
+                filterItems = new ObservableCollection<FilterItem>(uniqueValues.Select(value => new FilterItem { Value = value }));
+                _columnFiltersDictionary[SelectedColumnFilter] = filterItems;
+            }
+            FilterValues = filterItems;
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
+
+        // Save the current filter state for the selected column
+        _columnFiltersDictionary[SelectedColumnFilter] = new ObservableCollection<FilterItem>(FilterValues);
+
+        // Filter data based on all active column filters
+        var filteredData = Data.ToList();
+        foreach (var columnFilter in _columnFiltersDictionary)
+        {
+            var selectedValues = columnFilter.Value.Where(f => f.IsSelected).Select(f => f.Value).ToList();
+            if (selectedValues.Any())
+            {
+                filteredData = filteredData
+                    .Where(d => selectedValues.Contains(d.Columns[columnFilter.Key]))
+                    .ToList();
+            }
+        }
+
+        FilteredData = new ObservableCollection<ExcelData>(filteredData);
+    }
+
+    private void ResetFilter()
+    {
+        _columnFiltersDictionary.Clear();
+        FilteredData = new ObservableCollection<ExcelData>(Data);
+        FilterValues?.Clear();
+        IsSelectAllChecked = false;
+    }
+
+    private void ImportFilter()
+    {
+        var dialog = new OpenFileDialog { Filter = "XML Files (*.xml)|*.xml" };
+        if (dialog.ShowDialog() == true)
+        {
+            using var reader = new StreamReader(dialog.FileName);
+            var serializer = new XmlSerializer(typeof(Dictionary<string, ObservableCollection<FilterItem>>));
+            _columnFiltersDictionary = (Dictionary<string, ObservableCollection<FilterItem>>)serializer.Deserialize(reader);
+
+            // Reload filter values for the currently selected column
+            if (!string.IsNullOrEmpty(SelectedColumnFilter))
+            {
+                LoadFilterValues();
+            }
+
+            // Apply the imported filter conditions
+            ApplyFilter();
+        }
+    }
+
+    private void ExportFilter()
+    {
+        var dialog = new SaveFileDialog { Filter = "XML Files (*.xml)|*.xml" };
+        if (dialog.ShowDialog() == true)
+        {
+            using var writer = new StreamWriter(dialog.FileName);
+            var serializer = new XmlSerializer(typeof(Dictionary<string, ObservableCollection<FilterItem>>));
+            serializer.Serialize(writer, _columnFiltersDictionary);
+        }
+    }
+
+    private void ShowFileDialog()
+    {
+        var dialog = new OpenFileDialog { Filter = "Excel Files (*.xlsx)|*.xlsx" };
+        if (dialog.ShowDialog() == true)
+        {
+            var filePath = dialog.FileName;
+            Data = new ObservableCollection<ExcelData>(_repository.ReadExcelData(filePath));
+            FilteredData = Data;
+        }
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+    protected void OnPropertyChanged(string propertyName) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}
+
