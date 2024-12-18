@@ -351,4 +351,23 @@ private void LoadFilterValues()
     IsSelectAllChecked = FilterValues.All(f => f.IsSelected);
 }
 
+ if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
 
+ var selectedValues = FilterValues.Where(f => f.IsSelected).Select(f => f.Value).ToList();
+
+ if (selectedValues.Any())
+ {
+     // Filter the data based on the selected values
+     var filteredData = repo.ApplyFilter(Data.ToList(), SelectedColumnFilter, selectedValues);
+     FilteredData = new ObservableCollection<ExcelData>(filteredData);
+
+     // Save the current filter state
+     columnFiltersList<SelectedColumnFilter> = new ObservableCollection<FilterItem>(FilterValues);
+
+     IsFilterApplied = true;
+ }
+ else
+ {
+     // If no filter values are selected, reset to original data
+     FilteredData = new ObservableCollection<ExcelData>(Data);
+     IsFilterApplied = false;
