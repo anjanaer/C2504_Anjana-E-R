@@ -131,5 +131,74 @@ private void ExportFilter()
         </DataTemplate>
     </ListBox.ItemTemplate>
 </ListBox>
+private void LoadData()
+{
+    // Show a file dialog to allow the user to select an Excel file
+    var dialog = new OpenFileDialog
+    {
+        Filter = "Excel Files (*.xlsx;*.xls)|*.xlsx;*.xls"
+    };
+
+    if (dialog.ShowDialog() == true)
+    {
+        var filePath = dialog.FileName;
+
+        try
+        {
+            // Load the data from the Excel file using the repository
+            var data = repo.LoadExcelData(filePath);
+
+            // If data was successfully loaded
+            if (data != null && data.Any())
+            {
+                // Set the Data collection
+                Data = new ObservableCollection<ExcelData>(data);
+
+                // Set the FilteredData collection to the full data initially
+                FilteredData = new ObservableCollection<ExcelData>(data);
+
+                // Generate the columns for filtering (based on the first data item)
+                GenerateColumnFilters(data.First());
+
+                // Update the UI to show the loaded data
+                IsFileValid = true; // File is valid
+            }
+            else
+            {
+                // Handle the case where data is empty or null
+                IsFileValid = false;
+                MessageBox.Show("No valid data found in the Excel file.");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle any errors (e.g., file read errors, data parsing errors)
+            IsFileValid = false;
+            MessageBox.Show($"Error loading data: {ex.Message}");
+        }
+    }
+}
+
+/// <summary>
+/// Generates a list of column filters from the first row of the data.
+/// </summary>
+/// <param name="sampleData">The first data row to extract columns for filtering.</param>
+private void GenerateColumnFilters(ExcelData sampleData)
+{
+    // Assuming the ExcelData class has properties for each column
+    ColumnFilters.Clear();
+
+    foreach (var property in sampleData.GetType().GetProperties())
+    {
+        // Add the property name to the ColumnFilters collection
+        ColumnFilters.Add(property.Name);
+    }
+
+    // If necessary, you can set the initial selected column filter for UI purposes
+    if (ColumnFilters.Any())
+    {
+        SelectedColumnFilter = ColumnFilters.First(); // Set the default selected filter column
+    }
+}
 
 
