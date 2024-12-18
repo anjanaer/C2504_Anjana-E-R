@@ -6,6 +6,8 @@ public class MainViewModel : INotifyPropertyChanged
     private Dictionary<string, ObservableCollection<FilterItem>> columnFiltersDictionary;
     private string selectedColumnFilter;
     private bool isSelectAllChecked;
+ // File path of the selected Excel file
+    private string filePath;
     private readonly IRepo repo;
 
     public MainViewModel(IRepo excelRepo)
@@ -22,6 +24,18 @@ public class MainViewModel : INotifyPropertyChanged
         ExportFilterCommand = new RelayCommand(ExportFilter);
         ImportFilterCommand = new RelayCommand(ImportFilter);
     }
+       public string FilePath
+  {
+      get 
+      {
+          return filePath;
+      } 
+      set
+      {
+          filePath = value; 
+          OnPropertyChanged(nameof(FilePath)); 
+      }
+  }
 
     public ObservableCollection<ExcelData> Data
     {
@@ -199,3 +213,6 @@ public class MainViewModel : INotifyPropertyChanged
     protected virtual void OnPropertyChanged(string propertyName) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
+
+System.NotSupportedException: 'The type System.Collections.Generic.Dictionary`2[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.ObjectModel.ObservableCollection`1[[ExcelProject.Model.FilterItem, ExcelProject, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]] is not supported because it implements IDictionary.'
+What is the changes
