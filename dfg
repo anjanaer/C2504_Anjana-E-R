@@ -416,3 +416,46 @@ public class MainViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
 
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS7036	There is no argument given that corresponds to the required parameter 'excelrepo' of 'MainViewModel.MainViewModel(IRepo)'	NewExcel	C:\Users\2021508\source\repos\NewExcel\NewExcel\MainWindow.xaml.cs	35	
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using ExcelProject.ViewModel;
+using NewExcel.Repo;
+
+namespace NewExcel
+{
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        
+        private MainViewModel ViewModel { get; set; } = null;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MainWindow"/> class.
+        /// Sets the DataContext to the <see cref="ClarificationViewModel"/>.
+        /// </summary>
+        public MainWindow()
+        {
+            InitializeComponent();
+            ViewModel = new MainViewModel();
+            this.DataContext = ViewModel;
+        }
+    }
+}
+
