@@ -255,4 +255,100 @@ private void ExportFilter()
 }
 
 
+private void ExportFilter()
+{
+    SaveFileDialog saveFileDialog = new SaveFileDialog
+    {
+        Filter = "XML Files (*.xml)|*.xml"
+    };
+
+    if (saveFileDialog.ShowDialog() == true)
+    {
+        var filePath = saveFileDialog.FileName;
+
+        var serializer = new XmlSerializer(typeof(List<ColumnFilter>));
+        using (var writer = new StreamWriter(filePath))
+        {
+            serializer.Serialize(writer, columnFiltersList);
+        }
+    }
+}
+
+
+private void ImportFilter()
+{
+    OpenFileDialog openFileDialog = new OpenFileDialog
+    {
+        Filter = "XML Files (*.xml)|*.xml"
+    };
+
+    if (openFileDialog.ShowDialog() == true)
+    {
+        var filePath = openFileDialog.FileName;
+
+        var serializer = new XmlSerializer(typeof(List<ColumnFilter>));
+        using (var reader = new StreamReader(filePath))
+        {
+            columnFiltersList = (List<ColumnFilter>)serializer.Deserialize(reader);
+        }
+
+        if (!string.IsNullOrEmpty(SelectedColumnFilter))
+        {
+            var columnFilter = columnFiltersList.FirstOrDefault(cf => cf.ColumnName == SelectedColumnFilter);
+            if (columnFilter != null)
+            {
+                FilterValues = columnFilter.Filters;
+            }
+        }
+    }
+}
+
+
+
+private void SaveCurrentFilters()
+{
+    if (!string.IsNullOrEmpty(SelectedColumnFilter))
+    {
+        var existingFilter = columnFiltersList.FirstOrDefault(cf => cf.ColumnName == SelectedColumnFilter);
+        if (existingFilter != null)
+        {
+            existingFilter.Filters = new ObservableCollection<FilterItem>(FilterValues);
+        }
+        else
+        {
+            columnFiltersList.Add(new ColumnFilter
+            {
+                ColumnName = SelectedColumnFilter,
+                Filters = new ObservableCollection<FilterItem>(FilterValues)
+            });
+        }
+    }
+}
+
+
+private void LoadFilterValues()
+{
+    if (string.IsNullOrEmpty(SelectedColumnFilter)) return;
+
+    var columnFilter = columnFiltersList.FirstOrDefault(cf => cf.ColumnName == SelectedColumnFilter);
+    if (columnFilter != null)
+    {
+        FilterValues = columnFilter.Filters;
+    }
+    else
+    {
+        var distinctValues = Data
+            .Select(d => d.GetType().GetProperty(SelectedColumnFilter)?.GetValue(d)?.ToString())
+            .Distinct()
+            .OrderBy(v => v)
+            .ToList();
+
+        FilterValues = new ObservableCollection<FilterItem>(
+            distinctValues.Select(v => new FilterItem { Value = v, IsSelected = true })
+        );
+    }
+
+    IsSelectAllChecked = FilterValues.All(f => f.IsSelected);
+}
+
 
