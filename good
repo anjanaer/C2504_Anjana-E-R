@@ -216,3 +216,43 @@ public class MainViewModel : INotifyPropertyChanged
 
 System.NotSupportedException: 'The type System.Collections.Generic.Dictionary`2[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.ObjectModel.ObservableCollection`1[[ExcelProject.Model.FilterItem, ExcelProject, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]] is not supported because it implements IDictionary.'
 What is the changes
+
+[Serializable]
+public class SerializableDictionary<TKey, TValue> : List<KeyValuePair<TKey, TValue>>
+{
+    public SerializableDictionary() { }
+
+    public SerializableDictionary(IDictionary<TKey, TValue> dictionary)
+        : base(dictionary.Select(kv => new KeyValuePair<TKey, TValue>(kv.Key, kv.Value)))
+    { }
+
+    public IDictionary<TKey, TValue> ToDictionary()
+    {
+        return this.ToDictionary(kv => kv.Key, kv => kv.Value);
+    }
+}
+
+
+private void ExportFilter()
+{
+    SaveFileDialog saveFileDialog = new SaveFileDialog
+    {
+        Filter = "XML Files (*.xml)|*.xml"
+    };
+
+    if (saveFileDialog.ShowDialog() == true)
+    {
+        var filePath = saveFileDialog.FileName;
+
+        var serializableDictionary = new SerializableDictionary<string, ObservableCollection<FilterItem>>(columnFiltersDictionary);
+
+        var serializer = new XmlSerializer(typeof(SerializableDictionary<string, ObservableCollection<FilterItem>>));
+        using (var writer = new StreamWriter(filePath))
+        {
+            serializer.Serialize(writer, serializableDictionary);
+        }
+    }
+}
+
+
+
