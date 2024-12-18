@@ -1,3 +1,140 @@
+Bug Tracker
+Requirement 1
+Read and display Quest Mantis exported CSV file. 
+[…] button
+When […] is clicked, show Open file dialog. Display selected file path in the [File name] textbox. Show error message if file type is not csv.
+Show Details button
+When the [Show Details] button is clicked, read the csv file mentioned in the [File name] text box and display content in the Bug details table.
+This button should be disabled if [File name] text box is empty.
+Big Detail table
+The number of columns and column names in the table shall be same as the CSV file header. The number of rows should be equal to the number of rows in the CSV file.
+e.g.
+ 
+Column name1 = Id, Column name 2 = Project etc. 
+ 
+ <Window x:Class="ExcelProject.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ExcelProject"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" WindowState="Maximized">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Title Bar -->
+        <Border Background="Teal" Grid.Row="0" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" CornerRadius="5">
+            <TextBlock Text="Bug Tracker" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Margin="10,0,0,0" />
+        </Border>
+
+        <!-- Upload Section -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
+            <TextBlock Text="FileName: " VerticalAlignment="Center" Width="60" />
+            <TextBox Width="400" Height="30" Margin="10 0 0 0" Padding="4 4 4 4" IsEnabled="False" Text="{Binding FilePath}" />
+            <Button Content="..." Width="70" Margin="10,0,0,0" Background="Teal" Command="{Binding ShowDialogCommand}" IsEnabled="{Binding IsFileValid}" />
+            <Button Content="Show Details" Width="100" Margin="10,0,0,0" Background="Teal" Command="{Binding LoadCommand}" />
+        </StackPanel>
+
+        <!-- Filter Conditions Section -->
+        <GroupBox Header="Filter Conditions" Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,10">
+            <Grid Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Column Filters ListBox -->
+                <ListBox ItemsSource="{Binding ColumnFilters}" Height="230" SelectedItem="{Binding SelectedColumnFilter}"  Grid.Column="0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <StackPanel Grid.Column="1" Orientation="Vertical">
+
+                    <CheckBox Content="Select All" 
+                               IsChecked="{Binding IsSelectAllChecked, Mode=TwoWay}" 
+                               Margin="0,0,0,10" />
+                    <!-- Filter Values ListBox with Select All checkbox included -->
+                    <ListBox ItemsSource="{Binding FilterValues}" SelectionMode="Multiple" Height="230" Grid.Column="1">
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <!-- Individual Filter Checkbox -->
+                                <CheckBox Content="{Binding Value}" 
+                                      IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+
+                <!-- Buttons -->
+                <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10">
+                    <Button Content="Apply Filter" Width="150" Height="33" Margin="5" Background="Teal" Command="{Binding ApplyFilterCommand}" />
+                    <Button Content="Reset Filter" Width="150" Height="22" Margin="5" Background="Teal" Command="{Binding ResetFilterCommand}" />
+                    <Button Content="Import Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ImportFilterCommand}" />
+                    <Button Content="Export Filter..." Width="150" Height="30" Margin="5" Background="Teal" Command="{Binding ExportFilterCommand}" />
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <!-- DataGrid Section -->
+        <DataGrid x:Name="dataGrid" Grid.Row="3" ItemsSource="{Binding FilteredData}" RowHeight="30"  >
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="Teal" />
+                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                    <Setter Property="VerticalContentAlignment" Value="Center" />
+                    <Setter Property="Height" Value="20" />
+                    <Setter Property="MinWidth" Value="100" />
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+        </DataGrid>
+
+        <!-- Close Button -->
+        <Button Content="Close" Grid.Row="4" Background="Teal" Width="100" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding CloseCommand}" />
+    </Grid>
+</Window>    
+
+Requirement 2
+Add filter conditions and update bug details table based on filter conditions.
+ 
+Show all column names in the filter conditions. When selecting a column name, then show unique row content like Excel filter.
+Apply Filter button
+When [Apply Filter] button is clicked, update bug details table with all filter conditions.
+Reset Filter button
+When [Reset Filter] button is clicked, update bug details table.
+Import Filter button
+When [Import Filter] button is clicked, import filter conditions from selected XML file. 
+Export Filter button
+When [Export Filter] button is clicked, save filter conditions in the XML format.
+ 
+Requirement 3
+Show trend chart dialog. <TODO>
+ 
+
+
+
+
+
+
+
+
+
+
 ChatGPT
 
 You said:
