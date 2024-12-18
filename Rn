@@ -478,6 +478,219 @@ private void LoadFilterValues()
         IsSelectAllChecked = false;
     }
 }
+-------------------------------
+public interface IRepo
+{
+    IEnumerable<ExcelData> GetData(string filePath);
+    void SaveFilters(List<FilterItem> filters, string filePath);
+    List<FilterItem> ImportFilters(string filePath);
+}
+using ClosedXML.Excel;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
+public class ExcelRepo : IRepo
+{
+    public IEnumerable<ExcelData> GetData(string filePath)
+    {
+        var excelData = new List<ExcelData>();
+
+        using (var workbook = new XLWorkbook(filePath))
+        {
+            var worksheet = workbook.Worksheet(1);
+            var rows = worksheet.RowsUsed().Skip(1);  // Skipping the header row
+
+            foreach (var row in rows)
+            {
+                var data = new ExcelData
+                {
+                    ColumnData = new Dictionary<string, object>()
+                };
+
+                foreach (var cell in row.Cells())
+                {
+                    data.ColumnData[cell.Address.ColumnLetter] = cell.Value;
+                }
+
+                excelData.Add(data);
+            }
+        }
+
+        return excelData;
+    }
+
+    public void SaveFilters(List<FilterItem> filters, string filePath)
+    {
+        var serializer = new System.Xml.Serialization.XmlSerializer(typeof(List<FilterItem>));
+        using (var writer = new StreamWriter(filePath))
+        {
+            serializer.Serialize(writer, filters);
+        }
+    }
+
+    public List<FilterItem> ImportFilters(string filePath)
+    {
+        var serializer = new System.Xml.Serialization.XmlSerializer(typeof(List<FilterItem>));
+        using (var reader = new StreamReader(filePath))
+        {
+            return (List<FilterItem>)serializer.Deserialize(reader);
+        }
+    }
+}
+
+
+
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows.Input;
+using System.Xml.Serialization;
+using System.IO;
+using System.Collections.Generic;
+
+public class MainViewModel : INotifyPropertyChanged
+{
+    private ObservableCollection<ExcelData> data;
+    private ObservableCollection<ExcelData> filteredData;
+    private string filePath;
+    private ObservableCollection<string> columnFilters;
+    private ObservableCollection<FilterItem> filterValues;
+    private IRepo repo;
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    public MainViewModel(IRepo excelRepo)
+    {
+        repo = excelRepo;
+        LoadCommand = new RelayCommand(LoadData);
+        ApplyFilterCommand = new RelayCommand(ApplyFilter);
+        ResetFilterCommand = new RelayCommand(ResetFilter);
+        ExportFilterCommand = new RelayCommand(ExportFilter);
+        ImportFilterCommand = new RelayCommand(ImportFilter);
+        CloseCommand = new RelayCommand(() => Application.Current.Shutdown());
+
+        // Initialize collections
+        ColumnFilters = new ObservableCollection<string>();
+        FilterValues = new ObservableCollection<FilterItem>();
+        FilteredData = new ObservableCollection<ExcelData>();
+        data = new ObservableCollection<ExcelData>();
+    }
+
+    public ObservableCollection<ExcelData> Data
+    {
+        get => data;
+        set { data = value; OnPropertyChanged(nameof(Data)); }
+    }
+
+    public ObservableCollection<ExcelData> FilteredData
+    {
+        get => filteredData;
+        set { filteredData = value; OnPropertyChanged(nameof(FilteredData)); }
+    }
+
+    public ObservableCollection<string> ColumnFilters
+    {
+        get => columnFilters;
+        set { columnFilters = value; OnPropertyChanged(nameof(ColumnFilters)); }
+    }
+
+    public ObservableCollection<FilterItem> FilterValues
+    {
+        get => filterValues;
+        set { filterValues = value; OnPropertyChanged(nameof(FilterValues)); }
+    }
+
+    public string FilePath
+    {
+        get => filePath;
+        set { filePath = value; OnPropertyChanged(nameof(FilePath)); }
+    }
+
+    public ICommand LoadCommand { get; }
+    public ICommand ApplyFilterCommand { get; }
+    public ICommand ResetFilterCommand { get; }
+    public ICommand ExportFilterCommand { get; }
+    public ICommand ImportFilterCommand { get; }
+    public ICommand CloseCommand { get; }
+
+    private void LoadData()
+    {
+        if (string.IsNullOrEmpty(FilePath)) return;
+
+        var excelData = repo.GetData(FilePath);
+        Data = new ObservableCollection<ExcelData>(excelData);
+        FilteredData = new ObservableCollection<ExcelData>(excelData);
+
+        ColumnFilters = new ObservableCollection<string>(excelData.FirstOrDefault()?.ColumnData.Keys);
+    }
+
+    private void ApplyFilter()
+    {
+        var selectedFilters = FilterValues.Where(f => f.IsSelected).Select(f => f.Value).ToList();
+        if (!selectedFilters.Any()) return;
+
+        var filteredData = Data.Where(d =>
+            selectedFilters.All(s => d.ColumnData.Values.Contains(s)))
+            .ToList();
+
+        FilteredData = new ObservableCollection<ExcelData>(filteredData);
+    }
+
+    private void ResetFilter()
+    {
+        foreach (var filter in FilterValues)
+            filter.IsSelected = false;
+
+        FilteredData = new ObservableCollection<ExcelData>(Data);
+    }
+
+    private void ExportFilter()
+    {
+        var dialog = new SaveFileDialog
+        {
+            Filter = "XML Files (*.xml)|*.xml"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            repo.SaveFilters(FilterValues.ToList(), dialog.FileName);
+        }
+    }
+
+    private void ImportFilter()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = "XML Files (*.xml)|*.xml"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            var importedFilters = repo.ImportFilters(dialog.FileName);
+            FilterValues = new ObservableCollection<FilterItem>(importedFilters);
+        }
+    }
+
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+
+using System.Windows;
+
+namespace ExcelProject
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+            DataContext = new MainViewModel(new ExcelRepo()); // Initialize with the ExcelRepo
+        }
+    }
+}
 
 
 
