@@ -762,6 +762,49 @@ namespace ExcelProject.ViewModel
 
 
 
+private static readonly ILog logger = LogManager.GetLogger(typeof(YourClassName));
+
+private void ShowDialog()
+{
+    try
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = "Excel Files (*.xlsx, *.xls)|*.xlsx;*.xls"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            FilePath = dialog.FileName;
+
+            // Check if the file has a valid Excel extension (.xlsx or .xls)
+            if (FilePath.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase) || FilePath.EndsWith(".xls", StringComparison.OrdinalIgnoreCase))
+            {
+                IsFileValid = true;
+                FileNameErrorMessage = string.Empty; // Clear any previous error message
+                logger.Info("A valid Excel file was selected: " + FilePath);
+            }
+            else
+            {
+                IsFileValid = false;
+                FileNameErrorMessage = "The selected file is not a valid Excel file. Please select a .xlsx or .xls file.";
+                logger.Warn("Invalid file format selected: " + FilePath);
+            }
+        }
+    }
+    catch (UnauthorizedAccessException ex)
+    {
+        IsFileValid = false;
+        FileNameErrorMessage = "You do not have permission to access the selected file.";
+        logger.Error("UnauthorizedAccessException occurred while opening the file dialog: ", ex);
+    }
+    catch (Exception ex)
+    {
+        IsFileValid = false;
+        FileNameErrorMessage = "An error occurred while selecting the file. Please try again.";
+        logger.Error("Exception occurred in ShowDialog method: ", ex);
+    }
+}
 
 
 
